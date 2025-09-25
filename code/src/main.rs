@@ -19,25 +19,22 @@ fn main() {
     println!("what operation do you want to preform");
     let _ = std::io::stdin().read_line(&mut opp).unwrap();
     let opp = opp.trim(); // <- key line
-
-    if opp == "+"{
-        num1 += num2;
-        println!("This is the answer {}", num1);
-    } else if opp == "-" {
-        num1 -= num2;
-        println!("This is the answer {}", num1);
-    } else if opp == "*" {
-        num1 *= num2;
-        println!("This is the answer {}", num1);
-    } else if opp == "/" {
-        if num2 == 0 {
-            println!("divide by 0 error");
+    
+    let result = match opp {
+        "+" => Some(num1 + num2),
+        "-" => Some(num1 - num2),
+        "*" => Some(num1 * num2),
+        "/" if num2 != 0 => Some(num1 / num2),
+        "/" => {
+            println!("Devide by 0 error");
+            None
         }
-        else {
-            num1 /= num2;
-            println!("This is the answer {}", num1);
+        _ => {
+            println!("please enter a valid opp");
+            None
         }
-    } else {
-        println!("this is not a valid opporator please use +, -, *, or /");
-    }   
+    };
+    if let Some(answer) = result {
+    println!("This is the answer {}", answer); 
+    }
 }
