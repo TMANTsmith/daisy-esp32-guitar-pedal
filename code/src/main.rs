@@ -1,40 +1,38 @@
+fn main(){
+    let mut task_list = Vec::new();
+    let mut command = String::new();
 
-fn userInt() -> i32 {
-    let mut input1 = String::new();
-    
-    let _ =  std::io::stdin().read_line(&mut input1);
-    let mut x: i32 = input1.trim().parse().expect("failed to parse");
-    return x;
+    println!("enter a command");
+    println!("1. add a task");
+    println!("2. delete a task");
+    println!("3. change a task");
+    println!("4. change status");
+    io::stdin().read_line(&mut, command);
 }
 
-fn main() {
-    let mut opp = String::new();
+struct Task {
+    name : String,
+    discription : String,
+    completed : bool,
+}
 
-    println!("number a:");
-    let mut num1: i32 = userInt();
-    
-    println!("number b:");
-    let mut num2: i32 = userInt();
-
-    println!("what operation do you want to preform");
-    let _ = std::io::stdin().read_line(&mut opp).unwrap();
-    let opp = opp.trim(); // <- key line
-    
-    let result = match opp {
-        "+" => Some(num1 + num2),
-        "-" => Some(num1 - num2),
-        "*" => Some(num1 * num2),
-        "/" if num2 != 0 => Some(num1 / num2),
-        "/" => {
-            println!("Devide by 0 error");
-            None
-        }
-        _ => {
-            println!("please enter a valid opp");
-            None
-        }
-    };
-    if let Some(answer) = result {
-    println!("This is the answer {}", answer); 
+fn addtask(list : Vec) -> Vec{
+    let mut task_name = String::new();
+   
+    println!("What do you want to call the item?");
+    io::stdin().read_line(&mut, task_name);
+   
+    println!("What discription do you want it to have?");
+    io::stdin().read_line(&mut, discription_temp);
+   
+    println!("Is this item completed?");
+    io::stdin().read_line(&mut, completed_temp);
+   
+    let task_temp = Task {
+        name : name_temp,
+        discription : discription_temp,
+        completed : completed_temp,
     }
+    list.push(task_temp);
 }
+
