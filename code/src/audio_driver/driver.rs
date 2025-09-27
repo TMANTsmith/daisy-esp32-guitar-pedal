@@ -1,0 +1,52 @@
+use crate::config::settings;
+use esp_idf_hal::prelude::*;  // Brings in useful helpers like Hz units
+use esp_idf_hal::i2c::*;      // I2C driver and config
+use esp_idf_hal::peripherals::Peripherals; // Access ESP32 peripherals
+
+e crate::config::settings; // Import GPIO numbers and I2C frequency from settings
+
+// Define a struct to hold the state of the audio driver
+pub struct AudioDriver {
+    i2c: Master<'static>, // 'Master' is the I2C master peripheral
+                          // 'static lifetime means it lives for the program's lifetime
+                          // This stores the I2C object so it can be used in methods
+}
+
+// Implement methods for the AudioDriver struct
+impl AudioDriver {
+    // Constructor for AudioDriver
+    // Returns Result<Self> because initializing I2C can fail
+    // 'Self' here refers to the struct AudioDriver itself
+    pub fn new() -> anyhow::Result<Self> {
+        // Take ownership of ESP32 peripherals
+        let peripherals = Peripherals::take().unwrap();
+
+        // Configure GPIO pins for SDA and SCL from settings
+        let sda = peripherals.pins.gpio(settings::I2C_SDA);
+        let scl = peripherals.pins.gpio(settings::I2C_SCL);
+
+        // Configure I2C parameters: set baud rate from settings
+        let config = MasterConfig::new().baudrate(settings::I2C_FREQ_HZ.hz().into());
+
+        // Initialize the I2C peripheral
+        // The '?' operator propagates errors as an anyhow::Error
+        let i2c = Master::new(peripherals.i2c0, sda, scl, &config)?;
+
+        // Return an instance of AudioDriver wrapped in Ok()
+        // Ok() means this function succeeded and provides the value
+        Ok(Self { i2c })
+    }
+
+    // Method to write bytes to a device at a given I2C address
+    // Returns Result<()> to indicate success or failure
+    pub fn write(&mut self, addr: u8, data: &[u8]) -> anyhow::Result<()> {
+        self.i2c.write(addr, data)?; // Send bytes via I2C; propagate error if it fails
+        Ok(()) // Return Ok with unit type () meaning "success with no value"
+    }
+
+    // Method to read bytes from a device at a given I2C address
+    // Returns Result<()> for error handling
+    pub fn read(&mut self, addr: u8, buffer: &mut [u8]) -> anyhow::Result<()> {
+        self.i2c.read(addr, buffer)?; // Read bytes into buffer; propagate error if it fails
+        Ok(()) // Indicate success
+    }
