@@ -85,3 +85,29 @@ pub fn init_i2s() -> I2sDriver<'static> {
     ).unwrap()
 }
 
+pub fn unpack(in_bytes: &[u8]) -> Vec<f32> {
+    let mut out_samples = Vec::with_capacity(in_bytes.len() / 3);
+    for chunk in in_bytes.chunks_exact(3) {
+        let raw = ((chunk[0] as u32) << 16)
+                | ((chunk[1] as u32) << 8)
+                | (chunk[2] as u32);
+        let sample_i32 = (raw << 8) as i32 >> 8;
+        let f = sample_i32 as f32 / (1 << 23) as f32;
+        out_samples.push(f);
+    }
+    out_samples
+}
+
+fn pack(in_samples: &[f32]) -> Vec<u8> {
+    let mut out_bytes = Vec::with_capacity(in_samples.len() * 3);
+    for &f in in_samples {
+        // scale back to 24-bit integer range
+        let s = (f * (1 << 23) as f32).clamp(-(1 << 23) as f32, (1 << 23) as f32 - 1.0) as i32;
+        out_bytes.push(((s >> 16) & 0xFF) as u8);
+        out_bytes.push(((s >> 8) & 0xFF) as u8);
+        out_bytes.push((s & 0xFF) as u8);
+    }
+    out_bytes
+}
+
+

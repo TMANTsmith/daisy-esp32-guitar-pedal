@@ -7,10 +7,10 @@ impl Gain_float {
         Self { gain }
     }
 
-    fn process(&self, buffer: &mut [i16]) {
+    fn process(&self, buffer: &mut [f32]) {
         for sample in buffer.iter_mut() {
-            *sample = (*sample as f32 * self.gain)
-                .clamp(i16::MIN as f32, i16::MAX as f32) as i16;
+            *sample = (*sample* self.gain)
+                .clamp(f32::MIN, f32::MAX)
         }
     }
 }
