@@ -2,8 +2,7 @@ use crate::config::settings;
 use esp_idf_hal::prelude::*;  // Brings in useful helpers like Hz units
 use esp_idf_hal::i2c::*;      // I2C driver and config
 use esp_idf_hal::peripherals::Peripherals; // Access ESP32 peripherals
-
-e crate::config::settings; // Import GPIO numbers and I2C frequency from settings
+use esp_idf_hal::i2s::*;
 
 // Define a struct to hold the state of the audio driver
 pub struct AudioDriver {
@@ -50,3 +49,39 @@ impl AudioDriver {
         self.i2c.read(addr, buffer)?; // Read bytes into buffer; propagate error if it fails
         Ok(()) // Indicate success
     }
+    pub fn mwrite(&mut self, addr: u8, bit : u8, value : bool) -> anyhow::Result<()> {
+        let mut current: [u8; 1] = [0];
+        audio_driver.read(DEVICE_ADDRESS, &mut current)?;
+
+        if value == True {
+            current[0] |= 1 << bit;
+        } else {
+            current[0] &= !(1 << bit);
+        }
+        audio_driver.write(DEVICE_ADDRESS, &[addr, current[0]])?;
+        Ok(())
+    }
+
+        
+
+// ---------- I2S stuff  ---------- //
+
+pub fn init_i2s() -> I2sDriver<'static> {
+    let config = I2sDriverConfig::new()
+        .sample_rate(44100)
+        .data_bits(DataBits::Bits24)
+        .channel_format(ChannelFormat::Mono)
+        .communication_format(CommunicationFormat::I2S)
+        .dma_buf_count(2)
+        .dma_buf_len(1024);
+
+    I2sDriver::new(
+        I2sNum::I2S0,
+        BckPin::new(I2S_BLCK),
+        WsPin::new(I2S_LRCK),
+        DataOutPin::new(I2S_DOUT),
+        Some(DataInPin::new(I2S_DIN)),
+        config
+    ).unwrap()
+}
+
