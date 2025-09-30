@@ -13,7 +13,4 @@ pub fn run_modules() {
     
     let invert = Invert;
     invert.process(&mut buffer);
-
-    looper::module();
-    filter::module();
 }
