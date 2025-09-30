@@ -98,7 +98,7 @@ pub fn unpack(in_bytes: &[u8]) -> Vec<f32> {
     out_samples
 }
 
-fn pack(in_samples: &[f32]) -> Vec<u8> {
+pub fn pack(in_samples: &[f32]) -> Vec<u8> {
     let mut out_bytes = Vec::with_capacity(in_samples.len() * 3);
     for &f in in_samples {
         // scale back to 24-bit integer range
