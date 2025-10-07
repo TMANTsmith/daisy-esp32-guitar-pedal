@@ -1,8 +1,8 @@
-struct Gain_float {
+struct Gain {
     gain: f32,
 }
 
-impl Gain_float {
+impl Gain{
     fn new(gain: f32) -> Self {
         Self { gain }
     }

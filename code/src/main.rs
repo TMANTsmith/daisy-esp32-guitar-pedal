@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
     if auto_mute == true {
         mwrite(0x06, 5, true);
     } 
-    mwrite(0x02, 7, true); // freeze bit (finalizes flash)
+    mwrite(0x02, 7, ,false); // freeze bit (finalizes flash)
 
 
     // setting up buffer //
