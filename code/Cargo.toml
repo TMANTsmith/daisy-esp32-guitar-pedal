@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 io = "0.0.2"
-
+esp-idf-hal = "0.43"
+freeverb = { path = "src/audio_modules/audio_modules/freeverb" }
