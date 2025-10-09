@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "src/clib",
+  "src/freeverb",
+  "examples/app_gtk",
+  "examples/wasm",
+]
