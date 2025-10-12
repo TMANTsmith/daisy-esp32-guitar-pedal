@@ -25,7 +25,7 @@
    cargo install espup
    espup install
    '''
-
+   asdf
 4. Add the appropreate rust target `rustup target add xtensa-esp32s3-none-elf`
 5. Build the firmware with `cargo build --release`
 6. Plug in your esp32 using a usb-c cable and use `cargo espflash flash --release`
