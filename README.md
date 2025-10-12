@@ -18,14 +18,15 @@
 1. Clone the Github reposotory using `git clone https://github.com/TMANTsmith/esp32-guitar-pedal/tree/main.git`
 2. Install rust if you have not already using `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 3. Install the required packages
-   '''shell
+
+   ```shell
    cargo install ldproxy
    cargo install espflash --locked
    cargo install cargo-espflash --locked
    cargo install espup
    espup install
-   '''
-   asdf
+   ```
+
 4. Add the appropreate rust target `rustup target add xtensa-esp32s3-none-elf`
 5. Build the firmware with `cargo build --release`
 6. Plug in your esp32 using a usb-c cable and use `cargo espflash flash --release`
