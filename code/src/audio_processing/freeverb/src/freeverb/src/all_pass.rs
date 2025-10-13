@@ -15,7 +15,6 @@ impl AllPass {
         let delayed = self.delay_line.read();
         let output = -input + delayed;
 
-        // in the original version of freeverb this is a member which is never modified
         let feedback = 0.5;
 
         self.delay_line

@@ -8,37 +8,24 @@ const SCALE_DAMPENING: f32 = 0.4;
 const SCALE_ROOM: f32 = 0.28;
 const OFFSET_ROOM: f32 = 0.7;
 
-const STEREO_SPREAD: usize = 23;
 
 const COMB_TUNING_L1: usize = 1116;
-const COMB_TUNING_R1: usize = 1116 + STEREO_SPREAD;
 const COMB_TUNING_L2: usize = 1188;
-const COMB_TUNING_R2: usize = 1188 + STEREO_SPREAD;
 const COMB_TUNING_L3: usize = 1277;
-const COMB_TUNING_R3: usize = 1277 + STEREO_SPREAD;
 const COMB_TUNING_L4: usize = 1356;
-const COMB_TUNING_R4: usize = 1356 + STEREO_SPREAD;
 const COMB_TUNING_L5: usize = 1422;
-const COMB_TUNING_R5: usize = 1422 + STEREO_SPREAD;
 const COMB_TUNING_L6: usize = 1491;
-const COMB_TUNING_R6: usize = 1491 + STEREO_SPREAD;
 const COMB_TUNING_L7: usize = 1557;
-const COMB_TUNING_R7: usize = 1557 + STEREO_SPREAD;
 const COMB_TUNING_L8: usize = 1617;
-const COMB_TUNING_R8: usize = 1617 + STEREO_SPREAD;
 
 const ALLPASS_TUNING_L1: usize = 556;
-const ALLPASS_TUNING_R1: usize = 556 + STEREO_SPREAD;
 const ALLPASS_TUNING_L2: usize = 441;
-const ALLPASS_TUNING_R2: usize = 441 + STEREO_SPREAD;
 const ALLPASS_TUNING_L3: usize = 341;
-const ALLPASS_TUNING_R3: usize = 341 + STEREO_SPREAD;
 const ALLPASS_TUNING_L4: usize = 225;
-const ALLPASS_TUNING_R4: usize = 225 + STEREO_SPREAD;
 
 pub struct Freeverb {
-    combs: [(Comb, Comb); 8],
-    allpasses: [(AllPass, AllPass); 4],
+    combs: [Comb; 8],
+    allpasses: [AllPass; 4],
     wet_gains: (f32, f32),
     wet: f32,
     width: f32,
@@ -57,56 +44,20 @@ impl Freeverb {
     pub fn new(sr: usize) -> Self {
         let mut freeverb = Freeverb {
             combs: [
-                (
                     Comb::new(adjust_length(COMB_TUNING_L1, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R1, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L2, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R2, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L3, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R3, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L4, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R4, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L5, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R5, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L6, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R6, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L7, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R7, sr)),
-                ),
-                (
                     Comb::new(adjust_length(COMB_TUNING_L8, sr)),
-                    Comb::new(adjust_length(COMB_TUNING_R8, sr)),
-                ),
             ],
             allpasses: [
-                (
                     AllPass::new(adjust_length(ALLPASS_TUNING_L1, sr)),
-                    AllPass::new(adjust_length(ALLPASS_TUNING_R1, sr)),
-                ),
-                (
                     AllPass::new(adjust_length(ALLPASS_TUNING_L2, sr)),
-                    AllPass::new(adjust_length(ALLPASS_TUNING_R2, sr)),
-                ),
-                (
                     AllPass::new(adjust_length(ALLPASS_TUNING_L3, sr)),
-                    AllPass::new(adjust_length(ALLPASS_TUNING_R3, sr)),
-                ),
-                (
                     AllPass::new(adjust_length(ALLPASS_TUNING_L4, sr)),
-                    AllPass::new(adjust_length(ALLPASS_TUNING_R4, sr)),
-                ),
             ],
             wet_gains: (0.0, 0.0),
             wet: 0.0,
@@ -190,8 +141,8 @@ impl Freeverb {
 
         for combs in self.combs.iter_mut() {
             //this was changed for mono
-            combs.0.set_feedback(feedback);
-            combs.0.set_dampening(dampening);
+            combs.set_feedback(feedback);
+            combs.set_dampening(dampening);
         }
     }
 
@@ -210,6 +161,6 @@ mod tests {
         for _ in 0..super::COMB_TUNING_R8 * 2 {
             freeverb.tick(0.0);
         }
-        assert_ne!(freeverb.tick(0.0, 0.0);
+        assert_ne!(freeverb.tick(0.0));
     }
 }
