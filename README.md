@@ -26,6 +26,7 @@
    cargo install espup
    espup install
    ```
+reminder for me to add correct esp-idf setup
 
 4. Add the appropreate rust target `rustup target add xtensa-esp32s3-none-elf`
 5. Build the firmware with `cargo build --release`
