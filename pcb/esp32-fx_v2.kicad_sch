@@ -6739,12 +6739,6 @@
 		(uuid "0d8582e3-fd7e-40ac-8d75-ec65696badc4")
 	)
 	(junction
-		(at 264.16 121.92)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "111aed7c-0a0d-450b-8240-980ef5d3f36b")
-	)
-	(junction
 		(at 130.81 69.85)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6761,6 +6755,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "16fe9cf3-a839-4a97-8457-13aa8dbd95ad")
+	)
+	(junction
+		(at 236.22 127)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "1b4ebb57-6a2c-4285-8511-40a96965cbe5")
 	)
 	(junction
 		(at 118.11 185.42)
@@ -6797,6 +6797,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3a700107-6e2a-4043-b3d9-e8b197149439")
+	)
+	(junction
+		(at 228.6 137.16)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "525bcf02-2f03-410b-8676-d30faa5560be")
 	)
 	(junction
 		(at 260.35 29.21)
@@ -6985,6 +6991,12 @@
 		(uuid "dcdd1cda-cfdf-404e-9931-25b0c2969b7c")
 	)
 	(junction
+		(at 236.22 137.16)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e03a68e6-a15e-4e10-aa8b-52bc606da555")
+	)
+	(junction
 		(at 130.81 62.23)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7050,6 +7062,16 @@
 	)
 	(wire
 		(pts
+			(xy 236.22 127) (xy 236.22 137.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0522baa9-e15f-46dc-b28c-ee01cd324ba6")
+	)
+	(wire
+		(pts
 			(xy 99.06 115.57) (xy 101.6 115.57)
 		)
 		(stroke
@@ -7090,6 +7112,16 @@
 	)
 	(wire
 		(pts
+			(xy 264.16 121.92) (xy 273.05 121.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0cf0e2b2-2389-47d2-a8f0-ff3234a674b8")
+	)
+	(wire
+		(pts
 			(xy 232.41 29.21) (xy 236.22 29.21)
 		)
 		(stroke
@@ -7127,6 +7159,16 @@
 			(type default)
 		)
 		(uuid "12483e0a-1782-472e-9333-a2dfac3101f9")
+	)
+	(wire
+		(pts
+			(xy 226.06 107.95) (xy 226.06 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1aa39c89-a69e-4da9-9a49-9d7f1f16d4e3")
 	)
 	(wire
 		(pts
@@ -7197,6 +7239,16 @@
 			(type default)
 		)
 		(uuid "2c51a3ae-54b3-42b7-8ff3-f6c47cfd81b1")
+	)
+	(wire
+		(pts
+			(xy 241.3 116.84) (xy 241.3 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2c550df5-a0b1-4018-a558-0180d3676b01")
 	)
 	(wire
 		(pts
@@ -7400,6 +7452,16 @@
 	)
 	(wire
 		(pts
+			(xy 228.6 127) (xy 228.6 137.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4e4da8c9-5e50-4025-bfa1-1a0788820956")
+	)
+	(wire
+		(pts
 			(xy 224.79 29.21) (xy 224.79 31.75)
 		)
 		(stroke
@@ -7407,6 +7469,16 @@
 			(type default)
 		)
 		(uuid "4efc3798-f8a1-437f-bf94-82639685b334")
+	)
+	(wire
+		(pts
+			(xy 236.22 137.16) (xy 236.22 143.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4f2f6164-85ff-4504-9be8-55932e92b036")
 	)
 	(wire
 		(pts
@@ -7597,6 +7669,16 @@
 			(type default)
 		)
 		(uuid "815233b3-01d7-4c55-a1ae-5bf7d880508b")
+	)
+	(wire
+		(pts
+			(xy 241.3 107.95) (xy 226.06 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "850a1058-2b92-4cbd-b3a4-844bee3697c6")
 	)
 	(wire
 		(pts
@@ -7807,16 +7889,6 @@
 			(type default)
 		)
 		(uuid "b1c0608d-9add-4ec8-8dfe-8400b5d347bf")
-	)
-	(wire
-		(pts
-			(xy 264.16 121.92) (xy 273.05 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b2ea0b72-d9ec-4ba3-b2db-ec22e4f03067")
 	)
 	(wire
 		(pts
@@ -8198,16 +8270,6 @@
 		)
 		(uuid "01919130-194a-4956-afc0-db5dd485624f")
 	)
-	(label "VQ"
-		(at 264.16 114.3 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "0214f322-aacd-40be-9556-7da40bb4c3ad")
-	)
 	(label "footswitch"
 		(at 29.21 44.45 180)
 		(effects
@@ -8348,16 +8410,6 @@
 		)
 		(uuid "4842d89f-9a67-4c6e-8bf0-edf7ada03fd6")
 	)
-	(label "VQ"
-		(at 172.72 115.57 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "52d947c6-9c41-4e66-86d6-19b66e240824")
-	)
 	(label "MUTE+"
 		(at 224.79 78.74 0)
 		(effects
@@ -8458,6 +8510,16 @@
 		)
 		(uuid "8ef1e393-8cf5-4f70-85a4-db2b7639b30c")
 	)
+	(label "U3A-OUT"
+		(at 226.06 119.38 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "94adb1f6-e483-4160-bb9c-41f1045b44fb")
+	)
 	(label "AudioOUT"
 		(at 240.03 83.82 0)
 		(effects
@@ -8477,16 +8539,6 @@
 			(justify left bottom)
 		)
 		(uuid "98fb0407-6ed5-4dd2-a661-5ffa1f26e4a9")
-	)
-	(label "U3A-OUT"
-		(at 241.3 121.92 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "9cd2a3dc-70d2-4bbb-af06-bff91cabf1a2")
 	)
 	(label "USB-vbus"
 		(at 63.5 101.6 0)
@@ -9588,6 +9640,72 @@
 			(project "esp32-fx_v2"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
 					(reference "R23")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 236.22 111.76 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "19994c3e-0a66-4cdd-836e-d3076b88a82c")
+		(property "Reference" "#PWR016"
+			(at 236.22 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 236.22 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
+			(at 236.22 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a870113c-dbd7-48d3-ab35-9afc2ee8e58e")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -13041,6 +13159,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 232.41 127 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7e6bfb8c-6fa9-4862-9fa0-521f3a2a865d")
+		(property "Reference" "C16"
+			(at 231.902 131.572 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1uF"
+			(at 234.442 131.572 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 228.6 127.9652 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 232.41 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 232.41 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2c618488-4faa-489e-b4d0-79ba800a0c1e")
+		)
+		(pin "2"
+			(uuid "f4392549-0388-4504-bf34-3c48107af8be")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "C16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GNDA")
 		(at 44.45 80.01 0)
 		(unit 1)
@@ -13305,6 +13490,73 @@
 			(project "esp32-fx_v2"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
 					(reference "R24")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:FerriteBead")
+		(at 240.03 143.51 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "841885a3-823d-44b7-8185-dd31164401c8")
+		(property "Reference" "FB1"
+			(at 240.284 151.638 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100 Ω at 100 MHz"
+			(at 240.284 149.098 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Inductor_SMD:L_0805_2012Metric"
+			(at 240.03 141.732 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 240.03 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Ferrite bead"
+			(at 240.03 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e49eea33-aae7-42e3-9253-e7fd76669e9b")
+		)
+		(pin "1"
+			(uuid "09cbaa52-03d3-436f-b3f8-2f6254391810")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "FB1")
 					(unit 1)
 				)
 			)
@@ -14098,34 +14350,42 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 264.16 118.11 180)
+		(lib_id "Amplifier_Operational:OPA333xxDBV")
+		(at 233.68 119.38 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "9646e398-006e-4637-a5d3-73718c5d7c1a")
-		(property "Reference" "R3"
-			(at 266.954 117.094 0)
+		(uuid "931539b5-21ec-43d6-9770-bd3c1307d6b5")
+		(property "Reference" "U9"
+			(at 225.806 113.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Value" "100k"
-			(at 266.7 119.38 0)
+		(property "Value" "OPA333xxDBV"
+			(at 225.806 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 265.938 118.11 90)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 236.22 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/opa333.pdf"
+			(at 233.68 124.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14133,8 +14393,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 264.16 118.11 0)
+		(property "Description" "Single 1.8V, microPower, CMOS Operational Amplifiers, Zero-Drift Series, SOT-23-5"
+			(at 233.68 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14142,25 +14402,25 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Resistor"
-			(at 264.16 118.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "4f2da269-8212-4629-ac2a-3ff757ab6ed6")
+		(pin "4"
+			(uuid "a108d748-1f1a-4999-9754-e95aa0cc941d")
 		)
 		(pin "2"
-			(uuid "3d851b48-f976-4f53-9f28-b0c8b19d0a2a")
+			(uuid "f06b4faf-b99a-4231-b556-dabb7cb0d2f2")
+		)
+		(pin "3"
+			(uuid "2da537df-30cf-4ff1-867a-8a103b8ca3d4")
+		)
+		(pin "1"
+			(uuid "00266e40-fca7-44d2-80e4-d51448423a33")
+		)
+		(pin "5"
+			(uuid "d2856527-36b3-49f0-9f80-fdb4056fe9eb")
 		)
 		(instances
 			(project "esp32-fx_v2"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
-					(reference "R3")
+					(reference "U9")
 					(unit 1)
 				)
 			)
@@ -14295,6 +14555,72 @@
 			(project "esp32-fx_v2"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
 					(reference "R14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 243.84 143.51 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9f3db4e5-f1fa-4e97-9839-378031ea5e9a")
+		(property "Reference" "#PWR038"
+			(at 240.03 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 248.92 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 243.84 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 243.84 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 243.84 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a426f04d-12e3-41d5-9531-d91655313f53")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "#PWR038")
 					(unit 1)
 				)
 			)
@@ -16104,6 +16430,73 @@
 	)
 	(symbol
 		(lib_id "Device:C")
+		(at 232.41 137.16 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d056fae6-c77d-4120-91cc-c1a0489b926e")
+		(property "Reference" "C15"
+			(at 231.902 141.732 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 234.442 141.732 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 228.6 138.1252 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 232.41 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 232.41 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "73acd2f3-61c4-427d-a484-37e75fb3c7c9")
+		)
+		(pin "2"
+			(uuid "c0bbc88b-8420-440d-89a7-4f96318d0173")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "C15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
 		(at 180.34 109.22 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -17341,6 +17734,71 @@
 			(project "esp32-fx_v2"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
 					(reference "R13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 228.6 137.16 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f433f9ea-3f3d-4711-9349-9ad26cdaacdd")
+		(property "Reference" "#PWR039"
+			(at 222.25 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 222.25 137.668 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 228.6 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 228.6 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
+			(at 228.6 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6b2495ff-423f-4658-9f9c-4d96fc09ae10")
+		)
+		(instances
+			(project "esp32-fx_v2"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
