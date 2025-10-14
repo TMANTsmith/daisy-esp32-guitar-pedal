@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
     //create instances of modules here
     let gain = Gain::new(0.5);
     
-    let mut reverb = Freeverb::new(44_100); // 44.1 kHz sample rate
+    let mut reverb = Freeverb::new(48_000); // 44.1 kHz sample rate
     reverb.set_room_size(0.8);
     reverb.set_damping(0.5);
     reverb.set_wet(0.3);
