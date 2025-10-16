@@ -3,6 +3,7 @@ use esp_idf_hal::prelude::*;  // Brings in useful helpers like Hz units
 use esp_idf_hal::i2c::*;      // I2C driver and config
 use esp_idf_hal::peripherals::Peripherals; // Access ESP32 peripherals
 use esp_idf_hal::i2s::*;
+use esp_idf_hal::gpio::GpioPin;
 
 // Define a struct to hold the state of the audio driver
 pub struct AudioDriver {
@@ -25,7 +26,7 @@ impl AudioDriver {
         let scl = peripherals.pins.gpio(settings::I2C_SCL);
 
         // Configure I2C parameters: set baud rate from settings
-        let config = MasterConfig::new().baudrate(settings::I2C_FREQ_HZ.hz().into());
+        let config = MasterConfig::new().baudrate(settings::100.kHz().into());
 
         // Initialize the I2C peripheral
         // The '?' operator propagates errors as an anyhow::Error
@@ -66,23 +67,45 @@ impl AudioDriver {
 
 // ---------- I2S stuff  ---------- //
 
-pub fn init_i2s() -> I2sDriver<'static> {
+pub fn init_i2s() -> anyhow::Result<I2sDriver<'static>> {
+    // 1️⃣ Configure I2S driver
     let config = I2sDriverConfig::new()
-        .sample_rate(44100)
-        .data_bits(DataBits::Bits24)
-        .channel_format(ChannelFormat::Mono)
+        .sample_rate(44_100)                     // LRCLK = 44.1 kHz
+        .data_bits(DataBits::Bits24)            // 24-bit samples
+        .channel_format(ChannelFormat::Mono)    // Mono audio
         .communication_format(CommunicationFormat::I2S)
-        .dma_buf_count(2)
-        .dma_buf_len(1024);
+        .dma_buf_count(8)
+        .dma_buf_len(256)
+        .mode(I2sMode::Master);                 // ESP32 drives all clocks
 
-    I2sDriver::new(
+    let i2s = I2sDriver::new(
         I2sNum::I2S0,
-        BckPin::new(I2S_BLCK),
-        WsPin::new(I2S_LRCK),
+        BckPin::new(I2S_BLCK),   // Choose your BCLK pin
+        WsPin::new(I2S_LRCK),    // TXD0 → LRCLK
         DataOutPin::new(I2S_DOUT),
         Some(DataInPin::new(I2S_DIN)),
-        config
-    ).unwrap()
+        config,
+    )?;
+
+    unsafe {
+        let pins = i2s_pin_config_t {
+            mclk_out_num: gpio_num_t_GPIO_NUM_44, // RXD0 → MCLK
+            bck_io_num: I2S_BLCK,                 // BCLK
+            ws_io_num: I2S_LRCK,                  // LRCLK → TXD0
+            data_out_num: I2S_DOUT,
+            data_in_num: I2S_DIN,
+        };
+        i2s_set_pin(i2s_port_t_I2S_NUM_0, &pins);
+
+        i2s_set_clk(
+            i2s_port_t_I2S_NUM_0,
+            44_100,                                         // sample rate
+            i2s_bits_per_sample_t_I2S_BITS_PER_SAMPLE_24BIT,
+            i2s_channel_t_I2S_CHANNEL_MONO,
+        );
+    }
+
+    Ok(i2s)
 }
 
 pub fn unpack(in_bytes: &[u8]) -> Vec<f32> {

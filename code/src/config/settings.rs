@@ -14,7 +14,6 @@ pub const d_p : u8 = 20;
 
 pub const I2S_SCL : u8 = 36;
 pub const I2S_SDA : u8 = 37;
-pub const I2C_FREQ_HZ : u8 = -1
 
 pub const I2C_DOUT: u8 = 2;
 pub const I2C_DIN : u8 = 41;
