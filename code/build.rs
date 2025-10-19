@@ -1,7 +1,9 @@
 fn main() {
     linker_be_nice();
     // make sure linkall.x is the last linker script (otherwise might cause problems with flip-link)
-    println!("cargo:rustc-link-arg=-Tlinkall.x");
+    // I changed this to make custom linker outside of esp32 IDF
+    println!("cargo:rerun-if-changed=esp32s3_memory.x");
+
 }
 
 fn linker_be_nice() {

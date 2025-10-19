@@ -9,8 +9,8 @@ impl Gain{
 
     fn process(&self, sample: f32) -> f32 {
         (sample * self.gain).clamp(f32::-1.0, f32::1.0)
-        }
     }
 }
+
 
 

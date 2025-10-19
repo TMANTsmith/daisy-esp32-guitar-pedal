@@ -1,12 +1,19 @@
+#![no_std]
+#![no_main]
+
 mod audio_driver;
 mod audio_processing;
 mod config;
 
-
+use core::panic::PanicInfo;
 use crate::audio_driver::driver::{init_i2s, AudioDriver};
 
-fn main() -> anyhow::Result<()> {
+
+#[no_mangle]
+pub extern "C" fn main() -> ! {
     // I2S driver
+    let peripherals = Peripherals::take().unwrap();
+
     let mut i2s = init_i2s()?;
 
     // I2C driver
@@ -55,3 +62,10 @@ fn main() -> anyhow::Result<()> {
     }   
      
 }
+
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
+
+

@@ -4,11 +4,12 @@ runner = "probe-rs run --chip=esp32s3 --preverify --always-print-stacktrace --no
 [env]
 
 [build]
-rustflags = [
-  "-C", "link-arg=-nostartfiles",
-]
-
 target = "xtensa-esp32s3-none-elf"
+
+[target.'cfg(all(target_arch = "xtensa", target_env = "espidf"))']
+rustflags = [
+    "-C", "link-arg=-Tesp32s3_memory.ld",
+]
 
 [unstable]
 build-std = ["alloc", "core"]

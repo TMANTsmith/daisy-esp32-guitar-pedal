@@ -10,56 +10,15 @@ path = "./src/bin/main.rs"
 
 
 [dependencies]
-esp-hal = { version = "=1.0.0-rc.1", features = ["esp32s3", "unstable"] }
 
-esp-rtos = { version = "0.1.1", features = [
-  "embassy",
-  "esp-alloc",
-  "esp-radio",
-  "esp32s3",
-] }
 
-esp-bootloader-esp-idf = { version = "0.3.0", features = ["esp32s3"] }
-
-embassy-net = { version = "0.7.0", features = [
-  "dhcpv4",
-  "medium-ethernet",
-  "tcp",
-  "udp",
-] }
-embedded-io = "0.7.1"
-embedded-io-async = "0.7.0"
+esp-sync = { version = "0.1.0", features = ["esp32s3"] }
+esp32s3-pac = { git = "https://github.com/esp-rs/esp-pacs", branch = "main", package = "esp32s3" }
 esp-alloc = "0.9.0"
 rtt-target = "0.6.1"
-# for more networking protocol support see https://crates.io/crates/edge-net
-embassy-executor = { version = "0.9.0", features = [] }
-embassy-time = "0.5.0"
-esp-radio = { version = "0.16.0", features = [
-  "esp-alloc",
-  "esp32s3",
-  "smoltcp",
-  "unstable",
-  "wifi",
-] }
-smoltcp = { version = "0.12.0", default-features = false, features = [
-  "medium-ethernet",
-  "multicast",
-  "proto-dhcpv4",
-  "proto-dns",
-  "proto-ipv4",
-  "socket-dns",
-  "socket-icmp",
-  "socket-raw",
-  "socket-tcp",
-  "socket-udp",
-] }
-
 critical-section = "1.2.0"
-static_cell      = "2.1.1"
-
-io = "0.0.2"
-esp-idf-hal = "0.43"
-freeverb = { path = "/home/tucker/Projects/esp32-fx_v2/code/src/audio_processing/freeverb/src/freeverb"}
+static_cell = "2.1.1"
+freeverb = { path = "/home/tucker/Projects/esp32-fx_v2/code/src/bin/audio_processing/freeverb/src/freeverb"}
 
 [profile.dev]
 # Rust debug is too slow.
@@ -74,5 +33,4 @@ incremental      = false
 lto              = 'fat'
 opt-level        = 's'
 overflow-checks  = false
-/////
 

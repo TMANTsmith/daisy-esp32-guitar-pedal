@@ -1,3 +1,6 @@
+use alloc::vec::Vec;
+use alloc::vec;
+
 pub struct DelayLine {
     buffer: Vec<f32>,
     index: usize,
