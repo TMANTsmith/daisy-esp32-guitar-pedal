@@ -222,8 +222,9 @@ dependencies = [
 
 [[package]]
 name = "esp32s3"
-version = "0.34.0"
-source = "git+https://github.com/esp-rs/esp-pacs?branch=main#f2b3e09ebd9182e534f615ef5dad3f1361e2d38f"
+version = "0.33.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3769c56222c4548833f236c7009f1f8b3f2387af26366f6bd1cea456666a49d"
 dependencies = [
  "vcell",
 ]

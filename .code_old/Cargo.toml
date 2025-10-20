@@ -1,0 +1,9 @@
+[package]
+name = "my_project"
+version = "1.89.0"
+edition = "2024"
+
+[dependencies]
+io = "0.0.2"
+esp-idf-hal = "0.43"
+freeverb = { path = "/home/tucker/Projects/esp32-fx_v2/code/src/audio_processing/freeverb/src/freeverb"}

@@ -1,0 +1,12 @@
+/home/tucker/Projects/esp32-fx_v2/code/target/debug/deps/gcore-b94b350ffa0b8f44.d: /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/lib.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/errors.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/exec.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/msg.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/prog.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/utils.rs
+
+/home/tucker/Projects/esp32-fx_v2/code/target/debug/deps/libgcore-b94b350ffa0b8f44.rlib: /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/lib.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/errors.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/exec.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/msg.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/prog.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/utils.rs
+
+/home/tucker/Projects/esp32-fx_v2/code/target/debug/deps/libgcore-b94b350ffa0b8f44.rmeta: /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/lib.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/errors.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/exec.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/msg.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/prog.rs /home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/utils.rs
+
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/lib.rs:
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/errors.rs:
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/exec.rs:
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/msg.rs:
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/prog.rs:
+/home/tucker/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gcore-1.9.1/src/utils.rs:
