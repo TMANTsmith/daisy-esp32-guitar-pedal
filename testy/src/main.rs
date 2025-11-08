@@ -2,20 +2,25 @@ use plotters::coord::Shift;
 use plotters::prelude::*;
 use std::f64::consts::PI;
 
-// Fixed Fuzz struct with only fuzz and bais
-struct Fuzz {
-    fuzz: f64,
-    bais: f64,
+// BitCrusher struct
+struct BitCrush {
+    value: f64, // Bit depth
 }
 
-impl Fuzz {
-    fn new(fuzz: f64, bais: f64) -> Self {
-        Fuzz { fuzz, bais }
+impl BitCrush {
+    fn new(value: f64) -> Self {
+        match value {
+            2.0 | 4.0 | 8.0 | 12.0 | 16.0 | 20.0 => (),
+            _ => panic!("BitCrush value must be 2,4,8,12,16,20"),
+        }
+        BitCrush { value }
     }
 
     fn process(&self, input: &mut (f64, f64)) {
-        input.0 = ((input.0 + self.bais) * (self.fuzz + 1.0) * (self.fuzz + 1.0)).tanh();
-        input.1 = ((input.1 + self.bais) * (self.fuzz + 1.0) * (self.fuzz + 1.0)).tanh();
+        let levels = 2f64.powf(self.value) - 1.0;
+        // Map -1..1 -> 0..1, round, map back
+        input.0 = ((input.0 + 1.0) / 2.0 * levels).round() / levels * 2.0 - 1.0;
+        input.1 = ((input.1 + 1.0) / 2.0 * levels).round() / levels * 2.0 - 1.0;
     }
 
     fn process_list(&self, input: &mut [(f64, f64)]) {
@@ -25,12 +30,12 @@ impl Fuzz {
     }
 }
 
-// Generate high-frequency sine wave
-fn high_freq_wave(len: usize, freq: f64, sample_rate: f64) -> Vec<(f64, f64)> {
+// Generate sine wave
+fn sine_wave(len: usize, freq: f64, sample_rate: f64) -> Vec<(f64, f64)> {
     (0..len)
         .map(|i| {
             let t = i as f64 / sample_rate;
-            let s = (2.0 * PI * freq * t).sin();
+            let s = (2.0 * PI * freq * t).sin(); // ±1 amplitude
             (s, s)
         })
         .collect()
@@ -53,11 +58,13 @@ fn draw_wave(
 
     chart.configure_mesh().disable_mesh().draw()?;
 
+    // Original = Blue
     chart.draw_series(LineSeries::new(
         original.iter().enumerate().map(|(x, &(l, _))| (x as i32, l)),
         &BLUE,
     ))?;
 
+    // Modified = Red
     chart.draw_series(LineSeries::new(
         modified.iter().enumerate().map(|(x, &(l, _))| (x as i32, l)),
         &RED,
@@ -67,30 +74,30 @@ fn draw_wave(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let sample_rate = 1000.0;
+    let sample_rate = 200.0; // higher sample count for smooth blue wave
     let len = 200;
-    let freq = 20.0; // high-frequency wave
-    let original_wave = high_freq_wave(len, freq, sample_rate);
+    let freq = 5.0; // moderate frequency
+    let original_wave = sine_wave(len, freq, sample_rate);
 
-    let values = [0.0, 0.25, 0.5, 0.75, 1.0]; // fuzz variations
+    let bit_depths = [2.0, 4.0, 8.0, 12.0, 16.0, 20.0];
+    let total_cols = bit_depths.len();
 
-    let total_rows = 1;
-    let total_cols = values.len();
-
-    let root = BitMapBackend::new("fuzz_only.png", (1200, 300)).into_drawing_area();
+    std::fs::create_dir_all("output")?;
+    let root = BitMapBackend::new("output/bitcrush_grid.png", (1800, 400)).into_drawing_area();
     root.fill(&WHITE)?;
-    let child_areas = root.split_evenly((total_rows, total_cols));
+    let child_areas = root.split_evenly((1, total_cols));
 
-    for (col, &v) in values.iter().enumerate() {
+    for (col, &depth) in bit_depths.iter().enumerate() {
+        // Clone original so we do NOT modify it
         let mut modified_wave = original_wave.clone();
-        let fuzz_struct = Fuzz::new(v, 0.0); // bais neutral
-        fuzz_struct.process_list(&mut modified_wave);
+        let bitcrusher = BitCrush::new(depth);
+        bitcrusher.process_list(&mut modified_wave);
 
-        let title = format!("Fuzz={}", v);
+        let title = format!("{} bits", depth);
         draw_wave(&child_areas[col], &original_wave, &modified_wave, &title)?;
     }
 
-    println!("PNG generated as fuzz_only.png");
+    println!("✅ PNG generated: output/bitcrush_grid.png");
     Ok(())
 }
 
