@@ -7,13 +7,6 @@ impl Gain {
         Gain { value }
     }
 
-    fn set_value(&mut self, value: u8) {
-        self.value = value;
-    }
-
-    fn get_value(&self) -> u8 {
-        self.value
-    }
     fn process(&self, input: &mut (f64, f64)) {
         *input = ((input.0 * self.value as f64), (input.1 * self.value as f64))
     }

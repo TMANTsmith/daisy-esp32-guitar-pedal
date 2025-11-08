@@ -25,7 +25,7 @@ pub extern "C" fn _start() -> ! {
     i2c0.write(device_addr, &[reg, byte]).unwrap(); 
     loop {
 
-    let mut buffer: [( f64, f64); 4] = [
+    let mut buffer: [(f64, f64); 4] = [
             (0.5, 0.5),
             (1.0, 1.0),
             (0.25, 0.75),
