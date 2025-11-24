@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bcm2837-lpa = "0.5.0"
-embedded-hal = "1.0.0" 
+cortex-m = "0.7.7"
+daisy = { version = "0.11.0", features = ["seed_1_2"] } 
+num_enum = "0.7.5"
 
 [profile.release]
 lto = true

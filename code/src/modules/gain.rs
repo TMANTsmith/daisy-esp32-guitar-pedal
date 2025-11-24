@@ -10,7 +10,7 @@ impl Gain {
     fn process(&self, input: &mut (f64, f64)) {
         *input = ((input.0 * self.value as f64), (input.1 * self.value as f64))
     }
-    fn process_list(&self, input: &mut [(f64, f64); 4]) {
+    fn process_list(&self, input: &mut [(f64, f64)]) {
         for touple in input.iter_mut() {
             self.process(touple);
         }
