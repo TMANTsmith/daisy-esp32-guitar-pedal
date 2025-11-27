@@ -2,24 +2,20 @@
 #![no_main]
 
 
-// Daisy
-use daisy::prelude::*;
-use daisy::audio::{Audio, StereoFrame};
-
-// stm32h7xx-hal
-use stm32h7xx_hal::{
-    pac,
-    prelude::*,
-    adc::{Adc, AdcConfig},
-    serial::{Serial, Config, Tx, Rx},
-    gpio::{Analog, Alternate},
-};
-
-// Others
-use num_enum::TryFromPrimitive;
-use core::convert::TryFrom;
-use core::panic::PanicInfo;
-
+use daisy::hal::delay::Delay;
+use code::*;
+use daisy::hal::*;
+use core::cell::RefCell;
+use cortex_m::interrupt::Mutex;
+use daisy::audio;
+use hal::time::U32Ext; // <- this provides `.MHz()` for u32
+use hal::adc::{Adc, Enabled, Resolution};
+use core::fmt::Write;
+use daisy::{pac, hal};
+use hal::prelude::*;
+use hal::gpio;
+use daisy::pac::ADC2;
+use daisy::pac::ADC1;
 
 
 mod _boot {
@@ -30,7 +26,7 @@ mod _boot {
     );
 }
 
-
+static AUDIO_INTERFACE: Mutex<RefCell<Option<audio::Interface>>> = Mutex::new(RefCell::new(None));
 
 #[no_mangle]
 pub extern "C" fn _main() -> ! {
@@ -41,35 +37,51 @@ pub extern "C" fn _main() -> ! {
 
     // Configure board's peripherals.
     let ccdr = daisy::board_freeze_clocks!(board, dp);
-    let pins = daisy::board_split_gpios!(board, ccdr, dp);
-    let mut delay = hal::delay::Delay::new(cp.SYST, ccdr.clocks);
+    let mut delay = Delay::new(cp.SYST, ccdr.clocks);
 
-    let audio_interface = daisy::board_split_audio!(ccdr, pins);
-    
+     let pins = daisy::board_split_gpios!(board, ccdr, dp);   
     ///ADC setup
-    let acd_0 = Adcs::new(&delay, &dp, &ccdr);
+    
+    let (adc1, adc2) = daisy::hal::adc::adc12(
+        dp.ADC1,
+        dp.ADC2,
+        4_u32.MHz(),
+        &mut delay,
+        ccdr.peripheral.ADC12,
+        &ccdr.clocks,
+    );
 
-    // Example: read ADC6, which is PC4
-    let mut adc_pin = adcs.pin_from_number(&pins, 15);
+    let mut adc1: Adc<ADC1, hal::adc::Enabled> =  adc1.enable();
+    adc1.set_resolution(adc::Resolution::SixteenBit);
 
-    let value: u32 = adcs.read_pin(&mut adc_pin);
+    let mut adc2: Adc<ADC2, hal::adc::Enabled> =  adc2.enable();
+    adc2.set_resolution(adc::Resolution::SixteenBit);
+
+
+    // Create the Adcs struct using HAL GPIO parts
+    let mut adc = Adcs::new(
+        adc1,
+        adc2,
+        pins.GPIO.PIN_15, // pc0
+        pins.GPIO.PIN_20, // pc1
+        pins.GPIO.PIN_21, // pc4
+        pins.GPIO.PIN_16, // pa3
+        pins.GPIO.PIN_19, // pa6
+        pins.GPIO.PIN_18, // pa7
+        pins.GPIO.PIN_17, // pb1
+    );
+ 
+    // Read a pin
+    let value = adc.read_pin_adc1(22);
+
+
 
     ///UART setup
-    let uart = uart_init(pins.GPIO.PIN_12, pins.GPIO.PIN_11, &ccdr.clocks, ccdr.peripheral.USART1);
-
-    uart.send_cmd("ping");
 
     ///audio processing setup 
-    let gain = Gain::new(1.5);
-    fn prosesser(input: (f32, f32)) -> (f32, f32) {
-        gain.process(input)
-    }
     
-    let sound = Sound::new(&audio_interface);
 
     loop {
-        sound.process(processer);
-        // do processing on buffer here
     }
 }
 

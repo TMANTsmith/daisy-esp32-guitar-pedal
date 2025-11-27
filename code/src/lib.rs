@@ -2,84 +2,83 @@
 #![no_main]
 
 
+use hal::adc::{Adc, Enabled, Resolution};
+use hal::serial::{Tx, Rx};
+use nb::block;
+use core::fmt::Write;
 use daisy::{pac, hal};
-use hal::adc::{self, Adc};
 use hal::delay::Delay;
-use hal::gpio::Analog;
+use hal::prelude::*;
+use hal::gpio::{gpioa, gpiob, gpioc, Analog, Output, PushPull, Alternate};
+use hal::serial::Serial;
+use cortex_m::interrupt;
+use cortex_m::interrupt::Mutex;
+use core::cell::RefCell;
+use daisy::pins::Gpio;
+use daisy::hal::gpio::gpioa::{PA3, PA6, PA7};
+use daisy::hal::gpio::gpiob::PB1;
+use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
+use daisy::pac::{ADC1, ADC2};
 
-/// Enum to represent all ADC-capable pins on the Daisy Seed
-pub enum AdcPin {
-    PC0(hal::gpio::gpioc::PC0<Analog>), // ADC0
-    PA3(hal::gpio::gpioa::PA3<Analog>), // ADC1
-    PB1(hal::gpio::gpiob::PB1<Analog>), // ADC2
-    PA7(hal::gpio::gpioa::PA7<Analog>), // ADC3
-    PA6(hal::gpio::gpioa::PA6<Analog>), // ADC4
-    PC1(hal::gpio::gpioc::PC1<Analog>), // ADC5
-    PC4(hal::gpio::gpioc::PC4<Analog>), // ADC6
-}
+// ---------------- ADC ----------------
 
-/// Struct to handle ADC reads
 pub struct Adcs {
-    adc1: Adc<pac::ADC1>,
-    ccdr: hal::rcc::Ccdr,
-    delay: Delay,
+    pub adc1: Adc<pac::ADC1, Enabled>,
+    pub adc2: Adc<pac::ADC2, Enabled>,
+    pub pc0: PC0<Analog>,
+    pub pc1: PC1<Analog>,
+    pub pc4: PC4<Analog>,
+    pub pa3: PA3<Analog>,
+    pub pa6: PA6<Analog>, // correct pins as needed
+    pub pa7: PA7<Analog>,
+    pub pb1: PB1<Analog>,
 }
 
 impl Adcs {
-    /// Create a new ADC handler
-    pub fn new(dp: pac::Peripherals, 
-        ccdr: hal::rcc::Ccdr, 
-        cp: cortex_m::Peripherals
+    
+        pub fn new(
+            adc1: Adc<ADC1, Enabled>,
+            adc2: Adc<ADC2, Enabled>,
+            pc0: PC0<Analog>,
+            pc1: PC1<Analog>,
+            pc4: PC4<Analog>,
+            pa3: PA3<Analog>,
+            pa6: PA6<Analog>,
+            pa7: PA7<Analog>,
+            pb1: PB1<Analog>,
     ) -> Self {
-
-        let mut delay = Delay::new(cp.SYST, ccdr.clocks);
-
-        let mut adc1 = adc::Adc::adc1(
-            dp.ADC1,
-            4.MHz(),
-            &mut delay,
-            ccdr.peripheral.ADC12,
-            &ccdr.clocks,
-        )
-        .enable();
-
-        adc1.set_resolution(adc::Resolution::SixteenBit);
-
-        Self { adc1, ccdr, delay }
+        Self { adc1, adc2, pc0, pc1, pc4, pa3, pa6, pa7, pb1 }
     }
 
-    /// Convert a u8 pin number into an AdcPin enum
-    pub fn pin_from_number(
-        &self,
-        pins: &daisy::Pins,
-        pin_num: u8,
-    ) -> AdcPin {
-        match pin_num {
-            15 => AdcPin::PC0(pins.GPIO.PIN_15.into_analog()),
-            16 => AdcPin::PA3(pins.GPIO.PIN_16.into_analog()),
-            17 => AdcPin::PB1(pins.GPIO.PIN_17.into_analog()),
-            18 => AdcPin::PA7(pins.GPIO.PIN_18.into_analog()),
-            19 => AdcPin::PA6(pins.GPIO.PIN_19.into_analog()),
-            20 => AdcPin::PC1(pins.GPIO.PIN_20.into_analog()),
-            21 => AdcPin::PC4(pins.GPIO.PIN_21.into_analog()),
-            _ => panic!("Invalid ADC pin number"),
+
+    
+    pub fn read_pin_adc1(&mut self, pin: u8) -> u32 {
+        match pin {
+            22 => self.adc1.read(&mut self.pc0).unwrap(),
+            23 => self.adc1.read(&mut self.pa3).unwrap(),
+            24 => self.adc1.read(&mut self.pb1).unwrap(),
+            25 => self.adc1.read(&mut self.pa7).unwrap(),
+            26 => self.adc1.read(&mut self.pa6).unwrap(),
+            27 => self.adc1.read(&mut self.pc1).unwrap(),
+            28 => self.adc1.read(&mut self.pc4).unwrap(),
+            _ => panic!("invalid pin"),
         }
     }
 
-    /// Read a pin by its enum
-    pub fn read_pin(&mut self, adc_pin: &mut AdcPin) -> u32 {
-        match adc_pin {
-            AdcPin::PC0(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PA3(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PB1(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PA7(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PA6(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PC1(pin) => self.adc1.read(pin).unwrap(),
-            AdcPin::PC4(pin) => self.adc1.read(pin).unwrap(),
+    pub fn read_pin_adc2(&mut self, pin: u8) -> u32 {
+        match pin {
+            22 => self.adc2.read(&mut self.pc0).unwrap(),
+            23 => self.adc2.read(&mut self.pa3).unwrap(),
+            24 => self.adc2.read(&mut self.pb1).unwrap(),
+            25 => self.adc2.read(&mut self.pa7).unwrap(),
+            26 => self.adc2.read(&mut self.pa6).unwrap(),
+            27 => self.adc2.read(&mut self.pc1).unwrap(),
+            28 => self.adc2.read(&mut self.pc4).unwrap(),
+            _ => panic!("invalid pin"),
         }
     }
 }
-
+// ---------------- Commands ----------------
 
 pub enum Command {
     Forward = 1,
@@ -93,10 +92,10 @@ impl Command {
     pub fn from_str(s: &str) -> Option<u8> {
         match s {
             "forward" => Some(Command::Forward as u8),
-            "back"    => Some(Command::Back as u8),
-            "left"    => Some(Command::Left as u8),
-            "right"   => Some(Command::Right as u8),
-            "ping"    => Some(Command::Ping as u8),
+            "back" => Some(Command::Back as u8),
+            "left" => Some(Command::Left as u8),
+            "right" => Some(Command::Right as u8),
+            "ping" => Some(Command::Ping as u8),
             _ => None,
         }
     }
@@ -104,93 +103,86 @@ impl Command {
     pub fn from_u8(v: u8) -> Option<&'static str> {
         match v {
             x if x == Command::Forward as u8 => Some("forward"),
-            x if x == Command::Back    as u8 => Some("back"),
-            x if x == Command::Left    as u8 => Some("left"),
-            x if x == Command::Right   as u8 => Some("right"),
-            x if x == Command::Ping    as u8 => Some("ping"),
+            x if x == Command::Back as u8 => Some("back"),
+            x if x == Command::Left as u8 => Some("left"),
+            x if x == Command::Right as u8 => Some("right"),
+            x if x == Command::Ping as u8 => Some("ping"),
             _ => None,
         }
     }
 }
-// UART interface
+
+// ---------------- UART ----------------
+
 pub struct UartCmd {
-    uart: Serial<hal::pac::USART1, (gpio::gpiob::PB6<Alternate<7>>, gpio::gpiob::PB7<Alternate<7>>)>,
+    tx: Tx<pac::USART1>,
+    rx: Rx<pac::USART1>,
 }
 
-/// Create UART1 on PB6/PB7 and return a UartCmd struct
+/// Initialize USART1 with PB6=TX, PB7=RX
 pub fn uart_init(
-    pin12: gpio::gpiob::PB9<gpio::Analog>,
-    pin11: gpio::gpiob::PB8<gpio::Analog>,
-    clocks: hal::rcc::Clocks,
-    apb2: &mut hal::rcc::APB2,
+    dp: pac::Peripherals,
+    ccdr: hal::rcc::Ccdr,
+    tx: gpiob::PB6<Output<PushPull>>,
+    rx: gpiob::PB7<Output<PushPull>>,
 ) -> UartCmd {
-    // Convert pins to AF7 (USART1)
-    let tx = pin12.into_alternate::<7>();
-    let rx = pin11.into_alternate::<7>();
+    // Convert pins to alternate function 7
+    let tx = tx.into_alternate::<7>();
+    let rx = rx.into_alternate::<7>();
 
-    let uart = Serial::usart1(
-        tx,
-        rx,
-        Config::default().baudrate(115_200_i32.bps()),
-        clocks,
-        apb2,
-    );
+    // Create USART1
+    let usart = dp
+        .USART1
+        .serial((tx, rx), 19_200.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
+        .unwrap();
 
-    UartCmd { uart }
+    let (tx, rx) = usart.split();
+
+    UartCmd { tx, rx }
 }
 
 impl UartCmd {
     pub fn send_cmd(&mut self, cmd: &str) {
         if let Some(val) = Command::from_str(cmd) {
-            let _ = self.uart.write(val);
+            writeln!(self.tx, "{}", val).unwrap();
         }
     }
 
     pub fn recv_cmd(&mut self) -> Option<&'static str> {
-        if let Ok(byte) = self.uart.read() {
-            Command::from_u8(byte)
-        } else {
-            None
+        match block!(self.rx.read()){
+            Ok(byte) => Command::from_u8(byte),
+            Err(_) => None,
         }
     }
 }
 
+// ---------------- Audio ----------------
 
-use cortex_m::interrupt;
-use daisy::AudioInterface;
-use daisy::AUDIO_INTERFACE;
+use daisy::audio::interface::Interface as AudioInterface;
 
-pub struct Sound {
-    audio_interface: AudioInterface,
-}
+static AUDIO_INTERFACE: Mutex<RefCell<Option<AudioInterface>>> =
+    Mutex::new(RefCell::new(None));
+
+pub struct Sound;
 
 impl Sound {
-    /// Create a new Sound struct and store the audio interface in the global.
-    pub fn new(audio_interface: AudioInterface) -> Self {
-        let audio_interface = audio_interface.spawn().unwrap();
+    pub fn init(interface: AudioInterface) {
+        let spawned = interface.spawn().unwrap();
 
-        // Store the audio interface in the global safely.
-        interrupt::free(|cs| {
-            AUDIO_INTERFACE.borrow(cs).replace(Some(audio_interface));
-        });
-
-        // Return the Sound instance
-        Self { audio_interface }
+        interrupt::free(|cs| AUDIO_INTERFACE.borrow(cs).replace(Some(spawned)));
     }
 
-    /// Process audio frames using a function or closure.
-    /// `processor` takes (left, right) and returns (left, right).
-    pub fn process_audio<F>(&mut self, mut processor: F)
+    pub fn process<F>(mut processor: F)
     where
         F: FnMut(f32, f32) -> (f32, f32),
     {
         interrupt::free(|cs| {
-            if let Some(audio_interface) = AUDIO_INTERFACE.borrow(cs).borrow_mut().as_mut() {
-                audio_interface
-                    .handle_interrupt_dma1_str1(|audio_buffer| {
-                        for frame in audio_buffer {
-                            let (left, right) = *frame;
-                            *frame = processor(left, right); // Call the passed function
+            if let Some(audio) = AUDIO_INTERFACE.borrow(cs).borrow_mut().as_mut() {
+                audio
+                    .handle_interrupt_dma1_str1(|buffer| {
+                        for frame in buffer {
+                            let (l, r) = *frame;
+                            *frame = processor(l, r);
                         }
                     })
                     .unwrap();
