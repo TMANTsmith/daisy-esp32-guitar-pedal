@@ -1,9 +1,9 @@
-struct Fuzz {
-    value: f64,
+pub struct Fuzz {
+    value: f32,
 }
 
 impl Fuzz {
-    fn new(value: f64) -> Self {
+    pub fn new(value: f32) -> Self {
         let mut vin = value - 1.0;
         if vin < 0.0 { 
             vin = -vin; 
@@ -11,7 +11,7 @@ impl Fuzz {
         Fuzz {value : vin}
     }
 
-    fn process(&self, input: &mut (f64, f64)) {
+    pub fn process(&self, input: &mut (f32, f32)) {
 
         if input.0 > self.value {
             input.0 = self.value;
@@ -32,7 +32,7 @@ impl Fuzz {
 
     }
 
-    fn process_list(&self, input: &mut [(f64, f64)]) {
+    pub fn process_list(&self, input: &mut [(f32, f32)]) {
         for tuple in input.iter_mut() {
             self.process(tuple);
         }

@@ -1,19 +1,21 @@
-struct Clipping {
-    value: f64,
-    bais: f64,
+use libm;
+
+pub struct Clipping {
+    value: f32,
+    bais: f32,
 }
 
 impl Clipping {
-    fn new(value: f64, bais: f64) -> Self {
-        Fuzz { value, bais }
+    pub fn new(value: f32, bais: f32) -> Self {
+        Clipping { value, bais }
     }
 
-    fn process(&self, input: &mut (f64, f64)) {
-        input.0 = ((input.0 + self.bais) * (self.value+ 1.0) * (self.value + 1.0)).tanh();
-        input.1 = ((input.1 + self.bais) * (self.value+ 1.0) * (self.value + 1.0)).tanh();
+    pub fn process(&self, input: &mut (f32, f32)) {
+        input.0 = libm::tanhf((input.0 + self.bais) * (self.value+ 1.0) * (self.value + 1.0));
+        input.1 = libm::tanhf((input.1 + self.bais) * (self.value+ 1.0) * (self.value + 1.0));
     }
 
-    fn process_list(&self, input: &mut [(f64, f64)]) {
+    pub fn process_list(&self, input: &mut [(f32, f32)]) {
         for tuple in input.iter_mut() {
             self.process(tuple);
         }

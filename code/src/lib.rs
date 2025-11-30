@@ -20,7 +20,9 @@ use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
 
-// ---------------- ADC ----------------
+
+/// # ---------------- ADC ----------------
+/// - This sets up the ADCs 
 
 pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
@@ -34,8 +36,20 @@ pub struct Adcs {
     pub pb1: PB1<Analog>,
 }
 
+pub enum Adc_val, { 
+    adc0: f32,
+    adc1: f32,
+    adc2: f32,
+    adc3: f32,
+    adc4: f32,
+    adc5: f32,
+    adc6: f32,
+}
+
 impl Adcs {
     
+        /// Inputs the adcs 0-6 on the daisy seed
+
         pub fn new(
             adc1: Adc<ADC1, Enabled>,
             adc2: Adc<ADC2, Enabled>,
@@ -51,8 +65,26 @@ impl Adcs {
     }
 
 
-    
-    pub fn read_pin_adc1(&mut self, pin: u8) -> u32 {
+   /// uses adc1 to read an individual pin 
+   ///
+   /// TODO set up DMA transfer for a fast scan of all adcs
+
+    pub fn read_all(&mut self) -> { 
+        pins = [ self.pc0, self.pc1, self.pc4, self.pa3, self.pa6, self.pa7, self.pb1 ];
+        self.adc1.configure_scan(&pins, AdcConfig::default());
+
+        let mut buffer: [u16; 7] = [0; 7];
+
+        let mut dma_transfer = Transfer::init(
+            &mut adc,
+            &mut buffer,
+            DmaConfig::default()
+        );
+
+
+
+
+    pub fn read_pin_adc1(&mut self, pin: u8) -> f32 {
         match pin {
             22 => self.adc1.read(&mut self.pc0).unwrap(),
             23 => self.adc1.read(&mut self.pa3).unwrap(),
@@ -65,7 +97,8 @@ impl Adcs {
         }
     }
 
-    pub fn read_pin_adc2(&mut self, pin: u8) -> u32 {
+    /// uses adc2 to read an individual pin 
+    pub fn read_pin_adc2(&mut self, pin: u8) -> f32 {
         match pin {
             22 => self.adc2.read(&mut self.pc0).unwrap(),
             23 => self.adc2.read(&mut self.pa3).unwrap(),
@@ -80,7 +113,10 @@ impl Adcs {
 }
 // ---------------- Commands ----------------
 
+/// this section turns string commands into numbers to be sent to the esp32 and vice versa
+/// uses USART1 on the daisy seed to comunicate witht eh esp32
 pub enum Command {
+    ok      = 0,
     Forward = 1,
     Back    = 2,
     Left    = 3,
@@ -96,6 +132,7 @@ impl Command {
             "left" => Some(Command::Left as u8),
             "right" => Some(Command::Right as u8),
             "ping" => Some(Command::Ping as u8),
+            "ok" => Some(Command::ok as u8),
             _ => None,
         }
     }
@@ -107,6 +144,7 @@ impl Command {
             x if x == Command::Left as u8 => Some("left"),
             x if x == Command::Right as u8 => Some("right"),
             x if x == Command::Ping as u8 => Some("ping"),
+            x if x == Command::ok as u8 => Some("ok"),
             _ => None,
         }
     }
@@ -120,74 +158,24 @@ pub struct UartCmd {
 }
 
 /// Initialize USART1 with PB6=TX, PB7=RX
-pub fn uart_init(
-    dp: pac::Peripherals,
-    ccdr: hal::rcc::Ccdr,
-    tx: gpiob::PB6<Output<PushPull>>,
-    rx: gpiob::PB7<Output<PushPull>>,
-) -> UartCmd {
-    // Convert pins to alternate function 7
-    let tx = tx.into_alternate::<7>();
-    let rx = rx.into_alternate::<7>();
-
-    // Create USART1
-    let usart = dp
-        .USART1
-        .serial((tx, rx), 19_200.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
-        .unwrap();
-
-    let (tx, rx) = usart.split();
-
-    UartCmd { tx, rx }
-}
 
 impl UartCmd {
+
+    pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
+        UartCmd { tx, rx }
+    }
+
     pub fn send_cmd(&mut self, cmd: &str) {
         if let Some(val) = Command::from_str(cmd) {
             writeln!(self.tx, "{}", val).unwrap();
         }
     }
 
-    pub fn recv_cmd(&mut self) -> Option<&'static str> {
+    pub fn read_cmd(&mut self) -> Option<&'static str> {
         match block!(self.rx.read()){
             Ok(byte) => Command::from_u8(byte),
             Err(_) => None,
         }
-    }
-}
-
-// ---------------- Audio ----------------
-
-use daisy::audio::interface::Interface as AudioInterface;
-
-static AUDIO_INTERFACE: Mutex<RefCell<Option<AudioInterface>>> =
-    Mutex::new(RefCell::new(None));
-
-pub struct Sound;
-
-impl Sound {
-    pub fn init(interface: AudioInterface) {
-        let spawned = interface.spawn().unwrap();
-
-        interrupt::free(|cs| AUDIO_INTERFACE.borrow(cs).replace(Some(spawned)));
-    }
-
-    pub fn process<F>(mut processor: F)
-    where
-        F: FnMut(f32, f32) -> (f32, f32),
-    {
-        interrupt::free(|cs| {
-            if let Some(audio) = AUDIO_INTERFACE.borrow(cs).borrow_mut().as_mut() {
-                audio
-                    .handle_interrupt_dma1_str1(|buffer| {
-                        for frame in buffer {
-                            let (l, r) = *frame;
-                            *frame = processor(l, r);
-                        }
-                    })
-                    .unwrap();
-            }
-        });
     }
 }
 

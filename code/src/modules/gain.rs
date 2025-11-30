@@ -1,16 +1,16 @@
-struct Gain {
-    value: u8,
+pub struct Gain {
+    value: f32,
 }
 
 impl Gain {
-    fn new(value: u8) -> Self {
+    pub fn new(value: f32) -> Self {
         Gain { value }
     }
 
-    fn process(&self, input: &mut (f64, f64)) {
-        *input = ((input.0 * self.value as f64), (input.1 * self.value as f64))
+    pub fn process(&self, input: &mut (f32, f32)) {
+        *input = ((input.0 * self.value as f32), (input.1 * self.value as f32))
     }
-    fn process_list(&self, input: &mut [(f64, f64)]) {
+    pub fn process_list(&self, input: &mut [(f32, f32)]) {
         for touple in input.iter_mut() {
             self.process(touple);
         }
