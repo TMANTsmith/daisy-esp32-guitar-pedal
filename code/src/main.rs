@@ -1,23 +1,10 @@
 #![no_std]
 #![no_main]
 
-
-use cortex_m_rt::entry;
 mod modules;
-use daisy::hal::delay::Delay;
-use code::*;
-use daisy::hal::*;
 use core::cell::RefCell;
 use cortex_m::interrupt::Mutex;
 use daisy::audio;
-use hal::time::U32Ext; // <- this provides `.MHz()` for u32
-use hal::adc::{Adc, Enabled, Resolution};
-use core::fmt::Write;
-use daisy::{pac, hal};
-use hal::prelude::*;
-use hal::gpio;
-use daisy::pac::ADC2;
-use daisy::pac::ADC1;
 
 #[cfg(not(feature = "defmt"))]
 use panic_halt as _;
@@ -38,13 +25,16 @@ mod app {
     type Mono = Systick<1000>; // 1 kHz / 1 ms granularity
 
     #[shared]
-    struct Shared {}
+    struct Shared {
+        adc_buffer: [f32; 7],
+    }
 
     // add audio module structs here
 
     #[local]
     struct Local {
         audio_interface: Interface,
+        uart: UartCmd,
         gain1: Gain,
         gain2: Gain,
         usart: UartCmd,
@@ -87,16 +77,21 @@ mod app {
 
 
         // Create the Adcs struct using HAL GPIO parts
+
+
+        // pre allocated memory
+        let mut adc_buffer: [u32; 6] = [0.0; 6];
+
         let mut adc = Adcs::new(
             adc1,
             adc2,
-            pins.GPIO.PIN_15, // pc0
-            pins.GPIO.PIN_20, // pc1
-            pins.GPIO.PIN_21, // pc4
-            pins.GPIO.PIN_16, // pa3
-            pins.GPIO.PIN_19, // pa6
-            pins.GPIO.PIN_18, // pa7
-            pins.GPIO.PIN_17, // pb1
+            pins.GPIO.PIN_15.into_analog(), 
+            pins.GPIO.PIN_16.into_analog(), 
+            pins.GPIO.PIN_17.into_analog(), 
+            pins.GPIO.PIN_18.into_analog(), 
+            pins.GPIO.PIN_19.into_analog(), 
+            pins.GPIO.PIN_20.into_analog(), 
+            pins.GPIO.PIN_21.into_analog(), 
         );
 
         // Read a pin
@@ -143,13 +138,19 @@ mod app {
         // Initialize monotonic timer.
         let mono = Systick::new(cp.SYST, ccdr.clocks.sys_ck().to_Hz());
 
-        (Shared {}, Local { audio_interface, gain1, gain2, uart, adc }, init::Monotonics(mono))
+        (Shared {adc_buffer}, 
+         Local { audio_interface, 
+             gain1, 
+             gain2, 
+             uart, 
+             adc }, 
+             init::Monotonics(mono))
     }
 
     // Audio is tranfered from the input and to the input periodically thorugh DMA.
     // Every time Daisy is done transferring data, it will ask for more by triggering
     // the DMA 1 Stream 1 interrupt.
-    #[task(binds = DMA1_STR1, local = [audio_interface, gain1, gain2])]
+    #[task(priority = 10, binds = DMA1_STR1, local = [audio_interface, gain1, gain2])]
     fn dsp(cx: dsp::Context) {
         let audio_interface = cx.local.audio_interface;
 
@@ -163,14 +164,23 @@ mod app {
 
                 }
             })
-            .unwrap();
+        .unwrap();
     }
-    
-    #[task(binds = USART1, local = [uart])]
+
+    #[task(priority = 1, binds = USART1, local = [uart])]
     fn uart_read_control(cx: uart_read_control::Context) {
         uart = cx.local.uart;
         if let Ok(command) = uart.read_cmd();
         uart.write_cmd("ok");
     }
-}
 
+    #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
+    fn adc_update(cx: adc_update::Context) {
+        adc = cx.local.adc
+            cx.shared.lock(|adc_buffer| {
+                //make this work
+                adc.read_all(&mut buffer)
+            })
+            cx.schedule.adc_update(cx.scheduled + 500_000_000.cycles()).unwrap();
+    }
+}

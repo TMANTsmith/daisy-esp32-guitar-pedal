@@ -2,19 +2,13 @@
 #![no_main]
 
 
-use hal::adc::{Adc, Enabled, Resolution};
+use hal::adc::{Adc, Enabled};
 use hal::serial::{Tx, Rx};
 use nb::block;
 use core::fmt::Write;
 use daisy::{pac, hal};
-use hal::delay::Delay;
 use hal::prelude::*;
-use hal::gpio::{gpioa, gpiob, gpioc, Analog, Output, PushPull, Alternate};
-use hal::serial::Serial;
-use cortex_m::interrupt;
-use cortex_m::interrupt::Mutex;
-use core::cell::RefCell;
-use daisy::pins::Gpio;
+use hal::gpio::{Analog, Output, PushPull, Alternate};
 use daisy::hal::gpio::gpioa::{PA3, PA6, PA7};
 use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
@@ -28,40 +22,31 @@ pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
     pub adc2: Adc<pac::ADC2, Enabled>,
     pub pc0: PC0<Analog>,
+    pub pa3: PA3<Analog>,
+    pub pb1: PB1<Analog>,
+    pub pa7: PA7<Analog>,
+    pub pa6: PA6<Analog>, // correct pins as needed
     pub pc1: PC1<Analog>,
     pub pc4: PC4<Analog>,
-    pub pa3: PA3<Analog>,
-    pub pa6: PA6<Analog>, // correct pins as needed
-    pub pa7: PA7<Analog>,
-    pub pb1: PB1<Analog>,
 }
 
-pub enum Adc_val, { 
-    adc0: f32,
-    adc1: f32,
-    adc2: f32,
-    adc3: f32,
-    adc4: f32,
-    adc5: f32,
-    adc6: f32,
-}
 
 impl Adcs {
-    
-        /// Inputs the adcs 0-6 on the daisy seed
 
-        pub fn new(
-            adc1: Adc<ADC1, Enabled>,
-            adc2: Adc<ADC2, Enabled>,
-            pc0: PC0<Analog>,
-            pc1: PC1<Analog>,
-            pc4: PC4<Analog>,
-            pa3: PA3<Analog>,
-            pa6: PA6<Analog>,
-            pa7: PA7<Analog>,
-            pb1: PB1<Analog>,
+    /// Inputs the adcs 0-6 on the daisy seed
+
+    pub fn new(
+        adc1: Adc<ADC1, Enabled>,
+        adc2: Adc<ADC2, Enabled>,
+        pc0: PC0<Analog>,
+        pa3: PA3<Analog>,
+        pb1: PB1<Analog>,
+        pa7: PA7<Analog>,
+        pa6: PA6<Analog>,
+        pc1: PC1<Analog>,
+        pc4: PC4<Analog>,
     ) -> Self {
-        Self { adc1, adc2, pc0, pc1, pc4, pa3, pa6, pa7, pb1 }
+        Self { adc1, adc2, pc0, pa3, pb1, pa7, pa6, pc1, pc4 }
     }
 
 
@@ -69,47 +54,17 @@ impl Adcs {
    ///
    /// TODO set up DMA transfer for a fast scan of all adcs
 
-    pub fn read_all(&mut self) -> { 
-        pins = [ self.pc0, self.pc1, self.pc4, self.pa3, self.pa6, self.pa7, self.pb1 ];
-        self.adc1.configure_scan(&pins, AdcConfig::default());
-
-        let mut buffer: [u16; 7] = [0; 7];
-
-        let mut dma_transfer = Transfer::init(
-            &mut adc,
-            &mut buffer,
-            DmaConfig::default()
-        );
-
-
-
-
-    pub fn read_pin_adc1(&mut self, pin: u8) -> f32 {
-        match pin {
-            22 => self.adc1.read(&mut self.pc0).unwrap(),
-            23 => self.adc1.read(&mut self.pa3).unwrap(),
-            24 => self.adc1.read(&mut self.pb1).unwrap(),
-            25 => self.adc1.read(&mut self.pa7).unwrap(),
-            26 => self.adc1.read(&mut self.pa6).unwrap(),
-            27 => self.adc1.read(&mut self.pc1).unwrap(),
-            28 => self.adc1.read(&mut self.pc4).unwrap(),
-            _ => panic!("invalid pin"),
-        }
+    pub fn read_all(&mut self, buffer: &mut [u32; 7]) {
+        buffer[0] = self.adc1.read(&mut self.pc0).unwrap();
+        buffer[1] = self.adc1.read(&mut self.pa3).unwrap();
+        buffer[2] = self.adc1.read(&mut self.pb1).unwrap();
+        buffer[3] = self.adc1.read(&mut self.pa7).unwrap();
+        buffer[4] = self.adc1.read(&mut self.pa6).unwrap();
+        buffer[5] = self.adc1.read(&mut self.pc1).unwrap();
+        buffer[6] = self.adc1.read(&mut self.pc4).unwrap();
     }
 
-    /// uses adc2 to read an individual pin 
-    pub fn read_pin_adc2(&mut self, pin: u8) -> f32 {
-        match pin {
-            22 => self.adc2.read(&mut self.pc0).unwrap(),
-            23 => self.adc2.read(&mut self.pa3).unwrap(),
-            24 => self.adc2.read(&mut self.pb1).unwrap(),
-            25 => self.adc2.read(&mut self.pa7).unwrap(),
-            26 => self.adc2.read(&mut self.pa6).unwrap(),
-            27 => self.adc2.read(&mut self.pc1).unwrap(),
-            28 => self.adc2.read(&mut self.pc4).unwrap(),
-            _ => panic!("invalid pin"),
-        }
-    }
+
 }
 // ---------------- Commands ----------------
 
@@ -170,12 +125,10 @@ impl UartCmd {
             writeln!(self.tx, "{}", val).unwrap();
         }
     }
-
-    pub fn read_cmd(&mut self) -> Option<&'static str> {
-        match block!(self.rx.read()){
-            Ok(byte) => Command::from_u8(byte),
-            Err(_) => None,
+    pub fn read_cmd(&mut self) -> Result<Command, UartCmdError> {
+        match block!(self.rx.read()) {
+            Ok(byte) => Command::from_u8(byte)
+                .ok_or(UartCmdError::InvalidCommand(byte)),
+            Err(e) => Err(UartCmdError::Uart(e)),
         }
-    }
 }
-
