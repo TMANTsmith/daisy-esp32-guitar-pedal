@@ -70,37 +70,29 @@ impl Adcs {
 
 /// this section turns string commands into numbers to be sent to the esp32 and vice versa
 /// uses USART1 on the daisy seed to comunicate witht eh esp32
-pub enum Command {
-    ok      = 0,
-    Forward = 1,
-    Back    = 2,
-    Left    = 3,
-    Right   = 4,
-    Ping    = 5,
-}
+pub enum UartError {
+        invalidCommand,
+    }
+
+
+pub command: Vec<&str> = vec!["ok", "forward", "back", "left", "right", "ping"];
 
 impl Command {
-    pub fn from_str(s: &str) -> Option<u8> {
-        match s {
-            "forward" => Some(Command::Forward as u8),
-            "back" => Some(Command::Back as u8),
-            "left" => Some(Command::Left as u8),
-            "right" => Some(Command::Right as u8),
-            "ping" => Some(Command::Ping as u8),
-            "ok" => Some(Command::ok as u8),
-            _ => None,
+    pub fn from_str(s: &str) -> Result<u8, MyError::invalidCommand> {
+        if let Some(index) = command.iter().position(|&x| x == s) {
+            return index
+        }
+        else {
+            return MyError::invalidCommand
         }
     }
 
-    pub fn from_u8(v: u8) -> Option<&'static str> {
-        match v {
-            x if x == Command::Forward as u8 => Some("forward"),
-            x if x == Command::Back as u8 => Some("back"),
-            x if x == Command::Left as u8 => Some("left"),
-            x if x == Command::Right as u8 => Some("right"),
-            x if x == Command::Ping as u8 => Some("ping"),
-            x if x == Command::ok as u8 => Some("ok"),
-            _ => None,
+    pub fn from_u8(v: u8) -> Result<&'static str, MyError::invalidCommand> {
+        if (v <= command.len()) {
+            return command.[v]
+        }
+        else {
+            return MyError::invalidCommand
         }
     }
 }
