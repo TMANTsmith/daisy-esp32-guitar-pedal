@@ -77,13 +77,18 @@ pub enum UartError {
     }
 
 
-pub struct Command;
+pub struct Command<'a> {
+    commands: &'a[&str]
+}
 
 impl Command {
-    pub fn from_str(s: &str) -> Result<u8, UartError> {
-        //may be bottle neck and use many rescorces
+    pub fn new() -> Self {
         let command: &[&str] = &["ok", "forward", "back", "left", "right", "ping"];
-        if let Some(index) = command.iter().position(|&x| x == s) {
+        Self { command }
+    }
+        
+    pub fn from_str(s: &str) -> Result<u8, UartError> {
+        if let Some(index) = self.command.iter().position(|&x| x == s) {
             return Ok(index as u8)
         }
         else {
@@ -92,10 +97,8 @@ impl Command {
     }
 
     pub fn from_u8(v: u8) -> Result<&str, UartError> {
-        //may be bottle neck and use many rescorces
-        let command: &[&str] = &["ok", "forward", "back", "left", "right", "ping"];
         let b: usize = v as usize;
-        if let Some(rtn) = command.get(b) {
+        if let Some(rtn) = self.command.get(b) {
             return Ok(rtn)
         }
         else {
