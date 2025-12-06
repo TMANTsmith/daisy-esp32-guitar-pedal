@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use defmt::error;
+use crate::hal::nb;
 use core::fmt;
 use hal::adc::{Adc, Enabled};
 use hal::serial::{Tx, Rx};
@@ -69,41 +71,44 @@ impl Adcs {
 
 /// this section turns string commands into numbers to be sent to the esp32 and vice versa
 /// uses USART1 on the daisy seed to comunicate witht eh esp32
-pub enum UartError {
-        InvalidCommandStr(&str),
+
+#[derive(Debug)]
+pub enum UartError<'a>{
+        InvalidCommandStr(&'a str),
         InvalidCommandu8(u8),
         WriteError(fmt::Error),
         ReadError(fmt::Error),
+        WouldBlock
     }
 
+pub fn log_err<E: Debug>(err: E) {
+    error!("An error occured: {:?}",err);
+}
 
-pub struct Command<'a> {
-    commands: &'a[&str]
+
+pub struct Command {
+    commands: &'static [&'static str],
 }
 
 impl Command {
     pub fn new() -> Self {
-        let command: &[&str] = &["ok", "forward", "back", "left", "right", "ping"];
-        Self { command }
+        let commands: &[&str] = &["ok", "forward", "back", "left", "right", "ping"];
+        Self { commands }
     }
         
-    pub fn from_str(s: &str) -> Result<u8, UartError> {
-        if let Some(index) = self.command.iter().position(|&x| x == s) {
-            return Ok(index as u8)
-        }
-        else {
-            return Err(UartError::InvalidCommandStr(s))
-        }
+    pub fn from_str<'a>(&self, s: &'a str) -> Result<u8, UartError<'a>> {
+        let index = self.commands
+            .iter()
+            .position(|&x| x == s)
+            .ok_or(UartError::InvalidCommandStr(s))?;
+        Ok(index as u8)
     }
 
-    pub fn from_u8(v: u8) -> Result<&str, UartError> {
+    pub fn from_u8(&self, v: u8) -> Result<&str, UartError> {
         let b: usize = v as usize;
-        if let Some(rtn) = self.command.get(b) {
-            return Ok(rtn)
-        }
-        else {
-            return Err(UartError::InvalidCommandu8(v))
-        }
+        let rtn = self.commands.get(b)
+        .ok_or(UartError::InvalidCommandu8(v))?;
+        Ok(rtn)
     }
 }
 
@@ -112,32 +117,39 @@ impl Command {
 pub struct UartCmd {
     tx: Tx<pac::USART1>,
     rx: Rx<pac::USART1>,
+    command: Command,
 }
 
 /// Initialize USART1 with PB6=TX, PB7=RX
 
 impl UartCmd {
 
-    pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
-        UartCmd { tx, rx }
+    pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>, command: Command) -> UartCmd {
+        UartCmd { tx, rx, command }
     }
 
-    pub fn send_cmd(&mut self, cmd: &str) -> Option<UartError> {
-        if let Some(val) = Command::from_str(cmd) {
-            if let Err(e) = writeln!(self.tx, "{}", val) {
-                return Err(UartError::ReadError(e))
-            }
-            return None
-        } else {
-            return Some(UartError::InvalidCommand)
+    pub fn send_cmd<'a>(&mut self, cmd: &'a str) -> Result<(), UartError<'a>> {
+        let val = match self.command.from_str(cmd) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
+        if let Err(e) = writeln!(self.tx, "{}", val) {
+            return Err(UartError::WriteError(e));
         }
+        return Ok(())
     }
 
-    pub fn read_cmd(&mut self) -> Result<Command, UartError> {
-        match block!(self.rx.read()) {
-            Ok(byte) => Command::from_u8(byte)
-                .ok_or(UartError::InvalidCommandu8(byte)),
-            Err(e) => Some(UartError::ReadError(e)),
+    pub fn read_cmd(&mut self) -> Result<&str, UartError> {
+        let byte = match self.rx.read() {
+            Ok(byte) => byte,
+            Err(nb::Error::Other(e)) => return Err(UartError::ReadError(fmt::Error)),
+            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+        };
+
+        if let Ok(s) = self.command.from_u8(byte) {
+            return Ok(s)
+        } else {
+            return Err(UartError::InvalidCommandu8(byte))
         }
     }
 }
