@@ -170,8 +170,11 @@ mod app {
     #[task(priority = 1, binds = USART1, local = [uart])]
     fn uart_read_control(cx: uart_read_control::Context) {
         uart = cx.local.uart;
-        if let Ok(command) = uart.read_cmd();
-        uart.write_cmd("ok");
+        if let Ok(command) = uart.read_cmd() {
+            uart.write_cmd("ok");
+        }
+        else {
+            panic!()
     }
 
     #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
