@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use core::fmt::Debug;
 use defmt::error;
 use crate::hal::nb;
 use core::fmt;
@@ -16,8 +17,6 @@ use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
 
 
-/// # ---------------- ADC ----------------
-/// - This sets up the ADCs 
 
 pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
@@ -33,9 +32,6 @@ pub struct Adcs {
 
 
 impl Adcs {
-
-    /// Inputs the adcs 0-6 on the daisy seed
-
     pub fn new(
         adc1: Adc<ADC1, Enabled>,
         adc2: Adc<ADC2, Enabled>,
@@ -81,7 +77,7 @@ pub enum UartError<'a>{
         WouldBlock
     }
 
-pub fn log_err<E: Debug>(err: E) {
+pub fn log_err<E: Debug + defmt::Format>(err: E) {
     error!("An error occured: {:?}",err);
 }
 
@@ -128,7 +124,7 @@ impl UartCmd {
         UartCmd { tx, rx, command }
     }
 
-    pub fn send_cmd<'a>(&mut self, cmd: &'a str) -> Result<(), UartError<'a>> {
+    pub fn write_cmd<'a>(&mut self, cmd: &'a str) -> Result<(), UartError<'a>> {
         let val = match self.command.from_str(cmd) {
             Ok(v) => v,
             Err(e) => return Err(e),

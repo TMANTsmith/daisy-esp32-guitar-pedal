@@ -1,16 +1,11 @@
 #![no_std]
 #![no_main]
 
-mod modules;
+pub mod modules;
 use core::cell::RefCell;
 use cortex_m::interrupt::Mutex;
 use daisy::audio;
-
-#[cfg(not(feature = "defmt"))]
-use panic_halt as _;
-#[cfg(feature = "defmt")]
-use {defmt_rtt as _, panic_probe as _};
-
+use modules::*;
 
 static AUDIO_INTERFACE: Mutex<RefCell<Option<audio::Interface>>> = Mutex::new(RefCell::new(None));
 
@@ -26,7 +21,7 @@ mod app {
 
     #[shared]
     struct Shared {
-        adc_buffer: [f32; 7],
+        adc_buffer: [u32; 7],
     }
 
     // add audio module structs here
@@ -34,11 +29,10 @@ mod app {
     #[local]
     struct Local {
         audio_interface: Interface,
-        uart: UartCmd,
-        gain1: Gain,
-        gain2: Gain,
-        usart: UartCmd,
-        adc: Adcs,
+        uart: code::UartCmd,
+        gain1: crate::modules::gain::Gain,
+        gain2: crate::modules::gain::Gain,
+        adc: code::Adcs,
 
     }
 
@@ -46,13 +40,15 @@ mod app {
     fn init(cx: init::Context) -> (Shared, Local, init::Monotonics) {
         // init audio modules here
         // Get core and device peripherals, and the board abstraction.
+        
+
         let cp = cortex_m::Peripherals::take().unwrap();
         let dp = daisy::pac::Peripherals::take().unwrap();
         let board = daisy::Board::take().unwrap();
 
         // Configure board's peripherals.
         let ccdr = daisy::board_freeze_clocks!(board, dp);
-        let mut delay = Delay::new(cp.SYST, ccdr.clocks);
+        let mut delay = stm32h7xx_hal::delay::Delay::new(cp.SYST, ccdr.clocks);
 
         let pins = daisy::board_split_gpios!(board, ccdr, dp);
 
@@ -69,20 +65,20 @@ mod app {
             &ccdr.clocks,
         );
 
-        let mut adc1: Adc<ADC1, hal::adc::Enabled> =  adc1.enable();
-        adc1.set_resolution(adc::Resolution::SixteenBit);
+        let mut adc1 =  adc1.enable();
+        adc1.set_resolution(daisy::hal::adc::Resolution::SixteenBit);
 
-        let mut adc2: Adc<ADC2, hal::adc::Enabled> =  adc2.enable();
-        adc2.set_resolution(adc::Resolution::SixteenBit);
+        let mut adc2 =  adc2.enable();
+        adc2.set_resolution(daisy::hal::adc::Resolution::SixteenBit);
 
 
         // Create the Adcs struct using HAL GPIO parts
 
 
         // pre allocated memory
-        let mut adc_buffer: [u32; 6] = [0.0; 6];
+        let mut adc_buffer: [u32; 7] = [0; 7];
 
-        let mut adc = Adcs::new(
+        let mut adc = code::Adcs::new(
             adc1,
             adc2,
             pins.GPIO.PIN_15.into_analog(), 
@@ -97,22 +93,26 @@ mod app {
         // Read a pin
         // let value = adc.read_pin_adc1(22);
 
-        gain1 = Gain::new(0.5);
-        gain2 = Gain::new(2.0);
+        let gain1 = crate::modules::gain::Gain::new(0.5);
+        let gain2 = crate::modules::gain::Gain::new(2.0);
 
 
         // init uart here
         let tx = pins.GPIO.PIN_13.into_alternate::<7>();
         let rx = pins.GPIO.PIN_14.into_alternate::<7>();
 
+        use daisy::hal::serial::SerialExt;
+
         let usart = dp
             .USART1
-            .serial((tx, rx), 19_200.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
+            .serial((tx, rx), 19_200_i32.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
             .unwrap();
 
         let (tx, rx) = usart.split();
 
-        let mut uart = UartCmd::new(tx, rx);
+        let command = code::Command::new();
+
+        let mut uart = code::UartCmd::new(tx, rx, command);
 
         // Get device peripherals.
         let mut cp = cx.core;
@@ -138,12 +138,15 @@ mod app {
         // Initialize monotonic timer.
         let mono = Systick::new(cp.SYST, ccdr.clocks.sys_ck().to_Hz());
 
-        (Shared {adc_buffer}, 
+        (Shared {
+            adc_buffer
+        }, 
          Local { audio_interface, 
              gain1, 
              gain2, 
              uart, 
-             adc }, 
+             adc 
+         }, 
              init::Monotonics(mono))
     }
 
@@ -169,21 +172,20 @@ mod app {
 
     #[task(priority = 1, binds = USART1, local = [uart])]
     fn uart_read_control(cx: uart_read_control::Context) {
-        uart = cx.local.uart;
-        if let Ok(command) = uart.read_cmd() {
-            uart.write_cmd("ok");
+        let uart = cx.local.uart;
+        match uart.read_cmd() {
+            Ok(_) => uart.write_cmd("ok").ok(),
+            Err(e) => code::log_err(Err(e)),
         }
-        else {
-            panic!()
     }
 
     #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
     fn adc_update(cx: adc_update::Context) {
-        adc = cx.local.adc
+        adc = cx.local.adc;
             cx.shared.lock(|adc_buffer| {
                 //make this work
                 adc.read_all(&mut buffer)
-            })
+            });
             cx.schedule.adc_update(cx.scheduled + 500_000_000.cycles()).unwrap();
     }
 }
