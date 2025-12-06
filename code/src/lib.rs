@@ -47,9 +47,9 @@ impl Adcs {
     }
 
 
-   /// uses adc1 to read an individual pin 
-   ///
-   /// TODO set up DMA transfer for a fast scan of all adcs
+    /// uses adc1 to read an individual pin 
+    ///
+    /// TODO set up DMA transfer for a fast scan of all adcs
 
     pub fn read_all(&mut self, buffer: &mut [u32; 7]) {
         buffer[0] = self.adc1.read(&mut self.pc0).unwrap();
@@ -69,83 +69,116 @@ impl Adcs {
 /// uses USART1 on the daisy seed to comunicate witht eh esp32
 
 #[derive(Debug)]
-pub enum UartError<'a>{
-        InvalidCommandStr(&'a str),
-        InvalidCommandu8(u8),
-        WriteError(fmt::Error),
-        ReadError(fmt::Error),
-        WouldBlock
-    }
+pub enum UartError{
+    WriteError,
+    ReadError,
+    WouldBlock,
+    BufferOverflow,
+    InvalidUtf8,
+    AckMismatch,
+    Timeout,
+}
 
 pub fn log_err<E: Debug + defmt::Format>(err: E) {
     error!("An error occured: {:?}",err);
 }
 
 
-pub struct Command {
-    commands: &'static [&'static str],
-}
-
-impl Command {
-    pub fn new() -> Self {
-        let commands: &[&str] = &["ok", "forward", "back", "left", "right", "ping"];
-        Self { commands }
-    }
-        
-    pub fn from_str<'a>(&self, s: &'a str) -> Result<u8, UartError<'a>> {
-        let index = self.commands
-            .iter()
-            .position(|&x| x == s)
-            .ok_or(UartError::InvalidCommandStr(s))?;
-        Ok(index as u8)
-    }
-
-    pub fn from_u8(&self, v: u8) -> Result<&str, UartError> {
-        let b: usize = v as usize;
-        let rtn = self.commands.get(b)
-        .ok_or(UartError::InvalidCommandu8(v))?;
-        Ok(rtn)
-    }
-}
-
 // ---------------- UART ----------------
+//use std::fmt::{Error, Write};
 
 pub struct UartCmd {
     tx: Tx<pac::USART1>,
     rx: Rx<pac::USART1>,
-    command: Command,
 }
 
 /// Initialize USART1 with PB6=TX, PB7=RX
 
 impl UartCmd {
 
-    pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>, command: Command) -> UartCmd {
-        UartCmd { tx, rx, command }
+    pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
+        UartCmd { tx, rx, }
+    }
+    pub fn read_cmd_lazy(&mut self) -> Result<Option<[u8; 64]>, UartError> {
+        let mut buf = [0u8; 64];
+        let mut pos = 0;
+
+        loop {
+            match self.rx.read() {
+                Ok(byte) => {
+                    if pos >= buf.len() {
+                        return Err(UartError::BufferOverflow);
+                    }
+                    buf[pos] = byte;
+                    pos += 1;
+
+                    if byte == b'\n' {
+                        let mut line = [0u8; 64];
+                        line[..pos - 1].copy_from_slice(&buf[..pos - 1]); // strip newline
+                        return Ok(Some(line));
+                    }
+                }
+                Err(WouldBlock) => return Ok(None),
+                Err(_) => return Err(UartError::ReadError),
+            }
+        }
     }
 
-    pub fn write_cmd<'a>(&mut self, cmd: &'a str) -> Result<(), UartError<'a>> {
-        let val = match self.command.from_str(cmd) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
+    /// Non-lazy read: reads a line, then writes it back to acknowledge
+    pub fn read_cmd(&mut self) -> Result<[u8; 64], UartError> {
+        let line = loop {
+            if let Some(l) = self.read_cmd_lazy()? {
+                break l;
+            }
         };
-        if let Err(e) = writeln!(self.tx, "{}", val) {
-            return Err(UartError::WriteError(e));
-        }
-        return Ok(())
+
+        // echo it back
+        self.write_cmd_lazy(str::from_utf8(&line).map_err(|_| UartError::InvalidUtf8)?)?;
+
+        Ok(line)
     }
 
-    pub fn read_cmd(&mut self) -> Result<&str, UartError> {
-        let byte = match self.rx.read() {
-            Ok(byte) => byte,
-            Err(nb::Error::Other(e)) => return Err(UartError::ReadError(fmt::Error)),
-            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+    /// Lazy write: writes a line out, does not wait for a response
+    pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
+        let bytes = s.as_bytes();
+        for &b in bytes {
+            // loop until the byte is written
+            loop {
+                match self.tx.write(b) {
+                    Ok(()) => break,
+                    Err(nb::Error::WouldBlock) => continue, // try again
+                    Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
+                }
+            }
+        }
+
+        // send newline
+        loop {
+            match self.tx.write(b'\n') {
+                Ok(()) => break,
+                Err(nb::Error::WouldBlock) => continue,
+                Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Non-lazy write: writes a line, then waits for echo, returns error if mismatch
+    pub fn write_cmd(&mut self, s: &str) -> Result<(), UartError> {
+        self.write_cmd_lazy(s)?; // send message
+
+        let response = loop {
+            if let Some(resp) = self.read_cmd_lazy()? {
+                break resp;
+            }
         };
 
-        if let Ok(s) = self.command.from_u8(byte) {
-            return Ok(s)
-        } else {
-            return Err(UartError::InvalidCommandu8(byte))
+        if &response[..s.len()] != s.as_bytes() {
+            return Err(UartError::AckMismatch);
         }
+
+        Ok(())
     }
 }
+
