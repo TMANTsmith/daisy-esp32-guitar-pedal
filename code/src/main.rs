@@ -110,9 +110,8 @@ mod app {
 
         let (tx, rx) = usart.split();
 
-        let command = code::Command::new();
 
-        let mut uart = code::UartCmd::new(tx, rx, command);
+        let mut uart = code::UartCmd::new(tx, rx);
 
         // Get device peripherals.
         let mut cp = cx.core;
@@ -174,8 +173,12 @@ mod app {
     fn uart_read_control(cx: uart_read_control::Context) {
         let uart = cx.local.uart;
         match uart.read_cmd() {
-            Ok(_) => uart.write_cmd("ok").ok(),
-            Err(e) => code::log_err(Err(e)),
+            Ok(_) => {
+                uart.write_cmd("ok").ok();
+            },
+            Err(e) => {
+                e.log();
+            },
         }
     }
 

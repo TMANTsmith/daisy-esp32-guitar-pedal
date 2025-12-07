@@ -78,6 +78,12 @@ pub enum UartError{
     AckMismatch,
     Timeout,
 }
+impl UartError {
+    pub fn log(self) {
+        defmt::error!("UART error: {}", self);
+    }
+}
+
 
 
 // ---------------- UART ----------------
@@ -93,9 +99,11 @@ pub struct UartCmd {
 impl UartCmd {
 
     pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
-        UartCmd { tx, rx, }
+        UartCmd { tx, rx }
     }
-    pub fn read_cmd_lazy(&mut self) -> Result<[u8; 64], UartError> {
+
+    /// Reads until `\n`, returns (length, buffer)
+    pub fn read_cmd_lazy(&mut self) -> Result<(usize, [u8; 64]), UartError> {
         let mut buf = [0u8; 64];
         let mut pos = 0;
 
@@ -105,58 +113,58 @@ impl UartCmd {
                     if pos >= buf.len() {
                         return Err(UartError::BufferOverflow);
                     }
-                    buf[pos] = byte;
-                    pos += 1;
 
                     if byte == b'\n' {
-                        let mut line = [0u8; 64];
-                        line[..pos - 1].copy_from_slice(&buf[..pos - 1]); // strip newline
-                        return Ok(Some(line).unwrap_or([0_u8; 64]));
+                        // strip newline: just don't include it in pos
+                        return Ok((pos, buf));
                     }
+
+                    buf[pos] = byte;
+                    pos += 1;
                 }
+
                 Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
                 Err(_) => return Err(UartError::ReadError),
             }
         }
     }
 
-    /// Non-lazy read: reads a line, then writes it back to acknowledge
-    pub fn read_cmd(&mut self) -> Result<[u8; 64], UartError> {
-        let line = loop {
+    // use this to get string let (len, buf) = uart.read_cmd()?;
+
+    //let s = core::str::from_utf8(&buf[..len])
+    //.map_err(|_| UartError::InvalidUtf8)?;
+
+    /// Non-lazy: wait for a full line, echo it back
+    pub fn read_cmd(&mut self) -> Result<(usize, [u8; 64]), UartError> {
+        let (len, buf) = loop {
             match self.read_cmd_lazy() {
-                Ok(l) => {
-                    if l != [0; 64] {
-                        break l
-                    }
-                },
+                Ok((len, buf)) if len > 0 => break (len, buf),
+                Ok(_) => continue,
                 Err(e) => return Err(e),
             }
         };
 
-        // echo it back
-        self.write_cmd_lazy(str::from_utf8(&line).map_err(|_| UartError::InvalidUtf8)?)?;
-
-        Ok(line)
+        Ok((len, buf))
     }
 
     /// Lazy write: writes a line out, does not wait for a response
-    pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
-        let bytes = s.as_bytes();
-        for &b in bytes {
-            // loop until the byte is written
-            loop {
-                match self.tx.write(b) {
-                    Ok(()) => break,
-                    Err(nb::Error::WouldBlock) => continue, // try again
-                    Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
-                }
+pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
+    let bytes = s.as_bytes();
+    for &b in bytes {
+        // loop until the byte is written
+        loop {
+            match self.tx.write(b) {
+                Ok(()) => break,
+                Err(nb::Error::WouldBlock) => continue, // try again
+                Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
             }
         }
+    }
 
-        // send newline
-        loop {
-            match self.tx.write(b'\n') {
-                Ok(()) => break,
+    // send newline
+    loop {
+        match self.tx.write(b'\n') {
+            Ok(()) => break,
                 Err(nb::Error::WouldBlock) => continue,
                 Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
             }
@@ -171,20 +179,21 @@ impl UartCmd {
 
         // TODO this is technicly blocking and should be async 
         // or at least give a timeout error
-        let response = loop {
+        let (len, response) = loop {
             match self.read_cmd_lazy() {
-                Ok(l) => {
-                    if l != [0; 64] {
-                        break l
-                    }
-                },
+                Ok(l) => break l,
+                Err(UartError::WouldBlock) => continue,
                 Err(e) => return Err(e),
             }
         };
+        if len < s.len() {
+            return Err(UartError::AckMismatch);
+        }
 
         if &response[..s.len()] != s.as_bytes() {
             return Err(UartError::AckMismatch);
         }
+
 
         Ok(())
     }
