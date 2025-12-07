@@ -181,7 +181,7 @@ mod app {
 
     #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
     fn adc_update(cx: adc_update::Context) {
-        adc = cx.local.adc;
+        let adc = cx.local.adc;
             cx.shared.lock(|adc_buffer| {
                 //make this work
                 adc.read_all(&mut buffer)

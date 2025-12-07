@@ -68,7 +68,7 @@ impl Adcs {
 /// this section turns string commands into numbers to be sent to the esp32 and vice versa
 /// uses USART1 on the daisy seed to comunicate witht eh esp32
 
-#[derive(Debug)]
+#[derive(defmt::Format, core::fmt::Debug)]
 pub enum UartError{
     WriteError,
     ReadError,
@@ -77,10 +77,6 @@ pub enum UartError{
     InvalidUtf8,
     AckMismatch,
     Timeout,
-}
-
-pub fn log_err<E: Debug + defmt::Format>(err: E) {
-    error!("An error occured: {:?}",err);
 }
 
 
@@ -92,14 +88,14 @@ pub struct UartCmd {
     rx: Rx<pac::USART1>,
 }
 
-/// Initialize USART1 with PB6=TX, PB7=RX
+// Initialize USART1 with PB6=TX, PB7=RX
 
 impl UartCmd {
 
     pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
         UartCmd { tx, rx, }
     }
-    pub fn read_cmd_lazy(&mut self) -> Result<Option<[u8; 64]>, UartError> {
+    pub fn read_cmd_lazy(&mut self) -> Result<[u8; 64], UartError> {
         let mut buf = [0u8; 64];
         let mut pos = 0;
 
@@ -115,10 +111,10 @@ impl UartCmd {
                     if byte == b'\n' {
                         let mut line = [0u8; 64];
                         line[..pos - 1].copy_from_slice(&buf[..pos - 1]); // strip newline
-                        return Ok(Some(line));
+                        return Ok(Some(line).unwrap_or([0_u8; 64]));
                     }
                 }
-                Err(WouldBlock) => return Ok(None),
+                Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
                 Err(_) => return Err(UartError::ReadError),
             }
         }
@@ -127,8 +123,13 @@ impl UartCmd {
     /// Non-lazy read: reads a line, then writes it back to acknowledge
     pub fn read_cmd(&mut self) -> Result<[u8; 64], UartError> {
         let line = loop {
-            if let Some(l) = self.read_cmd_lazy()? {
-                break l;
+            match self.read_cmd_lazy() {
+                Ok(l) => {
+                    if l != [0; 64] {
+                        break l
+                    }
+                },
+                Err(e) => return Err(e),
             }
         };
 
@@ -168,9 +169,16 @@ impl UartCmd {
     pub fn write_cmd(&mut self, s: &str) -> Result<(), UartError> {
         self.write_cmd_lazy(s)?; // send message
 
+        // TODO this is technicly blocking and should be async 
+        // or at least give a timeout error
         let response = loop {
-            if let Some(resp) = self.read_cmd_lazy()? {
-                break resp;
+            match self.read_cmd_lazy() {
+                Ok(l) => {
+                    if l != [0; 64] {
+                        break l
+                    }
+                },
+                Err(e) => return Err(e),
             }
         };
 
