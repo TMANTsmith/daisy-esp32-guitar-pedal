@@ -187,7 +187,7 @@ mod app {
         let adc = cx.local.adc;
             cx.shared.lock(|adc_buffer| {
                 //make this work
-                adc.read_all(&mut buffer)
+                adc.read_all(&mut adc_buffer)
             });
             cx.schedule.adc_update(cx.scheduled + 500_000_000.cycles()).unwrap();
     }

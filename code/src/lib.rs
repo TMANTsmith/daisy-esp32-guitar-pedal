@@ -78,6 +78,7 @@ pub enum UartError{
     AckMismatch,
     Timeout,
 }
+
 impl UartError {
     pub fn log(self) {
         defmt::error!("UART error: {}", self);
