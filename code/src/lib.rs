@@ -18,6 +18,9 @@ use daisy::pac::{ADC1, ADC2};
 
 
 
+pub enum AdcsError{
+    ReadError(String),
+}
 pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
     pub adc2: Adc<pac::ADC2, Enabled>,
@@ -51,15 +54,15 @@ impl Adcs {
     ///
     /// TODO set up DMA transfer for a fast scan of all adcs
 
-    pub fn read_all(&mut self, buffer: &mut [u32; 7]) {
-        buffer[0] = self.adc1.read(&mut self.pc0).unwrap();
-        buffer[1] = self.adc1.read(&mut self.pa3).unwrap();
-        buffer[2] = self.adc1.read(&mut self.pb1).unwrap();
-        buffer[3] = self.adc1.read(&mut self.pa7).unwrap();
-        buffer[4] = self.adc1.read(&mut self.pa6).unwrap();
-        buffer[5] = self.adc1.read(&mut self.pc1).unwrap();
-        buffer[6] = self.adc1.read(&mut self.pc4).unwrap();
-    }
+    pub fn read_all(&mut self, buffer: &mut [u32; 7]) -> Result<(), AdcsError::ReadError> {
+        buffer[0] = self.adc1.read(&mut self.pc0).ok_or(AdcsError::ReadError("pc0"));
+        buffer[1] = self.adc1.read(&mut self.pa3).ok_or(AdcsError::ReadError("pa3"));
+        buffer[2] = self.adc1.read(&mut self.pb1).ok_or(AdcsError::ReadError("pb1"));
+        buffer[3] = self.adc1.read(&mut self.pa7).ok_or(AdcsError::ReadError("pa7"));
+        buffer[4] = self.adc1.read(&mut self.pa6).ok_or(AdcsError::ReadError("pa6"));
+        buffer[5] = self.adc1.read(&mut self.pc1).ok_or(AdcsError::ReadError("pc1"));
+        buffer[6] = self.adc1.read(&mut self.pc4).ok_or(AdcsError::ReadError("pc4"));
+    } 
 
 
 }

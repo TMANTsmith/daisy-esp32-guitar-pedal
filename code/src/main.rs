@@ -42,9 +42,9 @@ mod app {
         // Get core and device peripherals, and the board abstraction.
         
 
-        let cp = cortex_m::Peripherals::take().unwrap();
-        let dp = daisy::pac::Peripherals::take().unwrap();
-        let board = daisy::Board::take().unwrap();
+        let cp = cortex_m::Peripherals::take().expect("cp take error");
+        let dp = daisy::pac::Peripherals::take().expect("dp take error");
+        let board = daisy::Board::take().expect("board take error");
 
         // Configure board's peripherals.
         let ccdr = daisy::board_freeze_clocks!(board, dp);
@@ -103,12 +103,12 @@ mod app {
 
         use daisy::hal::serial::SerialExt;
 
-        let usart = dp
+        let temp_uart = dp
             .USART1
             .serial((tx, rx), 19_200_i32.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
-            .unwrap();
+            .expect("usart init error");
 
-        let (tx, rx) = usart.split();
+        let (tx, rx) = temp_uart.split();
 
 
         let mut uart = code::UartCmd::new(tx, rx);
@@ -124,7 +124,7 @@ mod app {
         cp.SCB.enable_dcache(&mut cp.CPUID);
 
         // Initialize the board abstraction.
-        let board = daisy::Board::take().unwrap();
+        let board = daisy::Board::take().expect("Daisy board take error");
 
         // Configure board's peripherals.
         let ccdr = daisy::board_freeze_clocks!(board, dp);
@@ -132,7 +132,7 @@ mod app {
         let audio_interface = daisy::board_split_audio!(ccdr, pins);
 
         // Start audio processing and put its abstraction into a global.
-        let audio_interface = audio_interface.spawn().unwrap();
+        let audio_interface = audio_interface.spawn().expect("audio interface spawn error");
 
         // Initialize monotonic timer.
         let mono = Systick::new(cp.SYST, ccdr.clocks.sys_ck().to_Hz());
@@ -166,7 +166,7 @@ mod app {
 
                 }
             })
-        .unwrap();
+        .expect("audio dsp init error");
     }
 
     #[task(priority = 1, binds = USART1, local = [uart])]
@@ -189,6 +189,6 @@ mod app {
                 //make this work
                 adc.read_all(&mut adc_buffer)
             });
-            cx.schedule.adc_update(cx.scheduled + 500_000_000.cycles()).unwrap();
+            cx.schedule.adc_update(cx.scheduled + 500_000_000.cycles()).expect("adc_update schedule error");
     }
 }
