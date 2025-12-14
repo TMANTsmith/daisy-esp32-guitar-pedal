@@ -17,9 +17,9 @@ use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
 
 
-
-pub enum AdcsError{
-    ReadError(String),
+pub enum AdcsError {
+    ReadError(&'static str),
+    WouldBlock
 }
 pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
@@ -54,15 +54,51 @@ impl Adcs {
     ///
     /// TODO set up DMA transfer for a fast scan of all adcs
 
-    pub fn read_all(&mut self, buffer: &mut [u32; 7]) -> Result<(), AdcsError::ReadError> {
-        buffer[0] = self.adc1.read(&mut self.pc0).ok_or(AdcsError::ReadError("pc0"));
-        buffer[1] = self.adc1.read(&mut self.pa3).ok_or(AdcsError::ReadError("pa3"));
-        buffer[2] = self.adc1.read(&mut self.pb1).ok_or(AdcsError::ReadError("pb1"));
-        buffer[3] = self.adc1.read(&mut self.pa7).ok_or(AdcsError::ReadError("pa7"));
-        buffer[4] = self.adc1.read(&mut self.pa6).ok_or(AdcsError::ReadError("pa6"));
-        buffer[5] = self.adc1.read(&mut self.pc1).ok_or(AdcsError::ReadError("pc1"));
-        buffer[6] = self.adc1.read(&mut self.pc4).ok_or(AdcsError::ReadError("pc4"));
-    } 
+    pub fn read_all(&mut self, buffer: &mut [u32; 7]) -> Result<(), AdcsError> {
+        buffer[0] = match self.adc1.read(&mut self.pc0) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pc0")),
+        };
+
+        buffer[1] = match self.adc1.read(&mut self.pa3) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pa3")),
+        };
+
+        buffer[2] = match self.adc1.read(&mut self.pb1) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pb1")),
+        };
+
+        buffer[3] = match self.adc1.read(&mut self.pa7) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pa7")),
+        };
+
+        buffer[4] = match self.adc1.read(&mut self.pa6) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pa6")),
+        };
+
+        buffer[5] = match self.adc1.read(&mut self.pc1) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pc1")),
+        };
+
+        buffer[6] = match self.adc1.read(&mut self.pc4) {
+            Ok(val) => val,
+            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
+            Err(_) => return Err(AdcsError::ReadError("pc4")),
+        };
+
+        Ok(())
+    }
 
 
 }
@@ -81,13 +117,6 @@ pub enum UartError{
     AckMismatch,
     Timeout,
 }
-
-impl UartError {
-    pub fn log(self) {
-        defmt::error!("UART error: {}", self);
-    }
-}
-
 
 
 // ---------------- UART ----------------
