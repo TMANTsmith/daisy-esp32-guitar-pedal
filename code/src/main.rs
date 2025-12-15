@@ -138,7 +138,7 @@ mod app {
     #[task(priority = 1, binds = USART1, local = [uart])]
     fn uart_read_control(cx: uart_read_control::Context) {
         match cx.local.uart.read_cmd() {
-            Ok(_) => { cx.local.uart.write_cmd("ok").ok(); }
+            Ok(m) => { cx.local.uart.write_cmd(m).ok(); }
             Err(e) => { defmt::warn!("Uart failed {}", e); }
         }
     }

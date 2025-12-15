@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use heapless::Vec;
 use core::fmt::Debug;
 use defmt::error;
 use crate::hal::nb;
@@ -122,6 +123,7 @@ pub enum UartError{
 // ---------------- UART ----------------
 //use std::fmt::{Error, Write};
 
+// chang UART do I2C?
 pub struct UartCmd {
     tx: Tx<pac::USART1>,
     rx: Rx<pac::USART1>,
@@ -136,24 +138,19 @@ impl UartCmd {
     }
 
     /// Reads until `\n`, returns (length, buffer)
-    pub fn read_cmd_lazy(&mut self) -> Result<(usize, [u8; 64]), UartError> {
-        let mut buf = [0u8; 64];
-        let mut pos = 0;
+    /// does not echo back
+    pub fn read_cmd_lazy(&mut self) -> Result<Vec<u8, 64>, UartError> {
+        let mut buf: Vec<u8, 64> = Vec::new();
 
         loop {
             match self.rx.read() {
                 Ok(byte) => {
-                    if pos >= buf.len() {
-                        return Err(UartError::BufferOverflow);
-                    }
-
                     if byte == b'\n' {
                         // strip newline: just don't include it in pos
-                        return Ok((pos, buf));
+                        return Ok(buf);
+                    } else {
+                    buf.push(byte).ok_or(UartError::BufferOverflow);
                     }
-
-                    buf[pos] = byte;
-                    pos += 1;
                 }
 
                 Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
@@ -168,16 +165,18 @@ impl UartCmd {
     //.map_err(|_| UartError::InvalidUtf8)?;
 
     /// Non-lazy: wait for a full line, echo it back
-    pub fn read_cmd(&mut self) -> Result<(usize, [u8; 64]), UartError> {
-        let (len, buf) = loop {
+    pub fn read_cmd(&mut self) -> Result<Vec<u8, 64>, UartError> {
+        loop {
             match self.read_cmd_lazy() {
-                Ok((len, buf)) if len > 0 => break (len, buf),
+                Ok(vec) if vec.iter().len() > 0 => break,
                 Ok(_) => continue,
                 Err(e) => return Err(e),
             }
         };
+        //conver vec to &str and output to lazy write
+        self.write_cmd_lazy()?;
 
-        Ok((len, buf))
+        Ok(vec)
     }
 
     /// Lazy write: writes a line out, does not wait for a response
@@ -212,23 +211,18 @@ pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
 
         // TODO this is technicly blocking and should be async 
         // or at least give a timeout error
-        let (len, response) = loop {
+        let vec = loop {
             match self.read_cmd_lazy() {
                 Ok(l) => break l,
                 Err(UartError::WouldBlock) => continue,
                 Err(e) => return Err(e),
             }
         };
-        if len < s.len() {
-            return Err(UartError::AckMismatch);
-        }
-
-        if &response[..s.len()] != s.as_bytes() {
-            return Err(UartError::AckMismatch);
-        }
+        // TODO check if the writes match
 
 
         Ok(())
     }
+    // TODO write fn to convert vec to &str
 }
 
