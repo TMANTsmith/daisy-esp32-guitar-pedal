@@ -2,6 +2,7 @@
 #![no_main]
 
 use crc8_rs::{ has_valid_crc8, insert_crc8 };
+use crc8_rs::insert_crc8;
 use heapless::Vec;
 use core::fmt::Debug;
 use defmt::error;
@@ -181,8 +182,7 @@ impl UartCmd {
             }
         };
         //conver vec to &str and output to lazy write
-        let s: &str = core::str::from_utf8(&vec).expect(UartError::Utf8Error(&vec);
-        self.write_cmd_lazy(s)?;
+        self.write_cmd_lazy("error")?;
 
         Ok(vec)
     }
