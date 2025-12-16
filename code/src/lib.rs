@@ -105,6 +105,46 @@ impl Adcs {
 
 
 }
+
+// lets the read return &str
+pub struct UartString {
+    buf: Vec<u8, 64>,
+}
+
+impl UartString {
+    /// Create a new empty UartString
+    pub fn new() -> Self {
+        Self {
+            buf: Vec::new(),
+        }
+    }
+
+    /// Return as &str (valid UTF-8)
+    pub fn as_str(&self) -> Result<&str, core::str::Utf8Error> {
+        core::str::from_utf8(&self.buf)
+    }
+
+    /// Return as bytes
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.buf
+    }
+
+    /// Current length
+    pub fn len(&self) -> usize {
+        self.buf.len()
+    }
+
+    /// Push a byte (returns error if full)
+    pub fn push(&mut self, byte: u8) -> Result<(), ()> {
+        self.buf.push(byte).map_err(|_| ())
+    }
+
+    /// Check if empty
+    pub fn is_empty(&self) -> bool {
+        self.buf.is_empty()
+    }
+}
+
 // ---------------- Commands ----------------
 
 /// this section turns string commands into numbers to be sent to the esp32 and vice versa
@@ -140,30 +180,28 @@ impl UartCmd {
 
     /// Reads until `\n`, returns (length, buffer)
     /// does not echo back
-    pub fn read_cmd_lazy(&mut self) -> Result<Vec<u8, 64>, UartError> {
-        let mut buf_crc: Vec<u8, 64> = Vec::new();
+    pub fn read_cmd_lazy(&mut self) -> Result<UartString, UartError> {
+        let mut out = UartString::new();
 
         loop {
             match self.rx.read() {
                 Ok(byte) => {
                     if byte == b'\n' {
-                        // strip newline: just don't include it in pos
-                        if has_valid_crc8(buf_crc, 0xD5) {
-                            let buf = buf_crc;
-
-                        return Ok(buf);
-                        }
-                        else {
+                        if has_valid_crc8(out.as_bytes(), 0xD5) {
+                            return Ok(out);
+                        } else {
                             write_cmd_lazy("error").ok();
-                            return Err(UartError::AckMismatch(buf_crc))
+                            return Err(UartError::AckMismatch);
                         }
-                    } else {
-                    buf.push(byte).ok_or(UartError::BufferOverflow(buf));
+                    }
+
+                    if out.push(byte).is_err() {
+                        return Err(UartError::BufferOverflow);
                     }
                 }
 
-                Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
-                Err(e) => return Err(UartError::ReadError(e)),
+                Err(nb::Error::WouldBlock) => continue,
+                Err(nb::Error::Other(e)) => return Err(UartError::ReadError(e)),
             }
         }
     }
@@ -174,7 +212,7 @@ impl UartCmd {
     //.map_err(|_| UartError::InvalidUtf8)?;
 
     /// Non-lazy: wait for a full line, echo it back
-    pub fn read_cmd(&mut self) -> Result<Vec<u8, 64>, UartError> {
+    pub fn read_cmd(&mut self) -> Result<UartString, UartError> {
         loop {
             match self.read_cmd_lazy() {
                 Ok(vec) if vec.iter().len() > 0 => break,
