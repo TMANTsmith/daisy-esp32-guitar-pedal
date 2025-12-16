@@ -154,6 +154,7 @@ impl UartCmd {
                         return Ok(buf);
                         }
                         else {
+                            write_cmd_lazy("error").ok();
                             return Err(UartError::AckMismatch(buf_crc))
                         }
                     } else {
