@@ -110,13 +110,12 @@ impl Adcs {
 
 #[derive(defmt::Format, core::fmt::Debug)]
 pub enum UartError{
-    WriteError,
-    ReadError,
+    WriteError(T),
+    ReadError(T),
     WouldBlock,
-    BufferOverflow,
-    InvalidUtf8,
-    AckMismatch,
-    Timeout,
+    BufferOverflow(&Vec<u8, 64>),
+    Utf8Error(&Vec<u8, 64>),
+    AckMismatch((&Vec<u8, 64>, &str)),
 }
 
 
@@ -149,12 +148,12 @@ impl UartCmd {
                         // strip newline: just don't include it in pos
                         return Ok(buf);
                     } else {
-                    buf.push(byte).ok_or(UartError::BufferOverflow);
+                    buf.push(byte).ok_or(UartError::BufferOverflow(buf));
                     }
                 }
 
                 Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
-                Err(_) => return Err(UartError::ReadError),
+                Err(e) => return Err(UartError::ReadError(e)),
             }
         }
     }
@@ -174,32 +173,33 @@ impl UartCmd {
             }
         };
         //conver vec to &str and output to lazy write
-        self.write_cmd_lazy()?;
+        let s: &str = core::str::from_utf8(&vec).expect(UartError::Utf8Error(&vec);
+        self.write_cmd_lazy(s)?;
 
         Ok(vec)
     }
 
     /// Lazy write: writes a line out, does not wait for a response
-pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
-    let bytes = s.as_bytes();
-    for &b in bytes {
-        // loop until the byte is written
-        loop {
-            match self.tx.write(b) {
-                Ok(()) => break,
-                Err(nb::Error::WouldBlock) => continue, // try again
-                Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
+    pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
+        let bytes = s.as_bytes();
+        for &b in bytes {
+            // loop until the byte is written
+            loop {
+                match self.tx.write(b) {
+                    Ok(()) => break,
+                    Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock), 
+                    Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
+                }
             }
         }
-    }
 
     // send newline
     loop {
         match self.tx.write(b'\n') {
             Ok(()) => break,
-                Err(nb::Error::WouldBlock) => continue,
-                Err(nb::Error::Other(_)) => return Err(UartError::WriteError),
-            }
+            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+            Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
+        }
         }
 
         Ok(())
@@ -209,20 +209,21 @@ pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
     pub fn write_cmd(&mut self, s: &str) -> Result<(), UartError> {
         self.write_cmd_lazy(s)?; // send message
 
-        // TODO this is technicly blocking and should be async 
-        // or at least give a timeout error
         let vec = loop {
             match self.read_cmd_lazy() {
                 Ok(l) => break l,
-                Err(UartError::WouldBlock) => continue,
+                Err(UartError::WouldBlock) => return Err(UartError::WouldBlock),
                 Err(e) => return Err(e),
             }
         };
-        // TODO check if the writes match
 
-
-        Ok(())
+        let s_in: &str = core::str::from_utf8(&vec).expect(UartError::Utf8Error(&vec));
+        if s_in != s {
+            return UartError::AckMismatch(&vec, s_in)
+        }
+        else { 
+            Ok(())
+        }
     }
-    // TODO write fn to convert vec to &str
 }
 

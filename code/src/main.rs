@@ -13,7 +13,10 @@ use defmt_rtt as _;   // optional: RTT transport for defmt
 
 // Optional global, if needed
 static AUDIO_INTERFACE: Mutex<RefCell<Option<audio::Interface>>> = Mutex::new(RefCell::new(None));
+static SAMPLE: f32 = 48_000;
 
+#[link_section = ".sdram"]
+static mut DELAY_BUF: [(f32, f32); SAMPLE * 5] = [0.0; (SAMPLE * 5)]; // for 5 sec delay
 
 #[rtic::app(
     device = daisy::pac,
@@ -138,7 +141,7 @@ mod app {
     #[task(priority = 1, binds = USART1, local = [uart])]
     fn uart_read_control(cx: uart_read_control::Context) {
         match cx.local.uart.read_cmd() {
-            Ok(m) => { cx.local.uart.write_cmd(m).ok(); }
+            Ok(m) => {let message = m; }
             Err(e) => { defmt::warn!("Uart failed {}", e); }
         }
     }
