@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 cortex-m = "0.7.7"
+crc8-rs = "1.1.1"
 daisy = { version = "0.11.0", features = ["seed_1_2"] } 
 defmt = "1.0.1"
 heapless = "0.9.2"

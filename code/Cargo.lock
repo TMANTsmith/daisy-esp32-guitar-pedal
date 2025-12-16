@@ -46,6 +46,7 @@ name = "code"
 version = "0.1.0"
 dependencies = [
  "cortex-m",
+ "crc8-rs",
  "daisy",
  "defmt",
  "heapless 0.9.2",
@@ -85,6 +86,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "crc8-rs"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89060ba4e10f285118d597b628878335d4fd67dd042f182aeec32a1f15215f69"
 
 [[package]]
 name = "critical-section"

@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use crc8_rs::{ has_valid_crc8, insert_crc8 };
 use heapless::Vec;
 use core::fmt::Debug;
 use defmt::error;
@@ -115,7 +116,7 @@ pub enum UartError{
     WouldBlock,
     BufferOverflow(&Vec<u8, 64>),
     Utf8Error(&Vec<u8, 64>),
-    AckMismatch((&Vec<u8, 64>, &str)),
+    AckMismatch(&Vec<u8, 64>),
 }
 
 
@@ -139,14 +140,21 @@ impl UartCmd {
     /// Reads until `\n`, returns (length, buffer)
     /// does not echo back
     pub fn read_cmd_lazy(&mut self) -> Result<Vec<u8, 64>, UartError> {
-        let mut buf: Vec<u8, 64> = Vec::new();
+        let mut buf_crc: Vec<u8, 64> = Vec::new();
 
         loop {
             match self.rx.read() {
                 Ok(byte) => {
                     if byte == b'\n' {
                         // strip newline: just don't include it in pos
+                        if has_valid_crc8(buf_crc, 0xD5) {
+                            let buf = buf_crc;
+
                         return Ok(buf);
+                        }
+                        else {
+                            return Err(UartError::AckMismatch(buf_crc))
+                        }
                     } else {
                     buf.push(byte).ok_or(UartError::BufferOverflow(buf));
                     }
@@ -182,6 +190,16 @@ impl UartCmd {
     /// Lazy write: writes a line out, does not wait for a response
     pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
         let bytes = s.as_bytes();
+        let crc_data = insert_crc8(bytes , 0xD5);
+
+        loop {
+            match self.tx.write(b'\n') {
+                Ok(()) => break,
+                Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+                Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
+            }
+        }
+
         for &b in bytes {
             // loop until the byte is written
             loop {
@@ -192,16 +210,6 @@ impl UartCmd {
                 }
             }
         }
-
-    // send newline
-    loop {
-        match self.tx.write(b'\n') {
-            Ok(()) => break,
-            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
-            Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
-        }
-        }
-
         Ok(())
     }
 
@@ -217,9 +225,11 @@ impl UartCmd {
             }
         };
 
+        let tmp: &str = "error";
         let s_in: &str = core::str::from_utf8(&vec).expect(UartError::Utf8Error(&vec));
-        if s_in != s {
-            return UartError::AckMismatch(&vec, s_in)
+        
+        if s_in == tmp {
+            return UartError::AckMismatch(&vec)
         }
         else { 
             Ok(())
