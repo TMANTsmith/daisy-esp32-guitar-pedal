@@ -108,6 +108,9 @@ mod app {
         let (tx, rx) = temp_uart.split();
         let uart = code::UartCmd::new(tx, rx);
 
+        // enable interupts
+        uart.listen(Event::Rxne);
+
         // Enable caches
         cp.SCB.enable_icache();
         cp.SCB.enable_dcache(&mut cp.CPUID);

@@ -17,7 +17,7 @@ use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
 
-
+#[derive(defmt::Format, core::fmt::Debug)]
 pub enum AdcsError {
     ReadError(&'static str),
     WouldBlock
