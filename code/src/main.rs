@@ -143,10 +143,6 @@ mod app {
             .expect("audio dsp init error");
     }
 
-    // mabey have sofware task that is the UAST read and have a hardware
-    // task triger the software one multible times if needed
-
-    #[task(priority = 1, binds = USART1)]
     fn uart_read_trigger() {
         uart_read::spawn.expect("uart spawn error");
     }
@@ -163,6 +159,8 @@ mod app {
         }
     }
 
+    // does DMA2 exist in hal?
+    //if not make this sofware and make it scedule itself in the furture
     #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
     fn adc_update(mut cx: adc_update::Context) {
         cx.shared.adc_buffer.lock(|adc_buffer| {

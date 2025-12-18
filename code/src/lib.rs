@@ -191,15 +191,17 @@ impl UartCmd {
                             return Ok(out);
                         } else {
                             write_cmd_lazy("error").ok();
-                            return Err(UartError::AckMismatch);
+                            return Err(UartError::AckMismatch(&out));
                         }
                     }
 
                     if out.push(byte).is_err() {
-                        return Err(UartError::BufferOverflow);
+                        return Err(UartError::BufferOverflow(&out));
                     }
                 }
 
+                //this is technicly blockling but if this was not here
+                //the reads would be broken up
                 Err(nb::Error::WouldBlock) => continue,
                 Err(nb::Error::Other(e)) => return Err(UartError::ReadError(e)),
             }
