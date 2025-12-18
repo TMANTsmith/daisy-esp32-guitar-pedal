@@ -25,6 +25,7 @@ static mut DELAY_BUF: [(f32, f32); SAMPLE * 5] = [0.0; (SAMPLE * 5)]; // for 5 s
 )]
 mod app {
 
+    use code::UartError;
     use daisy::audio::Interface;
     use crate::modules::gain::Gain;
     use daisy::hal::serial::SerialExt;
@@ -110,6 +111,7 @@ mod app {
 
         // enable interupts
         uart.listen(Event::Rxne);
+        rtic::pend(Interrupt::UART0);
 
         // Enable caches
         cp.SCB.enable_icache();
@@ -141,11 +143,23 @@ mod app {
             .expect("audio dsp init error");
     }
 
-    #[task(priority = 1, binds = USART1, local = [uart])]
-    fn uart_read_control(cx: uart_read_control::Context) {
+    // mabey have sofware task that is the UAST read and have a hardware
+    // task triger the software one multible times if needed
+
+    #[task(priority = 1, binds = USART1)]
+    fn uart_read_trigger() {
+        uart_read::spawn.expect("uart spawn error");
+    }
+    
+    #[task(priority = 1, local = [uart])]
+    async fn uart_read(cx: uart_read_control::Context) {
         match cx.local.uart.read_cmd() {
             Ok(m) => {let message = m; }
-            Err(e) => { defmt::warn!("Uart failed {}", e); }
+            Err(UartError::WouldBlock) => { 
+                defmt::warn!("Blocking error trying again"); 
+                uart_read_control::spawn().expect("uart spawn error");
+            }
+            Err(e) => { defmt::warn!("Uart Error: {}", e ); }
         }
     }
 
