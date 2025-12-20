@@ -2,15 +2,9 @@
 #![no_main]
 
 use crc8_rs::{ has_valid_crc8, insert_crc8 };
-use crc8_rs::insert_crc8;
-use heapless::Vec;
-use core::fmt::Debug;
-use defmt::error;
 use crate::hal::nb;
-use core::fmt;
 use hal::adc::{Adc, Enabled};
 use hal::serial::{Tx, Rx};
-use core::fmt::Write;
 use daisy::{pac, hal};
 use hal::prelude::*;
 use hal::gpio::{Analog};
@@ -18,6 +12,8 @@ use daisy::hal::gpio::gpioa::{PA3, PA6, PA7};
 use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
+
+const CMD_LEN: usize = 32;
 
 #[derive(defmt::Format, core::fmt::Debug)]
 pub enum AdcsError {
@@ -53,9 +49,9 @@ impl Adcs {
     }
 
 
-    /// uses adc1 to read an individual pin 
-    ///
-    /// TODO set up DMA transfer for a fast scan of all adcs
+    // uses adc1 to read an individual pin 
+    //
+    // TODO set up DMA transfer for a fast scan of all adcs
 
     pub fn read_all(&mut self, buffer: &mut [u32; 7]) -> Result<(), AdcsError> {
         buffer[0] = match self.adc1.read(&mut self.pc0) {
@@ -106,58 +102,18 @@ impl Adcs {
 
 }
 
-// lets the read return &str
-pub struct UartString {
-    buf: Vec<u8, 64>,
-}
-
-impl UartString {
-    /// Create a new empty UartString
-    pub fn new() -> Self {
-        Self {
-            buf: Vec::new(),
-        }
-    }
-
-    /// Return as &str (valid UTF-8)
-    pub fn as_str(&self) -> Result<&str, core::str::Utf8Error> {
-        core::str::from_utf8(&self.buf)
-    }
-
-    /// Return as bytes
-    pub fn as_bytes(&self) -> &[u8] {
-        &self.buf
-    }
-
-    /// Current length
-    pub fn len(&self) -> usize {
-        self.buf.len()
-    }
-
-    /// Push a byte (returns error if full)
-    pub fn push(&mut self, byte: u8) -> Result<(), ()> {
-        self.buf.push(byte).map_err(|_| ())
-    }
-
-    /// Check if empty
-    pub fn is_empty(&self) -> bool {
-        self.buf.is_empty()
-    }
-}
-
 // ---------------- Commands ----------------
 
-/// this section turns string commands into numbers to be sent to the esp32 and vice versa
-/// uses USART1 on the daisy seed to comunicate witht eh esp32
+// this section turns string commands into numbers to be sent to the esp32 and vice versa
+// uses USART1 on the daisy seed to comunicate witht eh esp32
 
-#[derive(defmt::Format, core::fmt::Debug)]
-pub enum UartError{
-    WriteError(T),
-    ReadError(T),
+pub enum UartError {
+    WriteError,
+    ReadError,
     WouldBlock,
-    BufferOverflow(&Vec<u8, 64>),
-    Utf8Error(&Vec<u8, 64>),
-    AckMismatch(&Vec<u8, 64>),
+    BufferOverflow([u8; CMD_LEN]),
+    Utf8Error([u8; CMD_LEN]),
+    AckMismatch([u8; CMD_LEN]),
 }
 
 
@@ -180,31 +136,34 @@ impl UartCmd {
 
     /// Reads until `\n`, returns (length, buffer)
     /// does not echo back
-    pub fn read_cmd_lazy(&mut self) -> Result<UartString, UartError> {
-        let mut out = UartString::new();
+    pub fn read_cmd_lazy(&mut self) -> Result<[u8; CMD_LEN], UartError> {
+        let mut out = [0u8; CMD_LEN];
+        let mut index = 0;
 
         loop {
             match self.rx.read() {
                 Ok(byte) => {
                     if byte == b'\n' {
-                        if has_valid_crc8(out.as_bytes(), 0xD5) {
+                        if has_valid_crc8(out, 0xD5) {
                             return Ok(out);
                         } else {
-                            write_cmd_lazy("error").ok();
-                            return Err(UartError::AckMismatch(&out));
+                            self.write_cmd_lazy("error").ok();
+                            return Err(UartError::AckMismatch(out));
                         }
-                    }
-
-                    if out.push(byte).is_err() {
-                        return Err(UartError::BufferOverflow(&out));
+                    } else {
+                        out[index] = byte;
                     }
                 }
 
                 //this is technicly blockling but if this was not here
                 //the reads would be broken up
                 Err(nb::Error::WouldBlock) => continue,
-                Err(nb::Error::Other(e)) => return Err(UartError::ReadError(e)),
+                Err(nb::Error::Other(e)) => {
+                    defmt::warn!("Uart Error: {}", e);
+                    return Err(UartError::ReadError)
+                }
             }
+        index += 1;
         }
     }
 
@@ -214,14 +173,9 @@ impl UartCmd {
     //.map_err(|_| UartError::InvalidUtf8)?;
 
     /// Non-lazy: wait for a full line, echo it back
-    pub fn read_cmd(&mut self) -> Result<UartString, UartError> {
-        loop {
-            match self.read_cmd_lazy() {
-                Ok(vec) if vec.iter().len() > 0 => break,
-                Ok(_) => continue,
-                Err(e) => return Err(e),
-            }
-        };
+    pub fn read_cmd(&mut self) -> Result<[u8; CMD_LEN], UartError> {
+        let vec = self.read_cmd_lazy()?;
+
         //conver vec to &str and output to lazy write
         self.write_cmd_lazy("error")?;
 
@@ -229,52 +183,76 @@ impl UartCmd {
     }
 
     /// Lazy write: writes a line out, does not wait for a response
-    pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
-        let bytes = s.as_bytes();
-        let crc_data = insert_crc8(bytes , 0xD5);
+pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
+    let bytes = s.as_bytes();
 
-        loop {
-            match self.tx.write(b'\n') {
-                Ok(()) => break,
-                Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
-                Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
-            }
-        }
-
-        for &b in bytes {
-            // loop until the byte is written
-            loop {
-                match self.tx.write(b) {
-                    Ok(()) => break,
-                    Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock), 
-                    Err(nb::Error::Other(e)) => return Err(UartError::WriteError(e)),
-                }
-            }
-        }
-        Ok(())
+    // Runtime check: string must not exceed 32 bytes
+    if bytes.len() > CMD_LEN {
+        return Err(UartError::BufferOverflow([0u8; CMD_LEN]))
     }
+
+    // Copy into a fixed-size 32-byte buffer, padding remaining bytes with 0
+    let mut buf = [0u8; 32];
+    buf[..bytes.len()].copy_from_slice(bytes);
+
+    // Compute CRC on the 32-byte buffer
+    let crc_data = insert_crc8(buf, 0xD5);
+
+    // Send newline first
+
+    // Send the bytes with CRC
+    for &b in &crc_data {
+        match self.tx.write(b) {
+            Ok(()) => continue,
+            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+            Err(nb::Error::Other(e)) => {
+                defmt::warn!("Uart Error: {}", e);
+                return Err(UartError::WriteError)
+            }
+        }
+    }
+
+        match self.tx.write(b'\n') {
+            Ok(()) => Ok(()),
+            Err(nb::Error::WouldBlock) => Err(UartError::WouldBlock),
+            Err(nb::Error::Other(e)) => {
+                defmt::warn!("Uart Error: {}", e);
+                Err(UartError::WriteError)
+            }
+    }
+}
 
     /// Non-lazy write: writes a line, then waits for echo, returns error if mismatch
     pub fn write_cmd(&mut self, s: &str) -> Result<(), UartError> {
         self.write_cmd_lazy(s)?; // send message
 
-        let vec = loop {
+        let vec = 
             match self.read_cmd_lazy() {
-                Ok(l) => break l,
+                Ok(l) => l,
                 Err(UartError::WouldBlock) => return Err(UartError::WouldBlock),
                 Err(e) => return Err(e),
-            }
-        };
+            };
+
 
         let tmp: &str = "error";
-        let s_in: &str = core::str::from_utf8(&vec).expect(UartError::Utf8Error(&vec));
-        
+        let s_in: &str = bytes_to_str(&vec)?;
+
         if s_in == tmp {
-            return UartError::AckMismatch(&vec)
+            Err(UartError::AckMismatch(vec))
         }
         else { 
             Ok(())
         }
     }
+}
+fn bytes_to_str(arr: &[u8; CMD_LEN]) -> Result<&str, UartError> {
+    // Find the first zero byte or use full length
+    let len = arr.iter().position(|&b| b == 0).unwrap_or(arr.len());
+
+    // Slice out the meaningful bytes
+    let slice = &arr[..len];
+
+    // Convert to &str safely
+    core::str::from_utf8(slice).map_err(|_| UartError::Utf8Error(*arr))
 }
 

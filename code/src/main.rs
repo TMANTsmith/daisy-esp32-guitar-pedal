@@ -6,17 +6,16 @@ use cortex_m::interrupt::Mutex;
 pub mod modules;
 use daisy::audio;
 use core::cell::RefCell;
-use defmt::*;
 use panic_probe as _; // enables the panic handler
-use core::panic::PanicInfo;
 use defmt_rtt as _;   // optional: RTT transport for defmt
 
 // Optional global, if needed
 static AUDIO_INTERFACE: Mutex<RefCell<Option<audio::Interface>>> = Mutex::new(RefCell::new(None));
-static SAMPLE: f32 = 48_000;
+static SAMPLE: f32 = 48_000_f32;
+
 
 #[link_section = ".sdram"]
-static mut DELAY_BUF: [(f32, f32); SAMPLE * 5] = [0.0; (SAMPLE * 5)]; // for 5 sec delay
+static mut DELAY_BUF: [(f32, f32); SAMPLE * 5_f32] = [(0.0_f32, 0.0_f32); SAMPLE * 5_f32]; // for 5 sec delay
 
 #[rtic::app(
     device = daisy::pac,
@@ -148,7 +147,7 @@ mod app {
     }
     
     #[task(priority = 1, local = [uart])]
-    async fn uart_read(cx: uart_read_control::Context) {
+    fn uart_read(cx: uart_read_control::Context) {
         match cx.local.uart.read_cmd() {
             Ok(m) => {let message = m; }
             Err(UartError::WouldBlock) => { 
