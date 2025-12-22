@@ -1,21 +1,19 @@
 #![no_std]
 #![no_main]
 
-
 use cortex_m::interrupt::Mutex;
 pub mod modules;
-use daisy::audio;
 use core::cell::RefCell;
-use panic_probe as _; // enables the panic handler
-use defmt_rtt as _;   // optional: RTT transport for defmt
+use daisy::audio;
+use defmt_rtt as _;
+use panic_probe as _; // enables the panic handler // optional: RTT transport for defmt
 
 // Optional global, if needed
 static AUDIO_INTERFACE: Mutex<RefCell<Option<audio::Interface>>> = Mutex::new(RefCell::new(None));
-static SAMPLE: f32 = 48_000_f32;
-
+static SAMPLE: usize = 48_000_usize;
 
 #[link_section = ".sdram"]
-static mut DELAY_BUF: [(f32, f32); SAMPLE * 5_f32] = [(0.0_f32, 0.0_f32); SAMPLE * 5_f32]; // for 5 sec delay
+static mut DELAY_BUF: [(f32, f32); SAMPLE * 5_usize] = [(0.0_f32, 0.0_f32); SAMPLE * 5_usize]; // for 5 sec delay
 
 #[rtic::app(
     device = daisy::pac,
@@ -24,17 +22,18 @@ static mut DELAY_BUF: [(f32, f32); SAMPLE * 5_f32] = [(0.0_f32, 0.0_f32); SAMPLE
 )]
 mod app {
 
+    use crate::modules::gain::Gain;
     use code::UartError;
     use daisy::audio::Interface;
-    use crate::modules::gain::Gain;
+    use daisy::hal::dma::{Circular, Stream1, StreamsTuple, Transfer, DMA2};
     use daisy::hal::serial::SerialExt;
-    use fugit::RateExtU32;         // for ADC .MHz()
-    use fugit::ExtU32;             // for .millis()
     use daisy::hal::time::U32Ext;
+    use fugit::ExtU32; // for .millis()
+    use fugit::RateExtU32; // for ADC .MHz()
 
     #[shared]
     struct Shared {
-        adc_buffer: [u32; 7],
+        adc_dma: Transfer<Stream1<DMA2>, Adc<ADC1>, Circular, &'static mut [u16; 128]>,
     }
 
     #[local]
@@ -74,13 +73,28 @@ mod app {
             ccdr.peripheral.ADC12,
             &ccdr.clocks,
         );
+
         let mut adc1 = adc1.enable();
         adc1.set_resolution(daisy::hal::adc::Resolution::SixteenBit);
         let mut adc2 = adc2.enable();
         adc2.set_resolution(daisy::hal::adc::Resolution::SixteenBit);
 
         // Initialize Adcs struct
-        let mut adc_buffer: [u32; 7] = [0; 7];
+        static mut ADC_BUF: [u32; 7] = [0; 7];
+        let streams = StreamsTuple::new(dp.DMA2);
+        let dma_stream = streams.1;
+        let mut adc_dma = Transfer::init_peripheral_to_memory_circular(
+            dma_stream,
+            adc1,
+            // will can be accessed by one thing so its ok
+            // it still can cause problems of somthing else tries to access it
+            // use peak() to access with read only
+            unsafe { &mut ADC_BUF },
+            None,
+        );
+
+        adc_dma.start(|_adc1| {});
+
         let adc = code::Adcs::new(
             adc1,
             adc2,
@@ -103,22 +117,25 @@ mod app {
 
         let temp_uart = dp
             .USART1
-            .serial((tx, rx), 19_200_u32.bps(), ccdr.peripheral.USART1, &ccdr.clocks)
+            .serial(
+                (tx, rx),
+                19_200_u32.bps(),
+                ccdr.peripheral.USART1,
+                &ccdr.clocks,
+            )
             .expect("usart init error");
-        let (tx, rx) = temp_uart.split();
-        let uart = code::UartCmd::new(tx, rx);
 
         // enable interupts
-        uart.listen(Event::Rxne);
-        rtic::pend(Interrupt::UART0);
+
+        let (tx, rx) = temp_uart.split();
+        let uart = code::UartCmd::new(tx, rx);
 
         // Enable caches
         cp.SCB.enable_icache();
         cp.SCB.enable_dcache(&mut cp.CPUID);
 
-
         (
-            Shared { adc_buffer },
+            Shared { adc_dma },
             Local {
                 audio_interface,
                 gain1,
@@ -132,7 +149,8 @@ mod app {
     // DSP interrupt handler
     #[task(priority = 10, binds = DMA1_STR1, local = [audio_interface, gain1, gain2])]
     fn dsp(cx: dsp::Context) {
-        cx.local.audio_interface
+        cx.local
+            .audio_interface
             .handle_interrupt_dma1_str1(|audio_buffer| {
                 for frame in audio_buffer {
                     cx.local.gain1.process(frame);
@@ -142,29 +160,33 @@ mod app {
             .expect("audio dsp init error");
     }
 
-    fn uart_read_trigger() {
-        uart_read::spawn.expect("uart spawn error");
+    #[task(binds = UART0, priority = 1)]
+    fn uart_read_trigger(_: uart_read_trigger::Context) {
+        uart_read::spawn().expect("uart spawn error");
     }
-    
+
     #[task(priority = 1, local = [uart])]
-    fn uart_read(cx: uart_read_control::Context) {
+    async fn uart_read(cx: uart_read::Context) {
         match cx.local.uart.read_cmd() {
-            Ok(m) => {let message = m; }
-            Err(UartError::WouldBlock) => { 
-                defmt::warn!("Blocking error trying again"); 
-                uart_read_control::spawn().expect("uart spawn error");
+            Ok(m) => {
+                let message = m;
             }
-            Err(e) => { defmt::warn!("Uart Error: {}", e ); }
+            Err(UartError::WouldBlock) => {
+                defmt::warn!("Blocking error trying again...");
+                uart_read::spawn().expect("uart spawn error");
+            }
+            Err(e) => {
+                defmt::warn!("Uart Error: {}", e);
+            }
         }
     }
 
-    // does DMA2 exist in hal?
     //if not make this sofware and make it scedule itself in the furture
-    #[task(priority = 1, binds = DMA2_STR1, shared = [adc_buffer], local = [adc])]
+    #[task(priority = 1, binds = DMA2_STR1, shared = [adc_dma], local = [adc])]
     fn adc_update(mut cx: adc_update::Context) {
-        cx.shared.adc_buffer.lock(|adc_buffer| {
-            cx.local.adc.read_all(adc_buffer)
+        cx.shared.adc_dma.lock(|dma| {
+            dma.clear_interrupts();
+            // use dma.peek() to get values
         });
     }
 }
-

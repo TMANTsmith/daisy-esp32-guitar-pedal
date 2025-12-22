@@ -1,24 +1,24 @@
 #![no_std]
 #![no_main]
 
-use crc8_rs::{ has_valid_crc8, insert_crc8 };
 use crate::hal::nb;
-use hal::adc::{Adc, Enabled};
-use hal::serial::{Tx, Rx};
-use daisy::{pac, hal};
-use hal::prelude::*;
-use hal::gpio::{Analog};
+use crc8_rs::{has_valid_crc8, insert_crc8};
 use daisy::hal::gpio::gpioa::{PA3, PA6, PA7};
 use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
 use daisy::pac::{ADC1, ADC2};
+use daisy::{hal, pac};
+use hal::adc::{Adc, Enabled};
+use hal::gpio::Analog;
+use hal::prelude::*;
+use hal::serial::{Rx, Tx};
 
 const CMD_LEN: usize = 32;
 
 #[derive(defmt::Format, core::fmt::Debug)]
 pub enum AdcsError {
     ReadError(&'static str),
-    WouldBlock
+    WouldBlock,
 }
 pub struct Adcs {
     pub adc1: Adc<pac::ADC1, Enabled>,
@@ -32,7 +32,6 @@ pub struct Adcs {
     pub pc4: PC4<Analog>,
 }
 
-
 impl Adcs {
     pub fn new(
         adc1: Adc<ADC1, Enabled>,
@@ -45,11 +44,20 @@ impl Adcs {
         pc1: PC1<Analog>,
         pc4: PC4<Analog>,
     ) -> Self {
-        Self { adc1, adc2, pc0, pa3, pb1, pa7, pa6, pc1, pc4 }
+        Self {
+            adc1,
+            adc2,
+            pc0,
+            pa3,
+            pb1,
+            pa7,
+            pa6,
+            pc1,
+            pc4,
+        }
     }
 
-
-    // uses adc1 to read an individual pin 
+    // uses adc1 to read an individual pin
     //
     // TODO set up DMA transfer for a fast scan of all adcs
 
@@ -98,8 +106,6 @@ impl Adcs {
 
         Ok(())
     }
-
-
 }
 
 // ---------------- Commands ----------------
@@ -116,7 +122,6 @@ pub enum UartError {
     AckMismatch([u8; CMD_LEN]),
 }
 
-
 // ---------------- UART ----------------
 //use std::fmt::{Error, Write};
 
@@ -129,7 +134,6 @@ pub struct UartCmd {
 // Initialize USART1 with PB6=TX, PB7=RX
 
 impl UartCmd {
-
     pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
         UartCmd { tx, rx }
     }
@@ -160,10 +164,10 @@ impl UartCmd {
                 Err(nb::Error::WouldBlock) => continue,
                 Err(nb::Error::Other(e)) => {
                     defmt::warn!("Uart Error: {}", e);
-                    return Err(UartError::ReadError)
+                    return Err(UartError::ReadError);
                 }
             }
-        index += 1;
+            index += 1;
         }
     }
 
@@ -183,34 +187,34 @@ impl UartCmd {
     }
 
     /// Lazy write: writes a line out, does not wait for a response
-pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
-    let bytes = s.as_bytes();
+    pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
+        let bytes = s.as_bytes();
 
-    // Runtime check: string must not exceed 32 bytes
-    if bytes.len() > CMD_LEN {
-        return Err(UartError::BufferOverflow([0u8; CMD_LEN]))
-    }
+        // Runtime check: string must not exceed 32 bytes
+        if bytes.len() > CMD_LEN {
+            return Err(UartError::BufferOverflow([0u8; CMD_LEN]));
+        }
 
-    // Copy into a fixed-size 32-byte buffer, padding remaining bytes with 0
-    let mut buf = [0u8; 32];
-    buf[..bytes.len()].copy_from_slice(bytes);
+        // Copy into a fixed-size 32-byte buffer, padding remaining bytes with 0
+        let mut buf = [0u8; 32];
+        buf[..bytes.len()].copy_from_slice(bytes);
 
-    // Compute CRC on the 32-byte buffer
-    let crc_data = insert_crc8(buf, 0xD5);
+        // Compute CRC on the 32-byte buffer
+        let crc_data = insert_crc8(buf, 0xD5);
 
-    // Send newline first
+        // Send newline first
 
-    // Send the bytes with CRC
-    for &b in &crc_data {
-        match self.tx.write(b) {
-            Ok(()) => continue,
-            Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
-            Err(nb::Error::Other(e)) => {
-                defmt::warn!("Uart Error: {}", e);
-                return Err(UartError::WriteError)
+        // Send the bytes with CRC
+        for &b in &crc_data {
+            match self.tx.write(b) {
+                Ok(()) => continue,
+                Err(nb::Error::WouldBlock) => return Err(UartError::WouldBlock),
+                Err(nb::Error::Other(e)) => {
+                    defmt::warn!("Uart Error: {}", e);
+                    return Err(UartError::WriteError);
+                }
             }
         }
-    }
 
         match self.tx.write(b'\n') {
             Ok(()) => Ok(()),
@@ -219,28 +223,25 @@ pub fn write_cmd_lazy(&mut self, s: &str) -> Result<(), UartError> {
                 defmt::warn!("Uart Error: {}", e);
                 Err(UartError::WriteError)
             }
+        }
     }
-}
 
     /// Non-lazy write: writes a line, then waits for echo, returns error if mismatch
     pub fn write_cmd(&mut self, s: &str) -> Result<(), UartError> {
         self.write_cmd_lazy(s)?; // send message
 
-        let vec = 
-            match self.read_cmd_lazy() {
-                Ok(l) => l,
-                Err(UartError::WouldBlock) => return Err(UartError::WouldBlock),
-                Err(e) => return Err(e),
-            };
-
+        let vec = match self.read_cmd_lazy() {
+            Ok(l) => l,
+            Err(UartError::WouldBlock) => return Err(UartError::WouldBlock),
+            Err(e) => return Err(e),
+        };
 
         let tmp: &str = "error";
         let s_in: &str = bytes_to_str(&vec)?;
 
         if s_in == tmp {
             Err(UartError::AckMismatch(vec))
-        }
-        else { 
+        } else {
             Ok(())
         }
     }
@@ -255,4 +256,3 @@ fn bytes_to_str(arr: &[u8; CMD_LEN]) -> Result<&str, UartError> {
     // Convert to &str safely
     core::str::from_utf8(slice).map_err(|_| UartError::Utf8Error(*arr))
 }
-
