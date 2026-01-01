@@ -1,3 +1,5 @@
 /code/target
-
+bash.sh
 /code/kernel8.img
+/code/firmware.bin
+/testy

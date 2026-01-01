@@ -1,28 +1,46 @@
-use libm;
+use libm::floorf;
 
 pub struct BitCrush {
-    value: f32, // Bit depth
+    bits: u8,
+    levels: f32,
 }
 
 impl BitCrush {
-    pub fn new(value: f32) -> Self {
-        match value {
-            2.0 | 4.0 | 8.0 | 12.0 | 16.0 | 20.0 => (),
-            _ => panic!("BitCrush value must be 2,4,8,12,16,20"),
-        }
-        BitCrush { value }
+    /// Create a bitcrusher with `bits` in range 1–16
+    pub fn new(bits: u8) -> Self {
+        let bits = bits.clamp(1, 16);
+        let levels = (1u32 << bits) as f32;
+
+        Self { bits, levels }
     }
 
-    pub fn process(&self, input: &mut (f32, f32)) {
-        let levels = libm::powf(2.0, self.value) - 1.0;
-        // Map -1..1 -> 0..1, round, map back
-        input.0 = libm::roundf((input.0 + 1.0) / 2.0 * levels) / levels * 2.0 - 1.0;
-        input.1 = libm::roundf((input.1 + 1.0) / 2.0 * levels) / levels * 2.0 - 1.0;
+    /// Change bit depth at runtime safely
+    #[inline]
+    pub fn set_bits(&mut self, bits: u8) {
+        self.bits = bits.clamp(1, 16);
+        self.levels = (1u32 << self.bits) as f32;
     }
 
-    pub fn process_list(&self, input: &mut [(f32, f32)]) {
-        for tuple in input.iter_mut() {
-            self.process(tuple);
-        }
+    /// Process a stereo frame
+    #[inline(always)]
+    pub fn process(&self, frame: &mut (f32, f32)) {
+        frame.0 = crush(frame.0, self.levels);
+        frame.1 = crush(frame.1, self.levels);
     }
 }
+
+#[inline(always)]
+fn crush(x: f32, levels: f32) -> f32 {
+    // Clamp input to avoid NaNs
+    let x = x.clamp(-1.0, 1.0);
+
+    // -1..1 → 0..1
+    let x = (x + 1.0) * 0.5;
+
+    // Quantize
+    let x = libm::floorf(x * levels) / levels;
+
+    // 0..1 → -1..1
+    x * 2.0 - 1.0
+}
+

@@ -1,8 +1,4 @@
-[default.general]
-chip = "STM32H750VBTx"
+[default]
+chip = "STM32H743ZI"
+connect_under_reset = true
 
-[default.rtt]
-enabled = true
-
-[default.flashing]
-enabled = false

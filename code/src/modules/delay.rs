@@ -1,44 +1,53 @@
-use heapless::Vec;
+use libm::roundf; // for f32
+use core::num::Wrapping;
+
+
 
 pub struct Delay<'a> {
-    length: f32, // in millisec 
-    volume: f32, // between 0-1
+    volume: f32,          // feedback/mix
     buffer: &'a mut [(f32, f32)],
-    read_idx: u32,
-    write_idx: u32,
+    write_idx: Wrapping<usize>,
+    length_samples: usize,
 }
 
 impl<'a> Delay<'a> {
-    pub fn new(
-        len: f32, 
-        volume: f32, 
-        buffer: &'a mut [(f32, f32)], 
-        sample: f32
-    ) -> Self {
-        let mut write_idx: u32 = 0;
-        let mut read_idx: u32 = len / 1000 * sample;
-        Delay { length, volume, buffer, write_idx, read_idx }
-    }
-
-    pub fn process(&self, input: &mut (f32, f32)) {
-        self.buffer[write_idx] = (input.0, input.1);
-        self.write_idx += 1;
-
-        if self.write_idx >= self.sample {
-            self.write_idx = 0;
+    pub fn new(length_ms: usize, volume: f32, buffer: &'a mut [(f32, f32)], sample_rate: f32) -> Self {
+        let length_samples = roundf((length_ms as f32) * sample_rate / 1000.0) as usize;
+        Delay {
+            volume,
+            buffer,
+            write_idx: Wrapping(0),
+            length_samples,
         }
-        if self.read_idx >= self.sample {
-            self.read_idx = 0;
-        }        
-        let (left, right) = buffer[self.read_idx];
-        *input = (input.0 + (left * self.volume), input.1 + right * self.volume);
     }
-    pub fn process_list(&self, input: &mut [(f32, f32)]) {
-        for touple in input.iter_mut() {
-            self.process(touple);
+
+    pub fn process(&mut self, input: &mut (f32, f32)) {
+        let buf_len = self.buffer.len();
+
+        // read index based on delay length in samples
+        let read_idx = (self.write_idx.0 + buf_len - self.length_samples) % buf_len;
+        let (left, right) = self.buffer[read_idx];
+
+        // mix delayed sample into input
+        *input = (
+            input.0 + left * self.volume,
+            input.1 + right * self.volume,
+        );
+
+        // write current input to buffer
+        self.buffer[self.write_idx.0] = *input;
+
+        // advance write index with wrap-around
+        self.write_idx += Wrapping(1);
+        if self.write_idx.0 >= buf_len {
+            self.write_idx = Wrapping(0);
+        }
+    }
+
+    pub fn process_list(&mut self, input: &mut [(f32, f32)]) {
+        for sample in input.iter_mut() {
+            self.process(sample);
         }
     }
 }
-    
-
 
