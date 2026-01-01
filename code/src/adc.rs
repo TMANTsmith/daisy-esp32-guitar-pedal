@@ -1,26 +1,45 @@
-use daisy::hal::nb;
 use crc8_rs::{has_valid_crc8, insert_crc8};
 use daisy::hal::gpio::gpioa::{PA3, PA6, PA7};
 use daisy::hal::gpio::gpiob::PB1;
 use daisy::hal::gpio::gpioc::{PC0, PC1, PC4};
+use daisy::hal::nb;
 use daisy::pac::{ADC1, ADC2};
 use daisy::{hal, pac};
 use hal::adc::{Adc, Enabled};
 use hal::gpio::Analog;
 use hal::prelude::*;
 use hal::serial::{Rx, Tx};
+use hal::dma::dma::Instance;
+use hal::dma::dma::Stream3;
+use hal::dma::Transfer;
+use hal::dma::PeripheralToMemory;
+use hal::adc::AdcDmaMode::Circular;
+
+
 
 const CMD_LEN: usize = 32;
+// TODO remember to calabrate and power up
 
 #[derive(defmt::Format, core::fmt::Debug)]
 pub enum AdcsError {
     ReadError(&'static str),
     WouldBlock,
+    InvalidNum(usize),
 }
+
+pub struct MyAudio<ADC_DMA> {
+    adc_dma: ADC_DMA,
+}
+
+impl<ADC_DMA> MyAudio<ADC_DMA> {
+    pub fn new(adc_dma: ADC_DMA) -> Self {
+        Self { adc_dma }
+    }
+}
+
 pub struct Adcs {
-    pub buffer: [u32; 7],
     pub adc1: Adc<pac::ADC1, Enabled>,
-    pub adc2: Adc<pac::ADC2, Enabled>,
+    adc_dma: ADC_DMA, 
     pub pc0: PC0<Analog>,
     pub pa3: PA3<Analog>,
     pub pb1: PB1<Analog>,
@@ -33,7 +52,7 @@ pub struct Adcs {
 impl Adcs {
     pub fn new(
         adc1: Adc<ADC1, Enabled>,
-        adc2: Adc<ADC2, Enabled>,
+        adc_dma: Transfer<dma2::C3, Adc<pac::ADC1>, PeripheralToMemory, Circular>,
         pc0: PC0<Analog>,
         pa3: PA3<Analog>,
         pb1: PB1<Analog>,
@@ -42,11 +61,9 @@ impl Adcs {
         pc1: PC1<Analog>,
         pc4: PC4<Analog>,
     ) -> Self {
-        let buffer = [0u32; 7];
         Self {
-            buffer,
             adc1,
-            adc2,
+            adc_dma,
             pc0,
             pa3,
             pb1,
@@ -56,55 +73,4 @@ impl Adcs {
             pc4,
         }
     }
-
-    // uses adc1 to read an individual pin
-    //
-    // TODO set up DMA transfer for a fast scan of all adcs
-
-    pub fn read_all(&mut self)-> Result<(), AdcsError> {
-        self.buffer[0] = match self.adc1.read(&mut self.pc0) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pc0")),
-        };
-
-        self.buffer[1] = match self.adc1.read(&mut self.pa3) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pa3")),
-        };
-
-        self.buffer[2] = match self.adc1.read(&mut self.pb1) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pb1")),
-        };
-
-        self.buffer[3] = match self.adc1.read(&mut self.pa7) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pa7")),
-        };
-
-        self.buffer[4] = match self.adc1.read(&mut self.pa6) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pa6")),
-        };
-
-        self.buffer[5] = match self.adc1.read(&mut self.pc1) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pc1")),
-        };
-
-        self.buffer[6] = match self.adc1.read(&mut self.pc4) {
-            Ok(val) => val,
-            Err(nb::Error::WouldBlock) => return Err(AdcsError::WouldBlock),
-            Err(_) => return Err(AdcsError::ReadError("pc4")),
-        };
-
-        Ok(())
-    }
 }
-

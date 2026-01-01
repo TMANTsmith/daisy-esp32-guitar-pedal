@@ -1,3 +1,5 @@
+use crate::adc::{Adcs, AdcsError};
+
 pub struct Gain {
     value: f32,
 }
@@ -7,14 +9,11 @@ impl Gain {
         Gain { value }
     }
 
-    pub fn process(&self, input: &mut (f32, f32)) {
+    pub fn update(&mut self, value: f32) {
+        self.value = value;
+    }
+
+    pub fn process(&mut self, input: &mut (f32, f32)) {
         *input = ((input.0 * self.value as f32), (input.1 * self.value as f32))
     }
-    pub fn process_list(&self, input: &mut [(f32, f32)]) {
-        for touple in input.iter_mut() {
-            self.process(touple);
-        }
-    }
 }
-    
-
