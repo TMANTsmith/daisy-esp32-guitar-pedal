@@ -30,6 +30,7 @@ mod app {
 
     use crate::modules::bit_crush::BitCrush;
     use crate::modules::gain::Gain;
+    use crate::uart::UartError;
     use daisy::audio::Interface;
     use daisy::hal::serial::SerialExt;
     use daisy::hal::time::U32Ext;
@@ -48,6 +49,7 @@ mod app {
     struct Local {
         adc_dma: ???,
         audio_interface: Interface,
+        //TODO just split uart read and write into tx and rx so no clone in needed
         uart_write: UartCmd,
         uart_read: UartCmd,
         gain1: Gain,
@@ -181,21 +183,75 @@ mod app {
         .expect("audio dsp init error");
     }
 
+    // TODO fix .ok error handling
+    #[task(priority = 1, local = [uart_write])]
+    fn uart_write_byte(cx: uart_write_byte::Context, byte: u8,) {
+        match cx.local.uart_write.tx.write(byte) {
+            Ok(()) => {}
+            Err(nb::Error::WouldBlock) => {
+                uart_write_byte::spawn(byte).ok();
+            }
+            Err(_) => {}
+        }
+    }
 
-       #[task(priority = 1, local = [uart_write])]
-       async fn uart_write(cx: uart_write::Context, info: &[u8]) {
-       write_buf(&info).unwrap();
-       }
+    #[task(priority = 1)]
+    fn uart_write_bytes(cx: uart_write_bytes::Context, bytes: &[u8], is_str: bool) {
 
+        for byte in bytes {
+            uart_write_byte::spawn(byte).ok();
+        }
+        if is_str == true {
+            uart_write_byte::spawn(b'\t').ok();
+        } else {
+            uart_write_byte::spawn(b'\n').ok();
+        }
+    }
+
+    #[task(priority = 1)]
+    fn uart_write_str(cx: uart_write_str::Context, string: &str) {
+        let bytes = string.as_bytes();
+        uart_write_bytes::spawn(bytes, true).ok();
+    }
 
        #[task(binds = UART0, priority = 1)]
        fn uart_read_trigger(_: uart_read_trigger::Context) {
-       uart_read::spawn().expect("uart spawn error");
+       let info: Info = uart_read::spawn().expect("uart spawn error");
+       // process commands here
        }
 
        #[task(priority = 1, local = [uart_read], shared = [rx_buf])]
-       async fn uart_read(cx: uart_read::Context) {
-       let len = cx.local.uart.read_buf(rx_buf).await.unwrap();
+       async fn uart_read(cx: uart_read::Context) -> Result<Info, UartError> {
+       let mut idx = 0;
+
+        loop {
+            match cs.local.uart_read.rx.read() {
+                Ok(b) => {
+                    if b == b'\n' {
+                        return Ok(Info::Bytes(buf));
+                    } else if b == '\t' {
+                        return Ok(Info::Str(str::from_utf8(buf).unwrap()))
+                    }
+                    if idx >= buf.len() {
+                        return Err(UartError::BufferOverflow);
+                    }
+
+                    buf[idx] = b;
+                    idx += 1;
+                },
+                Err(nb::Error::WouldBlock) => {
+                    return Err(UartError::WouldBlock)
+                },
+                Err(_) => return Err(UartError::ReadError),
+            }
+        }
+    }
+}
+
+
+
+
+
     //handle commands here
     }
 

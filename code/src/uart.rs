@@ -13,6 +13,9 @@ use hal::serial::{Rx, Tx};
 
 const CMD_LEN: usize = 32;
 
+
+// WARN most of this stuff is unused
+
 pub enum UartError {
     WriteError,
     ReadError,
@@ -33,77 +36,90 @@ pub struct UartCmd {
 
 // Initialize USART1 with PB6=TX, PB7=RX
 
-
-// usage (&str or [u8])
-pub trait Write<T> {
-    fn write(&mut self,value: T);
+enum Info <'a>{
+    Bytes(&'a [u8]),
+    Str(&'a str),
 }
-
-impl Write<[u8]> for UartCmd {
-    async fn write(&mut self, value: [u8]) -> Result<(), UartError> {
-        for &byte in value {
-            match self.tx.write(b) {
-                Ok(()) => continue,
-                Err(nb::Error::WouldBlock) => {
-                    yeild_now().await;
-                },
-                Err(e) => return Err(UartError::WriteError(e))
-            }
-        }
-        self.tx.write(b'\n');
-        Ok(())
-    }
-    
-    async fn write(&mut self, value: &str)-> Result<(), UartError> {
-        match self.tx.write_str(value) {
-            Ok(v) => {
-                self.tx.write(b'\n');
-                Ok(v)
-            },
-            Err(nb::Error::WouldBlock) => {
-                yeild_now().await;
-            },
-            Err(e) => Err(UartError::WriteError(e))
-        }
-    }
-}
-
-        
-        
-
 
 impl UartCmd {
     pub fn new(tx: Tx<pac::USART1>, rx: Rx<pac::USART1>) -> UartCmd {
         UartCmd { tx, rx }
     }
 
+    async fn write(&mut self, info: Info) -> Result<(), UartError> {
+        match info {
+            Info::Bytes(b) => self.write_bytes(b),
+            Info::Str(s) => self.write_str(s),
+        }
+    }
+
+    async fn write_bytes(&mut self, value: &[u8]) -> Result<(), UartError> {
+        for &byte in value {
+            loop {
+                match self.tx.write(b) {
+                    Ok(()) => continue,
+                    Err(nb::Error::WouldBlock) => {
+                        yeild_now().await;
+                    },
+                    Err(e) => return Err(UartError::WriteError(e))
+                }
+            }
+        }
+        loop {
+            match self.tx.write(b'\n') {
+                Ok(()) => break,
+                Err(nb::Error::WouldBlock) => yield_now().await,
+                Err(e) => return Err(UartError::WriteError(e)),
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn write_str(&mut self, value: &str) -> Result<(), UartError> {
+        loop {
+            match self.tx.write_str(value) {
+                Ok(_) => {
+                    self.tx.write(b'\n').map_err(UartError::WriteError)?;
+                    return Ok(());
+                }
+                Err(nb::Error::WouldBlock) => {
+                    yield_now().await;
+                }
+                Err(e) => return Err(UartError::WriteError(e)),
+            }
+        }
+    }
+
     // -------------------------
     // ASYNC READ (newline-terminated)
     // -------------------------
+
     pub async fn read_buf(
         &mut self,
         buf: &mut [u8],
-    ) -> Result<usize, UartError> {
+    ) -> Result<Info, UartError> {
         let mut idx = 0;
 
         loop {
             match self.rx.read() {
                 Ok(b) => {
                     if b == b'\n' {
-                        return Ok(idx);
+                        return Ok(Info::Bytes(buf));
+                    } else if b == b'\t' {
+                        return Ok(Info::Str(str::from_utf8(buf).unwrap()))
                     }
-
                     if idx >= buf.len() {
                         return Err(UartError::BufferOverflow);
                     }
 
                     buf[idx] = b;
                     idx += 1;
-                }
+                },
                 Err(nb::Error::WouldBlock) => {
-                    yield_now().await;
-                }
-                Err(_) => return Err(UartError::Read),
+                    return Err(UartError::WouldBlock)
+                },
+                Err(_) => return Err(UartError::ReadError),
             }
         }
     }
