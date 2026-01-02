@@ -50,8 +50,8 @@ mod app {
         adc_dma: ???,
         audio_interface: Interface,
         //TODO just split uart read and write into tx and rx so no clone in needed
-        uart_write: UartCmd,
-        uart_read: UartCmd,
+        tx: ???,
+        rx: ???,
         gain1: Gain,
         gain2: Gain,
         bit_crush: BitCrush,
@@ -140,8 +140,6 @@ mod app {
         // enable interupts
 
         let (tx, rx) = temp_uart.split();
-        let uart_read = code::UartCmd::new(tx, rx);
-        let uart_write = uart_read.clone();
 
         // Enable caches
         cp.SCB.enable_icache();
@@ -157,11 +155,11 @@ mod app {
             Local {
                 adc_dma,
                 audio_interface,
+                tx,
+                rx,
                 gain1,
                 gain2,
                 bit_crush,
-                uart_read,
-                uart_write,
             },
         )
     }
@@ -184,9 +182,9 @@ mod app {
     }
 
     // TODO fix .ok error handling
-    #[task(priority = 1, local = [uart_write])]
+    #[task(priority = 1, local = [tx])]
     fn uart_write_byte(cx: uart_write_byte::Context, byte: u8,) {
-        match cx.local.uart_write.tx.write(byte) {
+        match cx.local.tx.write(byte) {
             Ok(()) => {}
             Err(nb::Error::WouldBlock) => {
                 uart_write_byte::spawn(byte).ok();
@@ -214,18 +212,18 @@ mod app {
         uart_write_bytes::spawn(bytes, true).ok();
     }
 
-       #[task(binds = UART0, priority = 1)]
-       fn uart_read_trigger(_: uart_read_trigger::Context) {
-       let info: Info = uart_read::spawn().expect("uart spawn error");
-       // process commands here
-       }
+    #[task(binds = UART0, priority = 1)]
+    fn uart_read_trigger(_: uart_read_trigger::Context) {
+        let info: Info = uart_read::spawn().expect("uart spawn error");
+        // process commands here
+    }
 
-       #[task(priority = 1, local = [uart_read], shared = [rx_buf])]
-       async fn uart_read(cx: uart_read::Context) -> Result<Info, UartError> {
-       let mut idx = 0;
+    #[task(priority = 1, local = [rx], shared = [rx_buf])]
+    async fn uart_read(cx: uart_read::Context) -> Result<Info, UartError> {
+        let mut idx = 0;
 
         loop {
-            match cs.local.uart_read.rx.read() {
+            match cs.local.rx.read() {
                 Ok(b) => {
                     if b == b'\n' {
                         return Ok(Info::Bytes(buf));
@@ -245,14 +243,6 @@ mod app {
                 Err(_) => return Err(UartError::ReadError),
             }
         }
-    }
-}
-
-
-
-
-
-    //handle commands here
     }
 
     //if not make this sofware and make it scedule itself in the furture
