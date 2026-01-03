@@ -1,4 +1,3 @@
-use crate::adc::{Adcs, AdcsError};
 
 pub struct Gain {
     value: f32,
