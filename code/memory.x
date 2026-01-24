@@ -3,7 +3,6 @@
  *      https://github.com/stm32-rs/stm32h7xx-hal/blob/master/memory.x
  *      https://github.com/mtthw-meyer/libdaisy-rust/blob/master/memory.x
  */
-
 MEMORY
 {
     FLASH     (RX)  : ORIGIN = 0x08000000, LENGTH = 128K
@@ -16,21 +15,26 @@ MEMORY
     QSPIFLASH (RX)  : ORIGIN = 0x90000000, LENGTH = 8M
 }
 
-REGION_ALIAS(RAM, DTCMRAM);
+/* Changed from DTCMRAM to SRAM for better debug probe access */
+REGION_ALIAS(RAM, SRAM);
 
 SECTIONS
 {
+    /* Explicitly place RTT buffers in SRAM for reliable debug access */
+    .rtt (NOLOAD) :
+    {
+        *(.rtt .rtt.*);
+    } > SRAM
+
     .sram1_bss (NOLOAD) :
     {
         . = ALIGN(4);
         _ssram1_bss = .;
-
         PROVIDE(__sram1_bss_start__ = _sram1_bss);
         *(.sram1_bss)
         *(.sram1_bss*)
         . = ALIGN(4);
         _esram1_bss = .;
-
         PROVIDE(__sram1_bss_end__ = _esram1_bss);
     } > RAM_D2
 
@@ -38,13 +42,11 @@ SECTIONS
     {
         . = ALIGN(4);
         _ssdram_bss = .;
-
         PROVIDE(__sdram_bss_start = _ssdram_bss);
         *(.sdram_bss)
         *(.sdram_bss*)
         . = ALIGN(4);
         _esdram_bss = .;
-
         PROVIDE(__sdram_bss_end = _esdram_bss);
     } > SDRAM
 
@@ -52,13 +54,11 @@ SECTIONS
     {
         . = ALIGN(4);
         _ssram = .;
-
         PROVIDE(__sram_start__ = _sram);
         *(.sram)
         *(.sram*)
         . = ALIGN(4);
         _esram = .;
-
         PROVIDE(__sram_end__ = _esram);
     } > SRAM
 }

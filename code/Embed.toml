@@ -1,4 +1,14 @@
-[default]
-chip = "STM32H743ZI"
-connect_under_reset = true
+[default.general]
+chip = "STM32H750IB"
 
+[default.reset]
+enabled = true
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+timeout = 5000
+up_mode = "NoBlockSkip"
+
+[default.gdb]
+enabled = false
