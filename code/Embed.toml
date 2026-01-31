@@ -1,5 +1,5 @@
 [default.general]
-chip = "STM32H750IB"
+chip = "STM32H743VI"
 
 [default.reset]
 enabled = true

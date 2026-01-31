@@ -1,16 +1,12 @@
 #![no_std]
 #![no_main]
 
-// ONLY USE defmt::error! or defmt::println!
-use core::cell::RefCell;
-use cortex_m::interrupt::Mutex;
-use daisy::audio;
-use daisy::hal::stm32;
-use defmt::*;
 use defmt_rtt as _;
-use panic_probe as _; // enables the panic handler // optional: RTT transport for defmt
+use panic_probe as _;
 use rtic::app;
 use rtic_monotonics::systick::prelude::*;
+
+mod delays;
 
 systick_monotonic!(Mono, 1000);
 
@@ -26,44 +22,50 @@ fn timestamp() -> u64 {
 )]
 mod app {
     use super::Mono;
-    use cortex_m::asm;
     use cortex_m::prelude::_embedded_hal_adc_OneShot;
+    use daisy::audio::Interface;
     use daisy::led::LedUser;
-    use rtic_monotonics::fugit::ExtU32; // for u32.millis()
+    //use rtic_monotonics::fugit::RateExtU32;
+    use daisy::hal::prelude::*;
     use rtic_monotonics::Monotonic;
 
     #[shared]
-    struct Shared {}
+    struct Shared {
+    }
 
     #[local]
     struct Local {
-        // adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
-        // adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
+        audio_interface: Interface,
+        adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
+        adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
         led: LedUser,
-        // scale_factor: f32,
     }
 
     #[init]
     fn init(cx: init::Context) -> (Shared, Local) {
-        defmt::println!("Daisy Seed booting...");
-        // Use RTIC-provided peripherals
+        defmt::println!("=== INIT START ===");
+
         let mut cp = cx.core;
         let dp = cx.device;
-
-        // Take the board once
         let board = daisy::Board::take().expect("board take error");
-
-        // Initialize clocks and GPIOs once
         let ccdr = daisy::board_freeze_clocks!(board, dp);
         let pins = daisy::board_split_gpios!(board, ccdr, dp);
 
-        // Initialize audio interface once
+        // Create and spawn audio interface
+        defmt::println!("Setting up audio interface...");
         let audio_interface = daisy::board_split_audio!(ccdr, pins)
-            .spawn()
-            .expect("audio interface spawn error");
+            .spawn() // Call spawn - it starts the codec and DMA
+            .expect("audio spawn error");
+        defmt::println!("Audio interface spawned!");
 
-        /*
-        let mut delay = daisy::hal::delay::Delay::new(cp.SYST, ccdr.clocks);
+        cp.SCB.enable_icache();
+        cp.SCB.enable_dcache(&mut cp.CPUID);
+
+        Mono::start(cp.SYST, ccdr.clocks.sys_ck().to_Hz()); // default STM32F303 clock-rate is 36MHz
+
+        defmt::println!("Initializing ADC...");
+        let mut delay = crate::delays::BusyDelay::new(ccdr.clocks.sys_ck().to_Hz());
+
         let mut adc1 = daisy::hal::adc::Adc::adc1(
             dp.ADC1,
             4_u32.MHz(),
@@ -72,78 +74,53 @@ mod app {
             &ccdr.clocks,
         )
         .enable();
+
         adc1.set_resolution(daisy::hal::adc::Resolution::SixteenBit);
+        defmt::println!("ADC ready!");
 
-        let mut adc1_channel = pins.GPIO.PIN_21.into_analog();
-
-        let channels = (
-            pins.GPIO.PIN_15.into_analog(),
-            pins.GPIO.PIN_16.into_analog(),
-            pins.GPIO.PIN_17.into_analog(),
-            pins.GPIO.PIN_18.into_analog(),
-            pins.GPIO.PIN_19.into_analog(),
-            pins.GPIO.PIN_20.into_analog(),
-            pins.GPIO.PIN_21.into_analog(),
-        );
-        */
-
-        // Initialize gains
-
-        // Initialize UART
-        // Enable caches
-        cp.SCB.enable_icache();
-        cp.SCB.enable_dcache(&mut cp.CPUID);
-
+        let adc1_channel = pins.GPIO.PIN_21.into_analog();
         let led = daisy::board_split_leds!(pins).USER;
-        let scale_factor = ccdr.clocks.sys_ck().to_Hz() as f32 / 65_535.0;
-        Mono::start(cp.SYST, ccdr.clocks.sys_ck().to_Hz()); // default STM32F303 clock-rate is 36MHz
 
-        // Listen for update events (overflow)
-
-        toggle_led::spawn().unwrap();
+        defmt::println!("=== Init complete ===");
 
         (
-            Shared {},
+            Shared { },
             Local {
-                // adc1,
-                // adc1_channel,
+                audio_interface,
+                adc1,
+                adc1_channel,
                 led,
-                // scale_factor,
             },
         )
     }
 
-    #[task(local = [led], priority = 1)]
-    async fn toggle_led(cx: toggle_led::Context) {
-        // Try different defmt macros
-        defmt::println!("println test");
-        defmt::error!("error test");
+    // DMA interrupt handler - called when audio buffer is ready
+    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel], priority = 2)]
+    fn audio_callback(mut cx: audio_callback::Context) {
+        // Read ADC value for gain control
+        let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
+        defmt::println!("adc read: {}", pot);
+
+
+        // Process audio buffer
+        cx.local
+            .audio_interface
+            .handle_interrupt_dma1_str1(|buffer| {
+                for frame in buffer {
+                }
+            })
+            .unwrap();
+    }
+
+    #[idle(local = [led])]
+    fn idle(cx: idle::Context) -> ! {
+        defmt::println!("=== IDLE running ===");
+        let sys_freq = 400_000_000;
+        let delay_cycles = sys_freq / 2; // 500ms
 
         loop {
-        defmt::println!("blink");
             cx.local.led.toggle();
-            Mono::delay(1000.millis()).await;
+            cortex_m::asm::delay(delay_cycles);
         }
     }
-
-    /*
-    #[idle(local = [adc1, adc1_channel, led, scale_factor])]
-    fn idle(mut cx: idle::Context) -> ! {
-        defmt::println!("idle entered");
-
-
-        loop {
-            let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
-
-            let ticks = (pot as f32 * *cx.local.scale_factor) as u32;
-
-            defmt::println!("ADC {}", pot);
-
-            cx.local.led.set_high();
-            cortex_m::asm::delay(ticks);
-            cx.local.led.set_low();
-            cortex_m::asm::delay(ticks);
-        }
-    }
-    */
 }
