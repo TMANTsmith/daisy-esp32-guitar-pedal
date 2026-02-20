@@ -61,10 +61,11 @@ mod app {
         cp.SCB.enable_icache();
         cp.SCB.enable_dcache(&mut cp.CPUID);
 
-        Mono::start(cp.SYST, ccdr.clocks.sys_ck().to_Hz()); // default STM32F303 clock-rate is 36MHz
 
         defmt::println!("Initializing ADC...");
-        let mut delay = crate::delays::BusyDelay::new(ccdr.clocks.sys_ck().to_Hz());
+        // let mut delay = crate::delays::BusyDelay::new(ccdr.clocks.sys_ck().to_Hz()); // custom
+                                                                                     // delay
+        let mut delay = daisy::hal::delay::Delay::new(cp.SYST, ccdr.clocks);
 
         let mut adc1 = daisy::hal::adc::Adc::adc1(
             dp.ADC1,
@@ -82,6 +83,9 @@ mod app {
         let led = daisy::board_split_leds!(pins).USER;
 
         defmt::println!("=== Init complete ===");
+
+        let SYST = delay.free();
+        Mono::start(SYST, ccdr.clocks.sys_ck().to_Hz()); // default STM32F303 clock-rate is 36MHz
 
         (
             Shared { },
