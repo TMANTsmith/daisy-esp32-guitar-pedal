@@ -9,15 +9,4 @@ impl Clipping {
     pub fn new(value: f32, bais: f32) -> Self {
         Clipping { value, bais }
     }
-
-    pub fn process(&self, input: &mut (f32, f32)) {
-        input.0 = libm::tanhf((input.0 + self.bais) * (self.value+ 1.0) * (self.value + 1.0));
-        input.1 = libm::tanhf((input.1 + self.bais) * (self.value+ 1.0) * (self.value + 1.0));
-    }
-
-    pub fn process_list(&self, input: &mut [(f32, f32)]) {
-        for tuple in input.iter_mut() {
-            self.process(tuple);
-        }
-    }
 }

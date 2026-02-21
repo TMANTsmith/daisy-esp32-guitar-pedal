@@ -63,8 +63,7 @@ mod app {
 
 
         defmt::println!("Initializing ADC...");
-        // let mut delay = crate::delays::BusyDelay::new(ccdr.clocks.sys_ck().to_Hz()); // custom
-                                                                                     // delay
+
         let mut delay = daisy::hal::delay::Delay::new(cp.SYST, ccdr.clocks);
 
         let mut adc1 = daisy::hal::adc::Adc::adc1(

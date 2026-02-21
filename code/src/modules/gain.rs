@@ -11,8 +11,4 @@ impl Gain {
     pub fn update(&mut self, value: f32) {
         self.value = value;
     }
-
-    pub fn process(&mut self, input: &mut (f32, f32)) {
-        *input = ((input.0 * self.value as f32), (input.1 * self.value as f32))
-    }
 }
