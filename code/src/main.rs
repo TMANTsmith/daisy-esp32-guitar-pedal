@@ -6,7 +6,6 @@ use panic_probe as _;
 use rtic::app;
 use rtic_monotonics::systick::prelude::*;
 
-mod delays;
 
 systick_monotonic!(Mono, 1000);
 
@@ -102,7 +101,7 @@ mod app {
     fn audio_callback(mut cx: audio_callback::Context) {
         // Read ADC value for gain control
         let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
-        defmt::println!("adc read: {}", pot);
+        // defmt::println!("adc read: {}", pot);
 
 
         // Process audio buffer
@@ -110,6 +109,7 @@ mod app {
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
                 for frame in buffer {
+            defmt::println!("audio read: {}", frame);
                 }
             })
             .unwrap();
