@@ -6079,110 +6079,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Amplifier_Operational:OPA1664D")
-		(at 227.33 127 0)
-		(unit 2)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "30e4bfb5-1021-4acb-9fe9-4b78fb32a636")
-		(property "Reference" "U2"
-			(at 227.33 116.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "OPA1664D"
-			(at 227.33 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
-			(at 226.06 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
-			(at 228.6 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
-			(at 227.33 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "5"
-			(uuid "84e144b5-a316-415e-af50-e751a5c7f645")
-		)
-		(pin "12"
-			(uuid "f4076187-e052-498d-bc71-fe9022037d46")
-		)
-		(pin "7"
-			(uuid "5194beea-4ba1-477b-a297-5104d0179e1e")
-		)
-		(pin "8"
-			(uuid "4afb7938-d630-4ffd-ba17-3a44e3fd9570")
-		)
-		(pin "6"
-			(uuid "dc5478a7-2bde-49d9-a1d5-3e554ca9ac32")
-		)
-		(pin "1"
-			(uuid "57b6a1f9-e5ec-4907-9380-963ddb0d5da5")
-		)
-		(pin "2"
-			(uuid "ef214bcd-e373-47a0-af8a-104cb7da8397")
-		)
-		(pin "10"
-			(uuid "25648083-24ea-485d-9c93-d59366ed2efa")
-		)
-		(pin "13"
-			(uuid "2f00ab5a-85b9-44d2-b1b6-378ebaa9e1c7")
-		)
-		(pin "11"
-			(uuid "9bc1c629-71cc-466e-9fd2-beb59e3f6b33")
-		)
-		(pin "4"
-			(uuid "b4832f54-4e2a-4f65-bee4-2c74972e2af5")
-		)
-		(pin "14"
-			(uuid "a4cfb0b5-d42c-49a3-83e4-21dbd314c08b")
-		)
-		(pin "9"
-			(uuid "421782be-7b7c-4b1b-ae9d-fe1880974bc1")
-		)
-		(pin "3"
-			(uuid "4025d21d-6ec2-4cdc-ba9e-f9c0045ed520")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
-					(reference "U2")
-					(unit 2)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Diode:1N5817")
 		(at 43.18 34.29 180)
 		(unit 1)
@@ -7261,6 +7157,110 @@
 		)
 	)
 	(symbol
+		(lib_id "Amplifier_Operational:OPA1664D")
+		(at 337.82 129.54 0)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "80d13654-8935-4ade-9069-b8d63f2c58d2")
+		(property "Reference" "U2"
+			(at 337.82 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA1664D"
+			(at 337.82 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 336.55 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
+			(at 339.09 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
+			(at 337.82 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "13aff5d2-64a1-4b05-908d-a0c38945f454")
+		)
+		(pin "12"
+			(uuid "f4076187-e052-498d-bc71-fe9022037d46")
+		)
+		(pin "7"
+			(uuid "bb63cf39-dbf4-451d-a539-ba2a653d5d96")
+		)
+		(pin "8"
+			(uuid "4afb7938-d630-4ffd-ba17-3a44e3fd9570")
+		)
+		(pin "6"
+			(uuid "9d4414c5-efb6-4f2c-8685-20eb960149c8")
+		)
+		(pin "1"
+			(uuid "57b6a1f9-e5ec-4907-9380-963ddb0d5da5")
+		)
+		(pin "2"
+			(uuid "ef214bcd-e373-47a0-af8a-104cb7da8397")
+		)
+		(pin "10"
+			(uuid "25648083-24ea-485d-9c93-d59366ed2efa")
+		)
+		(pin "13"
+			(uuid "2f00ab5a-85b9-44d2-b1b6-378ebaa9e1c7")
+		)
+		(pin "11"
+			(uuid "9bc1c629-71cc-466e-9fd2-beb59e3f6b33")
+		)
+		(pin "4"
+			(uuid "b4832f54-4e2a-4f65-bee4-2c74972e2af5")
+		)
+		(pin "14"
+			(uuid "a4cfb0b5-d42c-49a3-83e4-21dbd314c08b")
+		)
+		(pin "9"
+			(uuid "421782be-7b7c-4b1b-ae9d-fe1880974bc1")
+		)
+		(pin "3"
+			(uuid "4025d21d-6ec2-4cdc-ba9e-f9c0045ed520")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "U2")
+					(unit 2)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 318.77 127 90)
 		(unit 1)
@@ -8047,110 +8047,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Amplifier_Operational:OPA1664D")
-		(at 337.82 129.54 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b390dbd5-e83d-4238-94d8-d6ba9e86ffcf")
-		(property "Reference" "U2"
-			(at 337.82 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "OPA1664D"
-			(at 337.82 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
-			(at 336.55 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
-			(at 339.09 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
-			(at 337.82 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "5"
-			(uuid "5d560827-ecc6-41ae-b4fb-122901a63501")
-		)
-		(pin "12"
-			(uuid "f4076187-e052-498d-bc71-fe9022037d49")
-		)
-		(pin "7"
-			(uuid "1351190a-1160-4112-8aa9-bfc3228baa69")
-		)
-		(pin "8"
-			(uuid "4afb7938-d630-4ffd-ba17-3a44e3fd9573")
-		)
-		(pin "6"
-			(uuid "5d870697-ab19-4280-b630-b5fe62968578")
-		)
-		(pin "1"
-			(uuid "39a43b2f-1384-40ec-a95f-5b9d7dd75dfa")
-		)
-		(pin "2"
-			(uuid "526590f6-fea0-4513-9e56-21e09e4c0299")
-		)
-		(pin "10"
-			(uuid "25648083-24ea-485d-9c93-d59366ed2efd")
-		)
-		(pin "13"
-			(uuid "2f00ab5a-85b9-44d2-b1b6-378ebaa9e1ca")
-		)
-		(pin "11"
-			(uuid "9bc1c629-71cc-466e-9fd2-beb59e3f6b36")
-		)
-		(pin "4"
-			(uuid "b4832f54-4e2a-4f65-bee4-2c74972e2af8")
-		)
-		(pin "14"
-			(uuid "a4cfb0b5-d42c-49a3-83e4-21dbd314c08e")
-		)
-		(pin "9"
-			(uuid "421782be-7b7c-4b1b-ae9d-fe1880974bc4")
-		)
-		(pin "3"
-			(uuid "5c3c35fa-2d61-4ccb-a30b-c9eb34039f98")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
-					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 135.89 171.45 0)
 		(unit 1)
@@ -8652,6 +8548,110 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
 					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:OPA1664D")
+		(at 227.33 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cd59bdf0-bcaf-4b52-88e7-443744d71bf4")
+		(property "Reference" "U2"
+			(at 227.33 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA1664D"
+			(at 227.33 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 226.06 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
+			(at 228.6 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
+			(at 227.33 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "5d560827-ecc6-41ae-b4fb-122901a63501")
+		)
+		(pin "12"
+			(uuid "f4076187-e052-498d-bc71-fe9022037d49")
+		)
+		(pin "7"
+			(uuid "1351190a-1160-4112-8aa9-bfc3228baa69")
+		)
+		(pin "8"
+			(uuid "4afb7938-d630-4ffd-ba17-3a44e3fd9573")
+		)
+		(pin "6"
+			(uuid "5d870697-ab19-4280-b630-b5fe62968578")
+		)
+		(pin "1"
+			(uuid "a3a2a639-ef56-4e0e-9e20-ed93a0580883")
+		)
+		(pin "2"
+			(uuid "272b3d55-7625-4074-8635-682607c52532")
+		)
+		(pin "10"
+			(uuid "25648083-24ea-485d-9c93-d59366ed2efd")
+		)
+		(pin "13"
+			(uuid "2f00ab5a-85b9-44d2-b1b6-378ebaa9e1ca")
+		)
+		(pin "11"
+			(uuid "9bc1c629-71cc-466e-9fd2-beb59e3f6b36")
+		)
+		(pin "4"
+			(uuid "b4832f54-4e2a-4f65-bee4-2c74972e2af8")
+		)
+		(pin "14"
+			(uuid "a4cfb0b5-d42c-49a3-83e4-21dbd314c08e")
+		)
+		(pin "9"
+			(uuid "421782be-7b7c-4b1b-ae9d-fe1880974bc4")
+		)
+		(pin "3"
+			(uuid "bcd9a110-a5ed-4131-99eb-8963bab09545")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b"
+					(reference "U2")
 					(unit 1)
 				)
 			)
