@@ -886,22 +886,16 @@
 		)
 	)
 	(junction
-		(at 104.14 105.41)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "169f6143-5813-488c-b285-0b1d0f4c79ca")
-	)
-	(junction
 		(at 85.09 102.87)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "28c0fae0-726f-4738-a1c1-0bf8dcad71bc")
 	)
 	(junction
-		(at 124.46 105.41)
+		(at 123.19 105.41)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "55592ce0-f9fe-4d3f-a7c8-783df8c92198")
+		(uuid "59fc6df6-cf6e-45df-aed5-b412750af8a9")
 	)
 	(junction
 		(at 101.6 64.77)
@@ -910,20 +904,26 @@
 		(uuid "86fed6a3-9509-486d-bb28-1a106a6a493f")
 	)
 	(junction
-		(at 140.97 67.31)
+		(at 142.24 67.31)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "ae2adba4-6370-4c7b-b688-d4fd978ce821")
+		(uuid "b2a2a28e-a7cc-46f9-91b2-b21f13783353")
 	)
 	(junction
-		(at 120.65 67.31)
+		(at 104.14 102.87)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "b3ee7850-022f-4601-b8e9-1b0ab0faac99")
+		(uuid "c13a13e9-12c8-4953-9ee5-6981c5913138")
+	)
+	(junction
+		(at 121.92 64.77)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ebcf624d-8285-4703-a23c-537db5d70b7e")
 	)
 	(wire
 		(pts
-			(xy 85.09 102.87) (xy 88.9 102.87)
+			(xy 85.09 102.87) (xy 91.44 102.87)
 		)
 		(stroke
 			(width 0)
@@ -933,7 +933,17 @@
 	)
 	(wire
 		(pts
-			(xy 105.41 78.74) (xy 120.65 78.74)
+			(xy 104.14 102.87) (xy 107.95 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "063ee6db-5ccc-42fd-ad3a-0c36b59f2fb5")
+	)
+	(wire
+		(pts
+			(xy 127 78.74) (xy 142.24 78.74)
 		)
 		(stroke
 			(width 0)
@@ -943,7 +953,7 @@
 	)
 	(wire
 		(pts
-			(xy 88.9 107.95) (xy 88.9 116.84)
+			(xy 107.95 107.95) (xy 107.95 116.84)
 		)
 		(stroke
 			(width 0)
@@ -953,7 +963,7 @@
 	)
 	(wire
 		(pts
-			(xy 88.9 116.84) (xy 104.14 116.84)
+			(xy 107.95 116.84) (xy 123.19 116.84)
 		)
 		(stroke
 			(width 0)
@@ -963,23 +973,13 @@
 	)
 	(wire
 		(pts
-			(xy 105.41 69.85) (xy 105.41 78.74)
+			(xy 127 69.85) (xy 127 78.74)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "17921683-7a67-466a-89a1-ec3a233b7a2e")
-	)
-	(wire
-		(pts
-			(xy 128.27 67.31) (xy 129.54 67.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2303d9da-9620-4aa5-b69b-6f1fd8b26487")
 	)
 	(wire
 		(pts
@@ -993,7 +993,7 @@
 	)
 	(wire
 		(pts
-			(xy 120.65 105.41) (xy 124.46 105.41)
+			(xy 130.81 105.41) (xy 140.97 105.41)
 		)
 		(stroke
 			(width 0)
@@ -1003,13 +1003,13 @@
 	)
 	(wire
 		(pts
-			(xy 124.46 105.41) (xy 130.81 105.41)
+			(xy 121.92 64.77) (xy 127 64.77)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "5be09109-4ab1-48d3-8ed2-30153a63d9d4")
+		(uuid "59369079-bba3-4972-9491-cd0bb4bd6520")
 	)
 	(wire
 		(pts
@@ -1020,6 +1020,16 @@
 			(type default)
 		)
 		(uuid "65f31b4d-907b-4517-843e-51a7677518dc")
+	)
+	(wire
+		(pts
+			(xy 99.06 102.87) (xy 104.14 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "817ff9a5-7f87-4d76-ad8b-362b24bb3326")
 	)
 	(wire
 		(pts
@@ -1043,7 +1053,7 @@
 	)
 	(wire
 		(pts
-			(xy 101.6 64.77) (xy 105.41 64.77)
+			(xy 101.6 64.77) (xy 107.95 64.77)
 		)
 		(stroke
 			(width 0)
@@ -1063,17 +1073,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 105.41) (xy 113.03 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "abdeeef9-829b-457b-b4b8-df72ac9ede4b")
-	)
-	(wire
-		(pts
-			(xy 120.65 78.74) (xy 120.65 67.31)
+			(xy 142.24 78.74) (xy 142.24 67.31)
 		)
 		(stroke
 			(width 0)
@@ -1083,7 +1083,17 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 67.31) (xy 147.32 67.31)
+			(xy 115.57 64.77) (xy 121.92 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b83746e7-8332-4a5f-81cb-648967787abe")
+	)
+	(wire
+		(pts
+			(xy 153.67 67.31) (xy 161.29 67.31)
 		)
 		(stroke
 			(width 0)
@@ -1093,7 +1103,17 @@
 	)
 	(wire
 		(pts
-			(xy 104.14 116.84) (xy 104.14 105.41)
+			(xy 142.24 67.31) (xy 146.05 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e34184ba-ae41-442f-9bab-90cbc58bbf0a")
+	)
+	(wire
+		(pts
+			(xy 123.19 116.84) (xy 123.19 105.41)
 		)
 		(stroke
 			(width 0)
@@ -1111,19 +1131,9 @@
 		)
 		(uuid "f36ac748-5152-4263-bbd9-6de729f7269e")
 	)
-	(wire
-		(pts
-			(xy 137.16 67.31) (xy 140.97 67.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fb705e06-337e-46c5-aef2-b8fb84bfd960")
-	)
 	(global_label "AUDIO_OUT_JACK_RIGHT"
 		(shape input)
-		(at 147.32 67.31 0)
+		(at 161.29 67.31 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1133,7 +1143,7 @@
 		)
 		(uuid "45368d03-99de-4d24-9dc5-9abb02b209bf")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 172.5001 67.31 0)
+			(at 186.4701 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1189,7 +1199,7 @@
 	)
 	(global_label "AUDIO_OUT_JACK_LEFT"
 		(shape input)
-		(at 130.81 105.41 0)
+		(at 140.97 105.41 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1199,7 +1209,7 @@
 		)
 		(uuid "92b86a9c-ff3f-4727-9f63-2f509c442ae8")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 154.7805 105.41 0)
+			(at 164.9405 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1274,11 +1284,17 @@
 					(unit 1)
 				)
 			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "#PWR0103")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 116.84 105.41 90)
+		(at 127 105.41 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1287,7 +1303,7 @@
 		(fields_autoplaced yes)
 		(uuid "0fe89975-6acf-41d2-a1bc-2843b711da87")
 		(property "Reference" "C9"
-			(at 116.84 97.79 90)
+			(at 127 97.79 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1295,7 +1311,7 @@
 			)
 		)
 		(property "Value" "10uf"
-			(at 116.84 100.33 90)
+			(at 127 100.33 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1303,7 +1319,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 120.65 104.4448 0)
+			(at 130.81 104.4448 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1312,7 +1328,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 116.84 105.41 0)
+			(at 127 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1321,7 +1337,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 116.84 105.41 0)
+			(at 127 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1339,6 +1355,79 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "C9")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 121.92 72.39 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1a393ea7-5562-462d-8d1e-4d2396af950f")
+		(property "Reference" "#PWR0106"
+			(at 121.92 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 124.46 73.6599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 121.92 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 121.92 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
+			(at 121.92 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7dabe284-8e50-430b-a5ee-22b14b1b15c0")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
+					(reference "#PWR0106")
 					(unit 1)
 				)
 			)
@@ -1363,7 +1452,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "AGND"
+		(property "Value" "GND"
 			(at 87.63 111.7599 0)
 			(effects
 				(font
@@ -1409,72 +1498,9 @@
 					(unit 1)
 				)
 			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 107.95 105.41 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "2d166129-019a-4fce-a135-ef62347a44ce")
-		(property "Reference" "R5"
-			(at 109.22 103.124 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "1M"
-			(at 111.76 103.124 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 107.95 103.632 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 107.95 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 107.95 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "98039a51-ea6d-4861-a8e2-297fba9ba48d")
-		)
-		(pin "1"
-			(uuid "d5b6ea2b-a41b-47fb-807b-4f9aa9f045d8")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R5")
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "#PWR0102")
 					(unit 1)
 				)
 			)
@@ -1544,6 +1570,12 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "R3")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -1617,35 +1649,51 @@
 					(unit 1)
 				)
 			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "R3")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
-		(lib_id "Amplifier_Operational:OPA1664D")
-		(at 96.52 105.41 0)
-		(unit 3)
+		(lib_id "Device:R")
+		(at 95.25 102.87 270)
+		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "62911e32-8bff-4676-b8f9-22df550c8094")
-		(property "Reference" "U2"
-			(at 96.52 95.25 0)
+		(uuid "60caecad-8dbf-4c0d-80a8-7156c231fdcc")
+		(property "Reference" "R19"
+			(at 96.52 100.584 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
-		(property "Value" "OPA1664D"
-			(at 96.52 97.79 0)
+		(property "Value" "39k"
+			(at 99.06 100.584 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 95.25 101.092 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
 			(at 95.25 102.87 0)
 			(effects
 				(font
@@ -1654,8 +1702,67 @@
 				(hide yes)
 			)
 		)
+		(property "Description" "Resistor"
+			(at 95.25 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "5b75ccce-19f6-441f-a355-1dcab9069b85")
+		)
+		(pin "1"
+			(uuid "c137a2a4-a34a-4521-bada-b99788224388")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
+					(reference "R19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:OPA1664D")
+		(at 115.57 105.41 0)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "62911e32-8bff-4676-b8f9-22df550c8094")
+		(property "Reference" "U2"
+			(at 115.57 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA1664D"
+			(at 115.57 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 114.3 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
-			(at 97.79 100.33 0)
+			(at 116.84 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1664,7 +1771,7 @@
 			)
 		)
 		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
-			(at 96.52 105.41 0)
+			(at 115.57 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1721,70 +1828,9 @@
 					(unit 3)
 				)
 			)
-		)
-	)
-	(symbol
-		(lib_id "power:GNDA")
-		(at 124.46 113.03 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "700f8ef3-0850-4e52-98d7-511da883a3b1")
-		(property "Reference" "#PWR09"
-			(at 124.46 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "AGND"
-			(at 127 114.2999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 124.46 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 124.46 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
-			(at 124.46 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "68443e9d-9a7d-44c9-a882-ec85dc78d107")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR09")
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "U1")
 					(unit 1)
 				)
 			)
@@ -1792,15 +1838,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 124.46 109.22 180)
+		(at 104.14 106.68 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "75b84f58-3a1d-4b8d-b240-f1e39dac9016")
-		(property "Reference" "R8"
-			(at 126.746 110.49 0)
+		(uuid "85fd02e4-50e2-44bc-b2f9-a2a769e6d33c")
+		(property "Reference" "R5"
+			(at 101.854 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1808,8 +1854,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1M"
-			(at 126.746 113.03 0)
+		(property "Value" "10k"
+			(at 101.854 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1818,7 +1864,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 126.238 109.22 90)
+			(at 102.362 106.68 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1827,7 +1873,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 124.46 109.22 0)
+			(at 104.14 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1836,7 +1882,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 124.46 109.22 0)
+			(at 104.14 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1845,82 +1891,15 @@
 			)
 		)
 		(pin "2"
-			(uuid "bdeff14d-a40b-47e7-82d5-d6b48631f943")
+			(uuid "e8cd040c-12e1-4f02-945b-a28b6d080849")
 		)
 		(pin "1"
-			(uuid "d984a8f7-4c10-4374-90cb-c7a5eb43d724")
+			(uuid "a7c2f610-0f23-4cf2-9662-4834ad138012")
 		)
 		(instances
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GNDA")
-		(at 140.97 74.93 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8fb140eb-567b-45f7-afce-8e9f20f7eb98")
-		(property "Reference" "#PWR014"
-			(at 140.97 81.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "AGND"
-			(at 143.51 76.1999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 140.97 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 140.97 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
-			(at 140.97 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "8a644d57-7941-4530-8729-f6f36702e5e6")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR014")
+					(reference "R5")
 					(unit 1)
 				)
 			)
@@ -1989,6 +1968,12 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "C5")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -2062,37 +2047,26 @@
 					(unit 1)
 				)
 			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "R1")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 124.46 67.31 270)
+		(lib_id "power:GNDA")
+		(at 104.14 110.49 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a087d063-a71b-44da-8424-966ec05c14d4")
-		(property "Reference" "R13"
-			(at 125.73 65.024 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "1M"
-			(at 128.27 65.024 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 124.46 65.532 90)
+		(fields_autoplaced yes)
+		(uuid "a04508f0-83cd-4b78-9685-a6a0ebc3761b")
+		(property "Reference" "#PWR032"
+			(at 104.14 116.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2100,8 +2074,17 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 124.46 67.31 0)
+		(property "Value" "GND"
+			(at 106.68 111.7599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2109,8 +2092,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Resistor"
-			(at 124.46 67.31 0)
+		(property "Datasheet" ""
+			(at 104.14 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2118,16 +2101,28 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "91d16496-b7ec-42d3-874d-0032eac3da6f")
+		(property "Description" "Power symbol creates a global label with name \"GNDA\" , analog ground"
+			(at 104.14 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "503b8187-e558-4529-97fb-ed1273a93063")
+			(uuid "24815e87-9136-49ac-9508-e0b987ba71fc")
 		)
 		(instances
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R13")
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "#PWR0105")
 					(unit 1)
 				)
 			)
@@ -2135,7 +2130,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 133.35 67.31 90)
+		(at 149.86 67.31 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2144,7 +2139,7 @@
 		(fields_autoplaced yes)
 		(uuid "a48c628a-0fb1-4b75-a08a-578d5868e22e")
 		(property "Reference" "C10"
-			(at 133.35 59.69 90)
+			(at 149.86 59.69 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2152,7 +2147,7 @@
 			)
 		)
 		(property "Value" "10uf"
-			(at 133.35 62.23 90)
+			(at 149.86 62.23 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2160,7 +2155,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 137.16 66.3448 0)
+			(at 153.67 66.3448 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2169,7 +2164,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 133.35 67.31 0)
+			(at 149.86 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2178,7 +2173,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 133.35 67.31 0)
+			(at 149.86 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2196,6 +2191,12 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "C10")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -2220,7 +2221,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "AGND"
+		(property "Value" "GND"
 			(at 104.14 73.6599 0)
 			(effects
 				(font
@@ -2266,35 +2267,120 @@
 					(unit 1)
 				)
 			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "#PWR0104")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
-		(lib_id "Amplifier_Operational:OPA1664D")
-		(at 113.03 67.31 0)
-		(unit 4)
+		(lib_id "Device:R")
+		(at 121.92 68.58 0)
+		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "d37e44a0-757e-4283-95cc-fde077ae59d1")
-		(property "Reference" "U2"
-			(at 113.03 57.15 0)
+		(uuid "c654eeae-3efc-4bb6-901a-673fe28fce4d")
+		(property "Reference" "R20"
+			(at 119.634 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
-		(property "Value" "OPA1664D"
-			(at 113.03 59.69 0)
+		(property "Value" "10k"
+			(at 119.634 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 120.142 68.58 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 121.92 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 121.92 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "c7b1e7ee-68b9-48bd-9ce1-84fe987dad33")
+		)
+		(pin "1"
+			(uuid "b7e3aa5a-4496-45e8-9d45-2d4329a598d9")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
+					(reference "R20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 111.76 64.77 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cccbc054-9822-4a40-b612-5a032aa2c718")
+		(property "Reference" "R8"
+			(at 113.03 62.484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "39k"
+			(at 115.57 62.484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 111.76 62.992 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
 			(at 111.76 64.77 0)
 			(effects
 				(font
@@ -2303,8 +2389,67 @@
 				(hide yes)
 			)
 		)
+		(property "Description" "Resistor"
+			(at 111.76 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "2a4b8b0e-e7fa-4348-b32f-9f202edc7b8d")
+		)
+		(pin "1"
+			(uuid "02b5067a-7114-4b42-a6a2-3431e2d5707b")
+		)
+		(instances
+			(project "mini_pcb"
+				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
+					(reference "R8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:OPA1664D")
+		(at 134.62 67.31 0)
+		(unit 4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d37e44a0-757e-4283-95cc-fde077ae59d1")
+		(property "Reference" "U2"
+			(at 134.62 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA1664D"
+			(at 134.62 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 133.35 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa1664.pdf"
-			(at 114.3 62.23 0)
+			(at 135.89 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2313,7 +2458,7 @@
 			)
 		)
 		(property "Description" "Quad Low-Power, Low-Noise, Low-Distortion, Bipolar-Input SoundPlus Audio Operational Amplifiers, SOIC-14"
-			(at 113.03 67.31 0)
+			(at 134.62 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2368,6 +2513,12 @@
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "U2")
 					(unit 4)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "U2")
+					(unit 1)
 				)
 			)
 		)
@@ -2434,6 +2585,12 @@
 			(project "mini_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "#PWR0101")
 					(unit 1)
 				)
 			)
@@ -2506,6 +2663,12 @@
 					(unit 1)
 				)
 			)
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "R4")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -2574,75 +2737,18 @@
 					(unit 1)
 				)
 			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 140.97 71.12 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "f9d91ca2-cb06-4692-acca-a5e1317664ff")
-		(property "Reference" "R14"
-			(at 143.256 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "1M"
-			(at 143.256 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 142.748 71.12 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 140.97 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 140.97 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "2b571fd0-7d64-49b3-8f53-a0a88740421b")
-		)
-		(pin "1"
-			(uuid "dc99d9e2-d453-4f09-8bc0-e83e79636399")
-		)
-		(instances
-			(project "mini_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R14")
+			(project "Output"
+				(path "/c7072650-9050-4604-970a-f7da1d2a7083"
+					(reference "C2")
 					(unit 1)
 				)
 			)
 		)
 	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
 )
