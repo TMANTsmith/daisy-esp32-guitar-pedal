@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-// REMINDER
-// input is at a 4.9 gain on PCB so be sure to devide by 4.9 to get back to normal
 
 use defmt_rtt as _;
 use panic_probe as _;

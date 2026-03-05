@@ -1,53 +1,55 @@
 use libm::roundf; // for f32
-use core::num::Wrapping;
+pub const SAMPLE_RATE: u32 = 48000;
 
-
-
-pub struct Delay<'a> {
-    volume: f32,          // feedback/mix
-    buffer: &'a mut [(f32, f32)],
-    write_idx: Wrapping<usize>,
-    length_samples: usize,
+const fn ms_to_samples(ms: usize) -> usize {
+    48000 * ms / 1000
 }
 
-impl<'a> Delay<'a> {
-    pub fn new(length_ms: usize, volume: f32, buffer: &'a mut [(f32, f32)], sample_rate: f32) -> Self {
-        let length_samples = roundf((length_ms as f32) * sample_rate / 1000.0) as usize;
+
+pub struct Delay<const MS: usize> {
+    decay_factor: f32,          // feedback/mix
+    buffer: [(f32, f32); ms_to_samples(MS)],
+    index: usize,
+    
+}
+
+impl<const MS: usize> Delay<MS> {
+    pub fn new(length_ms: f32, decay_factor: f32) -> Self {
+
+        let mut buffer = [(f32, f32); ms_to_samples(MS)];
+        let mut index = 0;
+
         Delay {
+            decay_factor,
             volume,
             buffer,
-            write_idx: Wrapping(0),
-            length_samples,
         }
     }
 
     pub fn process(&mut self, input: &mut (f32, f32)) {
-        let buf_len = self.buffer.len();
+        self.buffer[index] = *input;
 
-        // read index based on delay length in samples
-        let read_idx = (self.write_idx.0 + buf_len - self.length_samples) % buf_len;
-        let (left, right) = self.buffer[read_idx];
+        input.0 = input.0 + (self.decay_factor * self.buffer[index + 1].0);
+        input.1 = input.1 + (self.decay_factor * self.buffer[index + 1].1);
 
-        // mix delayed sample into input
-        *input = (
-            input.0 + left * self.volume,
-            input.1 + right * self.volume,
-        );
+    
+        clamp(input);
 
-        // write current input to buffer
-        self.buffer[self.write_idx.0] = *input;
-
-        // advance write index with wrap-around
-        self.write_idx += Wrapping(1);
-        if self.write_idx.0 >= buf_len {
-            self.write_idx = Wrapping(0);
-        }
+        self.index = (self.index + 1) % ms_to_samples(MS);
     }
-
-    pub fn process_list(&mut self, input: &mut [(f32, f32)]) {
-        for sample in input.iter_mut() {
-            self.process(sample);
+    const fn clamp(sound: &mut (f32, f32)) {
+        if sound.0 > 1.0 {
+            sound.0 = 1.0
         }
-    }
+        else if sound.0 < -1.0 {
+            sound.0 = -1.0
+        }
+
+        if sound.1 > 1.0 {
+            sound.1 = 1.0
+        }
+        else if sound.1 < -1.0 {
+            sound.1 = -1.0
+        }
 }
 
