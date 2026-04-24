@@ -1,4 +1,5 @@
 use libm::roundf; // for f32
+use alloc::boxed::Box;
 pub const SAMPLE_RATE: u32 = 48000;
 
 const fn ms_to_samples(ms: usize) -> usize {
@@ -8,7 +9,7 @@ const fn ms_to_samples(ms: usize) -> usize {
 
 pub struct Delay<const MS: usize> {
     decay_factor: f32,          // feedback/mix
-    buffer: [(f32, f32); ms_to_samples(MS)],
+    buffer: Box<[(f32, f32); ms_to_samples(MS)]>,
     index: usize,
     
 }
@@ -16,7 +17,7 @@ pub struct Delay<const MS: usize> {
 impl<const MS: usize> Delay<MS> {
     pub fn new(length_ms: f32, decay_factor: f32) -> Self {
 
-        let mut buffer = [(f32, f32); ms_to_samples(MS)];
+        let mut buffer = Box::new([(f32, f32); ms_to_samples(MS)]);
         let mut index = 0;
 
         Delay {

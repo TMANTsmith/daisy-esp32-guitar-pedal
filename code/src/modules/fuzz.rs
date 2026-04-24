@@ -10,4 +10,21 @@ impl Fuzz {
         }
         Fuzz {value : vin}
     }
+    pub fn process(&self, input: &mut (f32, f32)) {
+        if input.0 > self.value {
+            input.0 = self.value;
+        } else if input.0 < -self.value {
+            input.0 = -self.value;
+        }
+
+        if input.1 > self.value {
+            input.1 = self.value;
+        } else if input.1 < -self.value {
+            input.1 = -self.value;
+        }
+
+        input.0 = input.0 * (1.0 / self.value);
+        input.1 = input.1 * (1.0 / self.value);
+    }
+
 }

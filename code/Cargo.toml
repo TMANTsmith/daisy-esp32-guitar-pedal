@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-cortex-m = "0.7.7"
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 #crc8-rs = "1.1.1"
 daisy = { version = "0.11.0", features = ["seed_1_2"] }
 defmt-rtt = "1.1.0"
+embedded-alloc = "0.7.0"
+libm = "0.2.16"
 panic-probe = { version = "1.0", features = ["print-defmt"] }
 rtic = { version = "2.2.0", features = ["thumbv7-backend"], default-features = false }
 rtic-monotonics = { version = "2.1.0", features = ["cortex-m-systick"] }

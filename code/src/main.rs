@@ -6,6 +6,7 @@ use defmt_rtt as _;
 use panic_probe as _;
 use rtic::app;
 use rtic_monotonics::systick::prelude::*;
+mod modules;
 
 
 systick_monotonic!(Mono, 1000);
@@ -18,9 +19,13 @@ fn timestamp() -> u64 {
 #[rtic::app(
     device = daisy::pac,
     peripherals = true,
-    dispatchers = [EXTI0],
+    dispatchers = [EXTI0, EXTI1],
 )]
 mod app {
+
+    use code::modules;
+    use modules::process::Effects;
+    use super::modules::debug::vol::volume;
     use super::Mono;
     use cortex_m::prelude::_embedded_hal_adc_OneShot;
     use daisy::audio::Interface;
@@ -28,6 +33,14 @@ mod app {
     //use rtic_monotonics::fugit::RateExtU32;
     use daisy::hal::prelude::*;
     use rtic_monotonics::Monotonic;
+    use embedded_alloc::LlffHeap as Heap;
+    extern crate alloc;
+
+
+
+
+    #[global_allocator]
+    static HEAP: Heap = Heap::empty();
 
     #[shared]
     struct Shared {
@@ -50,6 +63,9 @@ mod app {
         let board = daisy::Board::take().expect("board take error");
         let ccdr = daisy::board_freeze_clocks!(board, dp);
         let pins = daisy::board_split_gpios!(board, ccdr, dp);
+        let sdram = daisy::board_split_sdram!(cp, dp, ccdr, pins);
+
+        unsafe { HEAP.init(sdram.base_address as usize, sdram.size()) }
 
         // Create and spawn audio interface
         defmt::println!("Setting up audio interface...");
@@ -85,6 +101,11 @@ mod app {
 
         let SYST = delay.free();
         Mono::start(SYST, ccdr.clocks.sys_ck().to_Hz()); // default STM32F303 clock-rate is 36MHz
+        // use let pin_b = gpio#.###.into_pull_up_input();
+        // and pass to struct
+        
+
+
 
         (
             Shared { },
@@ -109,9 +130,15 @@ mod app {
         cx.local
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
+                
                 for frame in buffer {
-            defmt::println!("audio read: {}", frame);
+                    defmt::println!("audio read: {}", frame);
+                    volume(frame);
                 }
+                
+
+                
+
             })
             .unwrap();
     }
