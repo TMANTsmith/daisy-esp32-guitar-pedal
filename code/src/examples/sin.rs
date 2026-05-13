@@ -1,3 +1,6 @@
+
+// copy and paste code into main to make sin wave
+/*
 #![no_std]
 #![no_main]
 
@@ -178,3 +181,4 @@ mod app {
         }
     }
 }
+*/
