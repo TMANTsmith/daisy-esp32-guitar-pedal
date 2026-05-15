@@ -14,6 +14,7 @@ libm = "0.2.16"
 panic-probe = { version = "1.0", features = ["print-defmt"] }
 rtic = { version = "2.2.0", features = ["thumbv7-backend"], default-features = false }
 rtic-monotonics = { version = "2.1.0", features = ["cortex-m-systick"] }
+rustfft = "6.4.1"
 
 
 [profile.release]
