@@ -1,5 +1,5 @@
-//https://docs.rs/rustfft/latest/rustfft/algorithm/struct.Radix4.html
 
+/*
 use rustfft::algorithm::Radix4;
 use rustfft::{Fft, FftDirection};
 use rustfft::num_complex::Complex;
@@ -14,9 +14,16 @@ impl FTT {
         Self { buffer }
     }
 
+    fn add(input: (f32, f32)) {
+        let input = (left, right);
+
+        if buffer[0] != None {
+            buffer[0].
+
+
     fn process(input: (f32, f32)) {
         }
 }
 
 
-
+*/

@@ -9,22 +9,6 @@ mod modules;
 
 systick_monotonic!(Mono, 1000);
 
-const FREQ: f32 = 880.0;
-
-const AMP: f32 = 0.5;
-
-#[inline(always)]
-fn fast_sin(x: f32) -> f32 {
-    // Wrap x into [-π, π]
-    use core::f32::consts::PI;
-    let x = x - (2.0 * PI) * libm::floorf(x / (2.0 * PI) + 0.5);
-    // Bhaskara I approximation rearranged for [-π, π]
-    let b = 4.0 / PI;
-    let c = -4.0 / (PI * PI);
-    let y = b * x + c * x * libm::fabsf(x);
-    // One extra Newton step for accuracy
-    0.225 * (y * libm::fabsf(y) - y) + y
-}
 
 #[export_name = "_defmt_timestamp"]
 fn timestamp() -> u64 {
@@ -38,7 +22,6 @@ fn timestamp() -> u64 {
 )]
 mod app {
 
-    use crate::{FREQ, AMP, fast_sin};
     use super::modules::debug::vol::volume;
     use super::Mono;
     use code::modules;
@@ -64,10 +47,6 @@ mod app {
         adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
         adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
         led: LedUser,
-        // Current phase in radians, 0.0 ..= 2π
-        phase: f32,
-        // How much phase to advance per sample
-        phase_inc: f32,
     }
 
     #[init]
@@ -119,7 +98,6 @@ mod app {
                                                          // use let pin_b = gpio#.###.into_pull_up_input();
                                                          // and pass to struct
 
-        let phase_inc = (FREQ / daisy::audio::FS.to_Hz() as f32) * core::f32::consts::TAU;
 
         (
             Shared {},
@@ -128,19 +106,15 @@ mod app {
                 adc1,
                 adc1_channel,
                 led,
-                phase: 0.0,
-                phase_inc,
             },
         )
     }
 
     // DMA interrupt handler - called when audio buffer is ready
-    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel, phase, phase_inc], priority = 2)]
+    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel], priority = 2)]
     fn audio_callback(mut cx: audio_callback::Context) {
         // Read ADC value for gain control
         let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
-        let phase = cx.local.phase;
-        let phase_inc = cx.local.phase_inc;
 
         // defmt::println!("adc read: {}", pot);
 
@@ -149,16 +123,8 @@ mod app {
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
                 for frame in buffer {
-                    let sample = fast_sin(*phase) * AMP;
-
-                    frame.0 = sample;
-                    frame.1  = sample; // same signal on both channels
-
-                    // Advance and wrap phase
-                    *phase += *phase_inc;
-                    if *phase >= core::f32::consts::TAU {
-                        *phase -= core::f32::consts::TAU;
-                    }
+                    let (left, right) = *frame;
+                    *frame = (right * 1.0, left * 1.0);
 
                     //defmt::println!("audio lines: ({}, {})", frame.0, frame.1);
                 }
