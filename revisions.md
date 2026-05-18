@@ -4,8 +4,8 @@
 
 ### Features:
 
-    - Taking in audio from a guitar, giving it to the daisy seed, then outputting it to an amp
-    - Using 2 pads for a guitar pedal to act as a switch
+- Taking in audio from a guitar, giving it to the daisy seed, then outputting it to an amp
+- Using 2 pads for a guitar pedal to act as a switch
 
 ### The Good
 
@@ -19,7 +19,7 @@ The Problem: No signal was being passed to the daisy seed from a guitar.
 
 The Explenation:
 
-![Picture of the broken circuit](/esp-petal/pictures/broken_input.png)
+![Picture of the broken circuit](/pictures/broken_input.png)
 
 The expected voltage on the node should be 2.5V but instead it is 3V. This causes the bias to be at 3V instead of 2.5V causing the daisy seed, which is biased at 2.5V, to read the wave improperly.
 
@@ -27,7 +27,7 @@ This is caused by R101 1M. This pulls the voltage up to 2.5V but because there i
 
 The Solution:
 
-![Picture of the fixed circuit](/esp-petal/pictures/fixed_input.png)
+![Picture of the fixed circuit](/pictures/fixed_input.png)
 
 1. Replace the capacitor with a C0G one instead of X5R to handle high impedance signals better.
 2. Remove the LDO and use a resistor divider as the input impedance and bias.
