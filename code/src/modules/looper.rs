@@ -34,8 +34,6 @@ impl<P: InputPin> Looper<P> {
         else {
             input =vec[self.index];
         }
-
-
 }
 
 

@@ -6,3 +6,4 @@ pub mod clipping;
 pub mod bit_crush;
 pub mod sin;
 pub mod FFT;
+pub mod delay;
