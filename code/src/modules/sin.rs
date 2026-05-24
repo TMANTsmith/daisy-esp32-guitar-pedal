@@ -2,23 +2,24 @@ use libm::sinf;
 const PI: f32 = 3.1415927410e+00;
 const SAMPLE: f32 = 48_000.0;
 
-
 pub struct Sine {
-    time: f32,
+    sample: u32,
     frequency: f32,
     amplitude: f32,
-
 }
 impl Sine {
-    fn new(time: f32, frequency: f32, amplitude: f32) -> Self {
-        Self { time, frequency, amplitude }
+    pub fn new(sample: u32, frequency: f32, amplitude: f32) -> Self {
+        Self {
+            sample,
+            frequency,
+            amplitude,
+        }
     }
 
-    fn get_next(&mut self) -> (f32, f32) {
-        let wave = self.amplitude * sinf(self.frequency * (2_f32 * PI) * self.time);
-        self.time += 1_f32 / SAMPLE;
-
+    pub fn get_next(&mut self) -> (f32, f32) {
+        let t = self.sample as f32 / SAMPLE;
+        let wave = self.amplitude * sinf(self.frequency * 2_f32 * PI * t);
+        self.sample = self.sample.wrapping_add(1);
         (wave, wave)
-
     }
 }

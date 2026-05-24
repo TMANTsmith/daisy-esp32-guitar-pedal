@@ -1,43 +1,393 @@
-
-use libm::powf;
 extern crate alloc;
+use core::ops::Deref;
+use libm::powf;
+use libm::sqrtf;
+use microfft::real;
+use microfft::Complex32;
+
 use alloc::boxed::Box;
 
-const fn pow2(n: usize) -> usize {
-    1 << n
+pub struct RunFft;
+
+pub trait GetFft<const N: usize> {
+    fn get_complex(input: &mut [f32; N]) -> &mut [Complex32];
+    fn get_bin_hz() -> f32; 
+}
+
+pub enum FftError {
+    Wait(usize),
+    InvalidSize,
+}
+
+//macro coded by claude
+#[macro_export]
+macro_rules! make_fft {
+    ($n:expr, $channels:expr) => {{
+        const _: () = assert!($n % 2 == 0, "N must be even");
+        Fft::<$n, { $n / 2 }>::new($channels)
+    }};
+}
+
+#[derive(Debug, Clone)]
+struct Buffers<const N: usize>(Option<Box<[f32; N]>>, Option<Box<[f32; N]>>);
+impl<const N: usize> Buffers<N> {
+    pub fn get_left(&mut self) -> &mut Option<Box<[f32; N]>> {
+        &mut self.0
+    }
+    pub fn get_right(&mut self) -> &mut Option<Box<[f32; N]>> {
+        &mut self.1
+    }
+
+    pub fn set_left(&mut self, index: usize, value: f32) -> bool {
+        if let Some(list) = &mut self.0 {
+            list[index] = value;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn set_right(&mut self, index: usize, value: f32) -> bool {
+        if let Some(list) = &mut self.1 {
+            list[index] = value;
+            true
+        } else {
+            false
+        }
+    }
+    pub fn copy_from_slice(&mut self, input: &Buffers<N>) {
+        if let (Some(buf1), Some(buf2)) = (&mut self.0, &input.0) {
+            buf1.copy_from_slice(buf2.as_slice());
+        }
+        if let (Some(buf1), Some(buf2)) = (&mut self.1, &input.1) {
+            buf1.copy_from_slice(buf2.as_slice());
+        }
+    }
 }
 
 #[derive(Debug)]
-pub struct FTT<const N: usize> {
-    buffer: [Option<Box<[f32; pow2(N)]>>; 2],
+// H = N / 2
+pub struct Fft<const N: usize, const H: usize> {
+    write_buf: Buffers<N>,
+    read_buf: Buffers<N>,
+    output_buf: Box<[Wave; N]>,
     index: usize,
+    timer: usize,
 }
 
-impl<const N: usize> FTT<N> {
-    pub fn new(sides: [bool; 2], length: usize) -> Self {
 
-        let buffer: [Option<Box<[f32; pow2(N)]>>; 2] = [None, None];
-        let index = 0;
-                
-        if sides[0] == true {
-            buffer[0] = Box::new([f32; pow2(N)]);
+
+impl<const N: usize, const H: usize> Fft<N, H> {
+    pub fn new(sides: [bool; 2]) -> Self {
+        let mut write_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
+        let mut read_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
+        let mut output_buf: Box<[Wave; N]> = Box::new([Wave {hertz: 0.0 , amplitude:0.0 , confidence: None}; N]);
+
+
+        let mut index = 0;
+        let mut timer = N;
+
+
+        if sides[0] {
+            write_buf.0 = Some(Box::new([0_f32; N]));
+            read_buf.0 = Some(Box::new([0_f32; N]));
         }
 
-        if sides[1] == true {
-            buffer[1] = Box::new([f32; pow2(N)]);
+        if sides[1] {
+            write_buf.1 = Some(Box::new([0_f32; N]));
+            read_buf.1 = Some(Box::new([0_f32; N]));
         }
-        Self { buffer, index }
+        Self {
+            write_buf,
+            read_buf,
+            output_buf,
+            index,
+            timer,
+        }
     }
 
-    pub fn add(&self, &mut input: (f32, f32)) {
+    pub fn get_timer(&self) -> usize {
+        self.timer
+    }
+
+    
+
+
+    pub fn compute(&mut self) -> Result<(Option<Waves>, Option<Waves>), FftError>
+    where
+        RunFft: GetFft<N>,
+    {
+
+        if (self.get_timer() > 0) {
+            return Err(FftError::Wait(self.get_timer()));
+        }
+
+
+        let mut right = false;
+        let mut left = false;
+
+        if let Some(buf) = self.read_buf.get_left().as_deref_mut() {
+            left = true;
+            let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
+            spectrum[0].im = 0.0;
+            for (i, c) in spectrum.iter().enumerate() {
+                // this is the sqrt amplitude
+                let hertz = Fft::<N, H>::bin_hz() * i as f32;
+                let amp = c.norm_sqr();
+                let confidence:Option<f32> = None;
+
+                self.output_buf[i].set_hertz(hertz);
+                self.output_buf[i].set_amplitude(amp);
+                self.output_buf[i].set_confidence(None); 
+            }
+        }
+
+        if let Some(buf) = self.read_buf.get_right().as_deref_mut() {
+            right = true;
+            let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
+            spectrum[0].im = 0.0;
+            for (i, c) in spectrum.iter().enumerate() {
+                // this is the sqrt amplitude
+                let hertz = Fft::<N, H>::bin_hz() * i as f32;
+                let amp = c.norm_sqr();
+                let confidence:Option<f32> = None;
+
+                self.output_buf[i].set_hertz(hertz);
+                self.output_buf[i].set_amplitude(amp);
+                self.output_buf[i].set_confidence(None); 
+            }
+
+        }
+
+        let (left_out, right_out) = self.output_buf.split_at(H);
+
+        let mut rtn: (Option<Waves>, Option<Waves>) = (None, None);
+
+        if left {
+            rtn.0 = Some(Waves { waves: left_out, sorted: false });
+        }
+        if right {
+            rtn.0 = Some(Waves { waves: right_out, sorted: false });
+        }
+
+        self.timer = N;
+
+        Ok(rtn)
+    }
+    pub fn bin_hz() -> f32
+    where
+        RunFft: GetFft<N>,
+    {
+        <RunFft as GetFft<N>>::get_bin_hz()
+    }
+        
+    pub fn add(&mut self, input: &mut (f32, f32)) {
         let (left, right) = input;
 
-        if self.buffer[0] != None {
-            self.buffer[0][index] = left;
+        self.write_buf.set_left(self.index, *left);
+        self.write_buf.set_right(self.index, *right);
+        self.index = (self.index + 1) % N;
+
+        if self.timer > 0 {
+            self.timer -= 1;
         }
 
-        if self.buffer[1] != None {
-            self.buffer[1][index] = right;
+        if self.index == 0 {
+            self.read_buf.copy_from_slice(&self.write_buf);
         }
+    }
+}
+
+pub struct Waves<'a> {
+    waves: &'a [Wave],
+    sorted: bool,
+    strongest: f32,
+}
+
+impl<'a> Waves<'a> {
+    pub fn new(waves: &'a [Wave]) -> Self {
+        let strongest = -1.0;
+
+        Self { waves, sorted: false,  strongest: 0.0 }
+    }
+    pub fn get_largest(&self, num: usize) -> &'a [Wave] {
+        let rtn: &[Wave];
+        let largest_amp: f32;
+        let largest_wave: Wave;
+        for i in [0..num] {
+            largest_amp = -1.0;
+            for wave in self.waves {
+                if wave.get_amplitude() < largest_amp {
+                    continue;
+                }
+                for wave_used in rtn {
+                    if wave_used == wave {
+                        continue;
+                    }
+                }
+                largest_amp = wave.get_amplitude();
+                wave = &largest_wave;
+            }
+
+            rtn[i] = largest_wave;
+        }
+
+        rtn
+    }
+}
+
+
+
+// confidence is a place holder for now mabey add feature in the furture
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Wave {
+    hertz: f32,
+    amplitude: f32,
+    confidence: Option<f32>,
+}
+
+impl Wave {
+    pub fn new(hertz: f32, amplitude: f32, confidence: Option<f32>,) -> Self {
+        Wave{ hertz, amplitude, confidence }
+    }
+    pub fn set_hertz(&mut self, hertz: f32) {
+        self.hertz = hertz
+    }
+    pub fn set_amplitude(&mut self, amplitude: f32) {
+        self.amplitude = amplitude;
+    }
+    pub fn set_confidence(&mut self, confidence: Option<f32>) {
+        self.confidence = confidence; 
+    }
+    pub fn get_hertz(&self) -> f32 {
+        self.hertz
+    }
+    pub fn get_amplitude(&self) -> f32 {
+        sqrtf(self.amplitude)
+    }
+    pub fn get_confidence(&self) -> Option<f32> {
+        self.confidence
+    }
+}
+/*
+    2
+    4
+    8
+    16
+    32
+    64
+    128
+    256
+    512
+    1024
+    2048
+    4096
+    8192
+
+*/
+
+impl GetFft<2> for RunFft {
+    fn get_complex(input: &mut [f32; 2]) -> &mut [Complex32] {
+        real::rfft_2(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 2.0
+    }
+}
+
+impl GetFft<4> for RunFft {
+    fn get_complex(input: &mut [f32; 4]) -> &mut [Complex32] {
+        real::rfft_4(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 4.0
+    }
+}
+impl GetFft<8> for RunFft {
+    fn get_complex(input: &mut [f32; 8]) -> &mut [Complex32] {
+        real::rfft_8(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 8.0
+    }
+}
+impl GetFft<16> for RunFft {
+    fn get_complex(input: &mut [f32; 16]) -> &mut [Complex32] {
+        real::rfft_16(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 16.0
+    }
+}
+impl GetFft<32> for RunFft {
+    fn get_complex(input: &mut [f32; 32]) -> &mut [Complex32] {
+        real::rfft_32(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 32.0
+    }
+}
+impl GetFft<64> for RunFft {
+    fn get_complex(input: &mut [f32; 64]) -> &mut [Complex32] {
+        real::rfft_64(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 64.0
+    }
+}
+impl GetFft<128> for RunFft {
+    fn get_complex(input: &mut [f32; 128]) -> &mut [Complex32] {
+        real::rfft_128(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 128.0
+    }
+}
+impl GetFft<256> for RunFft {
+    fn get_complex(input: &mut [f32; 256]) -> &mut [Complex32] {
+        real::rfft_256(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 256.0
+    }
+}
+impl GetFft<512> for RunFft {
+    fn get_complex(input: &mut [f32; 512]) -> &mut [Complex32] {
+        real::rfft_512(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 512.0
+    }
+}
+impl GetFft<1024> for RunFft {
+    fn get_complex(input: &mut [f32; 1024]) -> &mut [Complex32] {
+        real::rfft_1024(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 1024.0
+    }
+}
+impl GetFft<2048> for RunFft {
+    fn get_complex(input: &mut [f32; 2048]) -> &mut [Complex32] {
+        real::rfft_2048(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 2048.0
+    }
+}
+impl GetFft<4096> for RunFft {
+    fn get_complex(input: &mut [f32; 4096]) -> &mut [Complex32] {
+        real::rfft_4096(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 4096.0
+    }
+}
+impl GetFft<8192> for RunFft {
+    fn get_complex(input: &mut [f32; 8192]) -> &mut [Complex32] {
+        real::rfft_8192(input)
+    }
+    fn get_bin_hz() -> f32 {
+        48000.0 / 8192.0
     }
 }

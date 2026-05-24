@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
 use defmt_rtt as _;
 use panic_probe as _;
 use rtic::app;
@@ -22,6 +23,7 @@ fn timestamp() -> u64 {
 )]
 mod app {
 
+    use modules::sin::Sine;
     use super::modules::debug::vol::volume;
     use super::Mono;
     use code::modules;
@@ -33,7 +35,8 @@ mod app {
     use daisy::hal::prelude::*;
     use embedded_alloc::LlffHeap as Heap;
     use rtic_monotonics::Monotonic;
-    extern crate alloc;
+    use code::modules::FFT::{Fft, LastRead};
+    use crate::make_fft;
 
     #[global_allocator]
     static HEAP: Heap = Heap::empty();
@@ -47,6 +50,8 @@ mod app {
         adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
         adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
         led: LedUser,
+        fft: Fft<1024, 512>,
+        sine: Sine,
     }
 
     #[init]
@@ -91,6 +96,12 @@ mod app {
         let adc1_channel = pins.GPIO.PIN_21.into_analog();
         let led = daisy::board_split_leds!(pins).USER;
 
+
+        // sets up Fft
+        let fft = make_fft!(1024, [true, true]);
+
+        let sine = Sine::new(0_u32, 400.0, 0.5);
+
         defmt::println!("=== Init complete ===");
 
         let SYST = delay.free();
@@ -106,15 +117,63 @@ mod app {
                 adc1,
                 adc1_channel,
                 led,
+                fft,
+                sine,
             },
         )
     }
 
     // DMA interrupt handler - called when audio buffer is ready
-    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel], priority = 2)]
+    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel, fft, sine], priority = 2)]
     fn audio_callback(mut cx: audio_callback::Context) {
         // Read ADC value for gain control
         let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
+        let fft = cx.local.fft;
+        let sine = cx.local.sine;
+        
+        let start = Mono::now();
+
+        if let Ok(r) = fft.compute(LastRead::Get) {
+            let elapsed = Mono::now().checked_duration_since(start).unwrap();
+            let millis = elapsed.to_millis();
+
+            let mut highest_val_left: f32 = -1.0;
+            let mut highest_index_left: f32 = -1.0;
+
+            let mut highest_val_right: f32 = -1.0;
+            let mut highest_index_right: f32 = -1.0;
+
+            if let (Some(left), Some(right)) = (r.0, r.1) {
+
+                for (i, v) in right.iter().enumerate() {
+                    if *v >= highest_val_right {
+                        highest_val_right = *v;
+                        highest_index_right = i as f32;
+                    }
+                }
+
+                for (i, v) in left.iter().enumerate() {
+                    if *v >= highest_val_left  {
+                        highest_val_left = *v;
+                        highest_index_left = i as f32;
+                    }
+                }
+            }
+
+            let hz_left = highest_index_left * Fft::<1024, 512>::bin_hz();
+            let hz_right = highest_index_right * Fft::<1024, 512>::bin_hz();
+
+
+
+            defmt::println!("found left: {}, right: {}", hz_left, hz_right);
+            defmt::println!("took: {}", millis);
+        }
+        else {
+            defmt::println!("WAIT");
+        }
+
+
+
 
         // defmt::println!("adc read: {}", pot);
 
@@ -123,10 +182,12 @@ mod app {
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
                 for frame in buffer {
-                    let (left, right) = *frame;
-                    *frame = (right * 1.0, left * 1.0);
+                    let (left, right) = sine.get_next();
+                    
+                    fft.add(&mut (left, right));
 
-                    //defmt::println!("audio lines: ({}, {})", frame.0, frame.1);
+                    
+
                 }
             })
             .unwrap();

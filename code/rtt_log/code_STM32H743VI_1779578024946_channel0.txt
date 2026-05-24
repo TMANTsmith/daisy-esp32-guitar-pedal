@@ -1,0 +1,1442 @@
+=== INIT START ===
+Setting up audio interface...
+Audio interface spawned!
+Initializing ADC...
+
+ADC ready!
+=== Init complete ===
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 1218.75, right: 1218.75
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+
+found left: 2156.25, right: 2156.25
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 3609.375, right: 3609.375
+took: 7
+found left: 375.0, right: 375.0
+took: 8
+
+found left: 17531.25, right: 17531.25
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 750.0, right: 750.0
+took: 7
+
+found left: 23625.0, right: 23625.0
+took: 8
+found left: 6328.125, right: 6328.125
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 6421.875, right: 6421.875
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23109.375, right: 23109.375
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 1265.625, right: 1265.625
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 3562.5, right: 3562.5
+took: 8
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 6328.125, right: 6328.125
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 14671.875, right: 14671.875
+took: 8
+found left: 375.0, right: 375.0
+took: 7
+found left: 750.0, right: 750.0
+took: 7
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 6328.125, right: 6328.125
+took: 8
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 6375.0, right: 6375.0
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23156.25, right: 23156.25
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 1265.625, right: 1265.625
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 4921.875, right: 4921.875
+took: 8
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 23015.625, right: 23015.625
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 1640.625, right: 1640.625
+took: 8
+
+found left: 375.0, right: 375.0
+took: 7
+found left: 2203.125, right: 2203.125
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 6281.25, right: 6281.25
+took: 8
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 1687.5, right: 1687.5
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23109.375, right: 23109.375
+took: 8
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 1312.5, right: 1312.5
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 6281.25, right: 6281.25
+took: 8
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 21609.375, right: 21609.375
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 1593.75, right: 1593.75
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+found left: 3609.375, right: 3609.375
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 6281.25, right: 6281.25
+took: 8
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 1640.625, right: 1640.625
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 22875.0, right: 22875.0
+took: 8
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: 421.875, right: 421.875
+took: 8
+found left: 1359.375, right: 1359.375
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 6234.375, right: 6234.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+
+found left: 20203.125, right: 20203.125
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 1593.75, right: 1593.75
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+
+found left: 3609.375, right: 3609.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 21703.125, right: 21703.125
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+found left: 1640.625, right: 1640.625
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 22781.25, right: 22781.25
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+
+found left: 46.875, right: 46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 21984.375, right: 21984.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+
+found left: 20156.25, right: 20156.25
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 0.0, right: 0.0
+took: 7
+
+found left: 421.875, right: 421.875
+took: 8
+found left: 23343.75, right: 23343.75
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 21656.25, right: 21656.25
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 8
+found left: 1593.75, right: 1593.75
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23906.25, right: 23906.25
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 46.875, right: 46.875
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 21984.375, right: 21984.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 20109.375, right: 20109.375
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+
+found left: 0.0, right: 0.0
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+
+found left: 23343.75, right: 23343.75
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 20390.625, right: 20390.625
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 8
+found left: 0.0, right: 0.0
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 21984.375, right: 21984.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 20062.5, right: 20062.5
+took: 8
+
+found left: 375.0, right: 375.0
+took: 7
+found left: 0.0, right: 0.0
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 22078.125, right: 22078.125
+took: 8
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 19171.875, right: 19171.875
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 0.0, right: 0.0
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 21984.375, right: 21984.375
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 20015.625, right: 20015.625
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+
+found left: 0.0, right: 0.0
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 22078.125, right: 22078.125
+took: 8
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 17859.375, right: 17859.375
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 93.75, right: 93.75
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+found left: 19265.625, right: 19265.625
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 19968.75, right: 19968.75
+took: 7
+
+found left: 375.0, right: 375.0
+took: 8
+found left: 20578.125, right: 20578.125
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 22078.125, right: 22078.125
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 8
+found left: 17859.375, right: 17859.375
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 93.75, right: 93.75
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 22687.5, right: 22687.5
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 22640.625, right: 22640.625
+took: 7
+
+found left: 421.875, right: 421.875
+took: 8
+found left: 19265.625, right: 19265.625
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 1125.0, right: 1125.0
+took: 7
+
+found left: 375.0, right: 375.0
+took: 8
+found left: 20531.25, right: 20531.25
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 20812.5, right: 20812.5
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+
+found left: 17812.5, right: 17812.5
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 23156.25, right: 23156.25
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 22781.25, right: 22781.25
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 22687.5, right: 22687.5
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 17906.25, right: 17906.25
+took: 7
+found left: 23625.0, right: 23625.0
+took: 7
+
+found left: 3796.875, right: 3796.875
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+found left: 20484.375, right: 20484.375
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 20812.5, right: 20812.5
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 15140.625, right: 15140.625
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 23156.25, right: 23156.25
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 22781.25, right: 22781.25
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 22734.375, right: 22734.375
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 750.0, right: 750.0
+took: 8
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 3750.0, right: 3750.0
+took: 7
+
+found left: 375.0, right: 375.0
+took: 7
+found left: 20437.5, right: 20437.5
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 20765.625, right: 20765.625
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 3609.375, right: 3609.375
+took: 8
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 23109.375, right: 23109.375
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 22781.25, right: 22781.25
+took: 8
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 22734.375, right: 22734.375
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 750.0, right: 750.0
+took: 8
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 3703.125, right: 3703.125
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+
+found left: 20390.625, right: 20390.625
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 703.125, right: 703.125
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 3609.375, right: 3609.375
+took: 8
+found left: 23625.0, right: 23625.0
+took: 7
+
+found left: 23109.375, right: 23109.375
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23109.375, right: 23109.375
+took: 8
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 22781.25, right: 22781.25
+took: 7
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 750.0, right: 750.0
+took: 7
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 3656.25, right: 3656.25
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+
+found left: 20343.75, right: 20343.75
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 750.0, right: 750.0
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 3562.5, right: 3562.5
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 23062.5, right: 23062.5
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23109.375, right: 23109.375
+took: 8
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 8
+
+found left: 1218.75, right: 1218.75
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 2156.25, right: 2156.25
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+found left: 3609.375, right: 3609.375
+took: 7
+
+found left: 375.0, right: 375.0
+took: 7
+found left: 17531.25, right: 17531.25
+took: 7
+
+found left: 421.875, right: 421.875
+took: 8
+found left: 750.0, right: 750.0
+took: 7
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 6328.125, right: 6328.125
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+
+found left: 6421.875, right: 6421.875
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23109.375, right: 23109.375
+took: 7
+found left: -46.875, right: -46.875
+took: 8
+
+found left: -46.875, right: -46.875
+took: 7
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 1265.625, right: 1265.625
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 3562.5, right: 3562.5
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 6328.125, right: 6328.125
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+found left: 14671.875, right: 14671.875
+took: 7
+
+found left: 375.0, right: 375.0
+took: 7
+found left: 750.0, right: 750.0
+took: 7
+
+found left: 23625.0, right: 23625.0
+took: 7
+found left: 6328.125, right: 6328.125
+took: 7
+found left: 23578.125, right: 23578.125
+took: 8
+
+found left: 6375.0, right: 6375.0
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23953.125, right: 23953.125
+took: 8
+found left: 23953.125, right: 23953.125
+took: 7
+
+found left: 23953.125, right: 23953.125
+took: 7
+found left: 23156.25, right: 23156.25
+took: 7
+
+found left: -46.875, right: -46.875
+took: 8
+found left: -46.875, right: -46.875
+took: 7
+
+found left: -46.875, right: -46.875
+took: 7
+found left: 421.875, right: 421.875
+took: 7
+
+found left: 1265.625, right: 1265.625
+took: 8
+found left: 421.875, right: 421.875
+took: 7
+found left: 4921.875, right: 4921.875
+took: 7
+
+found left: 23578.125, right: 23578.125
+took: 7
+found left: 23015.625, right: 23015.625
+took: 8
+
+found left: 421.875, right: 421.875
+took: 7
+found left: 1640.625, right: 1640.625
+took: 7
+found left: 375.0, right: 375.0
+took: 7
+
+found left: 2203.125, right: 2203.125
+took: 8
+found left: 23578.125, right: 23578.125
+took: 7
+
+found left: 6281.25, right: 6281.25
+took: 7
+found left: 23578.125, right: 23578.125
+took: 7
+

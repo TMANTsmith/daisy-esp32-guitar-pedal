@@ -1,8 +1,9 @@
 use libm::roundf; // for f32
 use alloc::boxed::Box;
-pub const SAMPLE_RATE: u32 = 48000;
 
-const fn ms_to_samples(ms: usize) -> usize {
+const SAMPLE_RATE: u32 = 48000;
+
+fn ms_to_samples(ms: usize) -> usize {
     48000 * ms / 1000
 }
 
@@ -22,22 +23,22 @@ impl<const MS: usize> Delay<MS> {
 
         Delay {
             decay_factor,
-            volume,
             buffer,
         }
     }
 
     pub fn process(&mut self, input: &mut (f32, f32)) {
-        self.buffer[index] = *input;
+        self.buffer[self.index] = *input;
 
-        input.0 = input.0 + (self.decay_factor * self.buffer[index + 1].0);
-        input.1 = input.1 + (self.decay_factor * self.buffer[index + 1].1);
+        input.0 = input.0 + (self.decay_factor * self.buffer[self.index + 1].0);
+        input.1 = input.1 + (self.decay_factor * self.buffer[self.index + 1].1);
 
     
-        clamp(input);
+        self.clamp(input);
 
         self.index = (self.index + 1) % ms_to_samples(MS);
     }
+
     const fn clamp(sound: &mut (f32, f32)) {
         if sound.0 > 1.0 {
             sound.0 = 1.0
@@ -52,5 +53,6 @@ impl<const MS: usize> Delay<MS> {
         else if sound.1 < -1.0 {
             sound.1 = -1.0
         }
+    }
 }
 
