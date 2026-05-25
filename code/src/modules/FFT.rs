@@ -11,7 +11,7 @@ pub struct RunFft;
 
 pub trait GetFft<const N: usize> {
     fn get_complex(input: &mut [f32; N]) -> &mut [Complex32];
-    fn get_bin_hz() -> f32; 
+    fn get_bin_hz() -> f32;
 }
 
 pub enum FftError {
@@ -75,18 +75,20 @@ pub struct Fft<const N: usize, const H: usize> {
     timer: usize,
 }
 
-
-
 impl<const N: usize, const H: usize> Fft<N, H> {
     pub fn new(sides: [bool; 2]) -> Self {
         let mut write_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
         let mut read_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
-        let mut output_buf: Box<[Wave; N]> = Box::new([Wave {hertz: 0.0 , amplitude:0.0 , confidence: None}; N]);
-
+        let mut output_buf: Box<[Wave; N]> = Box::new(
+            [Wave {
+                hertz: 0.0,
+                amplitude: 0.0,
+                confidence: None,
+            }; N],
+        );
 
         let mut index = 0;
         let mut timer = N;
-
 
         if sides[0] {
             write_buf.0 = Some(Box::new([0_f32; N]));
@@ -110,23 +112,25 @@ impl<const N: usize, const H: usize> Fft<N, H> {
         self.timer
     }
 
-    
-
-
     pub fn compute(&mut self) -> Result<(Option<Waves>, Option<Waves>), FftError>
     where
         RunFft: GetFft<N>,
     {
-
         if (self.get_timer() > 0) {
             return Err(FftError::Wait(self.get_timer()));
         }
-
 
         let mut right = false;
         let mut left = false;
 
         if let Some(buf) = self.read_buf.get_left().as_deref_mut() {
+            // Hann window
+            for i in 0..N {
+                let window = 0.5
+                    * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
+                buf[i] *= window;
+            }
+
             left = true;
             let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
             spectrum[0].im = 0.0;
@@ -134,15 +138,21 @@ impl<const N: usize, const H: usize> Fft<N, H> {
                 // this is the sqrt amplitude
                 let hertz = Fft::<N, H>::bin_hz() * i as f32;
                 let amp = c.norm_sqr();
-                let confidence:Option<f32> = None;
 
                 self.output_buf[i].set_hertz(hertz);
                 self.output_buf[i].set_amplitude(amp);
-                self.output_buf[i].set_confidence(None); 
+                self.output_buf[i].set_confidence(None);
             }
         }
 
         if let Some(buf) = self.read_buf.get_right().as_deref_mut() {
+            // Hann window
+            for i in 0..N {
+                let window = 0.5
+                    * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
+                buf[i] *= window;
+            }
+
             right = true;
             let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
             spectrum[0].im = 0.0;
@@ -150,13 +160,12 @@ impl<const N: usize, const H: usize> Fft<N, H> {
                 // this is the sqrt amplitude
                 let hertz = Fft::<N, H>::bin_hz() * i as f32;
                 let amp = c.norm_sqr();
-                let confidence:Option<f32> = None;
+                let confidence: Option<f32> = None;
 
-                self.output_buf[i].set_hertz(hertz);
-                self.output_buf[i].set_amplitude(amp);
-                self.output_buf[i].set_confidence(None); 
+                self.output_buf[i + H].set_hertz(hertz);
+                self.output_buf[i + H].set_amplitude(amp);
+                self.output_buf[i + H].set_confidence(None);
             }
-
         }
 
         let (left_out, right_out) = self.output_buf.split_at(H);
@@ -164,10 +173,18 @@ impl<const N: usize, const H: usize> Fft<N, H> {
         let mut rtn: (Option<Waves>, Option<Waves>) = (None, None);
 
         if left {
-            rtn.0 = Some(Waves { waves: left_out, sorted: false });
+            rtn.0 = Some(Waves {
+                waves: left_out,
+                sorted: false,
+                strongest: 0.0,
+            });
         }
         if right {
-            rtn.0 = Some(Waves { waves: right_out, sorted: false });
+            rtn.1 = Some(Waves {
+                waves: right_out,
+                sorted: false,
+                strongest: 0.0,
+            });
         }
 
         self.timer = N;
@@ -180,7 +197,7 @@ impl<const N: usize, const H: usize> Fft<N, H> {
     {
         <RunFft as GetFft<N>>::get_bin_hz()
     }
-        
+
     pub fn add(&mut self, input: &mut (f32, f32)) {
         let (left, right) = input;
 
@@ -206,40 +223,77 @@ pub struct Waves<'a> {
 
 impl<'a> Waves<'a> {
     pub fn new(waves: &'a [Wave]) -> Self {
-        let strongest = -1.0;
-
-        Self { waves, sorted: false,  strongest: 0.0 }
+        Self {
+            waves,
+            sorted: false,
+            strongest: 0.0,
+        }
     }
-    pub fn get_largest(&self, num: usize) -> &'a [Wave] {
-        let rtn: &[Wave];
-        let largest_amp: f32;
-        let largest_wave: Wave;
-        for i in [0..num] {
-            largest_amp = -1.0;
-            for wave in self.waves {
-                if wave.get_amplitude() < largest_amp {
-                    continue;
-                }
-                for wave_used in rtn {
-                    if wave_used == wave {
-                        continue;
+    pub fn get_largest(&mut self) {
+        for wave in self.waves {
+            if wave.get_amplitude() > self.strongest {
+                self.strongest = wave.get_amplitude();
+            }
+        }
+    }
+
+    pub fn iter(&self) -> core::slice::Iter<'_, Wave> {
+        self.waves.iter()
+    }
+
+    pub fn get_n_largest<const N: usize>(&mut self) -> [Wave; N] {
+        let mut top: [Wave; N] = [Wave::default(); N];
+        let mut top_vals: [f32; N] = [f32::NEG_INFINITY; N];
+
+
+        let mut prev_2: f32; 
+        let mut prev: f32; 
+        let mut curr: f32; 
+        let mut next: f32; 
+        let mut next_2: f32; 
+
+        // find local peaks only (higher than both neighbors)
+        for j in 2..self.waves.len() - 2 {
+            prev_2 = self.waves[j - 2].get_amplitude();
+            prev   = self.waves[j - 1].get_amplitude();
+            curr   = self.waves[j].get_amplitude();
+            next   = self.waves[j + 1].get_amplitude();
+            next_2 = self.waves[j + 2].get_amplitude();
+            if curr >= prev
+                && curr >= next
+                    && curr >= prev_2
+                    && curr >= next_2
+                    && self.waves[j].get_hertz() < 20_000.0
+                    && self.waves[j].get_hertz() > 20.0
+                    && curr > 0.01
+            {
+                if curr > top_vals[N - 1] {
+                    top_vals[N - 1] = curr;
+                    top[N - 1] = self.waves[j];
+                    // bubble up
+                    for i in (1..N).rev() {
+                        if top_vals[i] > top_vals[i - 1] {
+                            top_vals.swap(i, i - 1);
+                            top.swap(i, i - 1);
+                        } else {
+                            break;
+                        }
                     }
                 }
-                largest_amp = wave.get_amplitude();
-                wave = &largest_wave;
             }
-
-            rtn[i] = largest_wave;
         }
 
-        rtn
+        // set confidence relative to strongest
+        let strongest = top_vals[0];
+        for wave in top.iter_mut() {
+            wave.set_confidence(Some(wave.get_amplitude() / strongest));
+        }
+
+        top
     }
 }
 
-
-
-// confidence is a place holder for now mabey add feature in the furture
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Wave {
     hertz: f32,
     amplitude: f32,
@@ -247,8 +301,12 @@ pub struct Wave {
 }
 
 impl Wave {
-    pub fn new(hertz: f32, amplitude: f32, confidence: Option<f32>,) -> Self {
-        Wave{ hertz, amplitude, confidence }
+    pub fn new(hertz: f32, amplitude: f32, confidence: Option<f32>) -> Self {
+        Wave {
+            hertz,
+            amplitude,
+            confidence,
+        }
     }
     pub fn set_hertz(&mut self, hertz: f32) {
         self.hertz = hertz
@@ -257,7 +315,7 @@ impl Wave {
         self.amplitude = amplitude;
     }
     pub fn set_confidence(&mut self, confidence: Option<f32>) {
-        self.confidence = confidence; 
+        self.confidence = confidence;
     }
     pub fn get_hertz(&self) -> f32 {
         self.hertz

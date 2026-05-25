@@ -35,7 +35,7 @@ mod app {
     use daisy::hal::prelude::*;
     use embedded_alloc::LlffHeap as Heap;
     use rtic_monotonics::Monotonic;
-    use code::modules::FFT::{Fft, LastRead};
+    use code::modules::FFT::{Fft, Wave, Waves};
     use crate::make_fft;
 
     #[global_allocator]
@@ -50,8 +50,10 @@ mod app {
         adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
         adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
         led: LedUser,
-        fft: Fft<1024, 512>,
-        sine: Sine,
+        fft: Fft<4096, 2048>,
+        sine_c: Sine,
+        sine_e: Sine,
+        sine_g: Sine,
     }
 
     #[init]
@@ -98,9 +100,11 @@ mod app {
 
 
         // sets up Fft
-        let fft = make_fft!(1024, [true, true]);
+        let fft = make_fft!(4096, [true, true]);
 
-        let sine = Sine::new(0_u32, 400.0, 0.5);
+        let sine_c: Sine = Sine::new(261.63, 0.25); 
+        let sine_e: Sine = Sine::new(329.63, 0.25);  
+        let sine_g: Sine = Sine::new(392.00, 0.5);  
 
         defmt::println!("=== Init complete ===");
 
@@ -118,58 +122,61 @@ mod app {
                 adc1_channel,
                 led,
                 fft,
-                sine,
+                sine_c,
+                sine_e,
+                sine_g,
             },
         )
     }
 
     // DMA interrupt handler - called when audio buffer is ready
-    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel, fft, sine], priority = 2)]
+    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel, fft, sine_c, sine_e, sine_g], priority = 2)]
     fn audio_callback(mut cx: audio_callback::Context) {
         // Read ADC value for gain control
         let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
         let fft = cx.local.fft;
-        let sine = cx.local.sine;
+        let sine_c = cx.local.sine_c;
+        let sine_e = cx.local.sine_e;
+        let sine_g = cx.local.sine_g;
         
         let start = Mono::now();
 
-        if let Ok(r) = fft.compute(LastRead::Get) {
+        if let Ok(r) = fft.compute() {
             let elapsed = Mono::now().checked_duration_since(start).unwrap();
             let millis = elapsed.to_millis();
 
-            let mut highest_val_left: f32 = -1.0;
-            let mut highest_index_left: f32 = -1.0;
 
-            let mut highest_val_right: f32 = -1.0;
-            let mut highest_index_right: f32 = -1.0;
 
-            if let (Some(left), Some(right)) = (r.0, r.1) {
+            let left_largest: [Wave; 3];
+            let right_largest: [Wave; 3];
 
-                for (i, v) in right.iter().enumerate() {
-                    if *v >= highest_val_right {
-                        highest_val_right = *v;
-                        highest_index_right = i as f32;
-                    }
+            if let Some(mut left) = r.0 {
+                left_largest = left.get_n_largest::<3>();
+                let mut left_list = [0_f32; 3];
+
+                for i in 0..left_largest.len() {
+                    left_list[i] = left_largest[i].get_hertz()
                 }
 
-                for (i, v) in left.iter().enumerate() {
-                    if *v >= highest_val_left  {
-                        highest_val_left = *v;
-                        highest_index_left = i as f32;
-                    }
-                }
+
+                defmt::println!("found left: {}", left_list);
             }
 
-            let hz_left = highest_index_left * Fft::<1024, 512>::bin_hz();
-            let hz_right = highest_index_right * Fft::<1024, 512>::bin_hz();
+            if let Some(mut right) = r.1 {
+                right_largest = right.get_n_largest::<3>();
+                let mut right_list = [0_f32; 3];
 
+                for i in 0..right_largest.len() {
+                    right_list[i] = right_largest[i].get_hertz()
+                }
 
+                defmt::println!("found right: {}", right_list);
+            }
 
-            defmt::println!("found left: {}, right: {}", hz_left, hz_right);
             defmt::println!("took: {}", millis);
         }
         else {
-            defmt::println!("WAIT");
+            //defmt::println!("WAIT");
         }
 
 
@@ -182,8 +189,11 @@ mod app {
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
                 for frame in buffer {
-                    let (left, right) = sine.get_next();
-                    
+                    let (add_left_c, add_right_c) = sine_c.get_next();
+                    let (add_left_g, add_right_g) = sine_g.get_next();
+                    let (add_left_e, add_right_e) = sine_e.get_next();
+                    let left = add_left_e + add_left_g + add_left_c;
+                    let right = add_right_e + add_right_g + add_right_c;
                     fft.add(&mut (left, right));
 
                     
