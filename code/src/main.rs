@@ -10,7 +10,6 @@ mod modules;
 
 systick_monotonic!(Mono, 1000);
 
-
 #[export_name = "_defmt_timestamp"]
 fn timestamp() -> u64 {
     0
@@ -23,26 +22,28 @@ fn timestamp() -> u64 {
 )]
 mod app {
 
-    use modules::sin::Sine;
     use super::modules::debug::vol::volume;
     use super::Mono;
-    use code::modules;
+    use code::modules::{self, FFT::*};
     use cortex_m::prelude::_embedded_hal_adc_OneShot;
     use daisy::audio::Interface;
     use daisy::led::LedUser;
     use modules::process::Effects;
+    use modules::sin::Sine;
     //use rtic_monotonics::fugit::RateExtU32;
+    use crate::make_fft;
     use daisy::hal::prelude::*;
     use embedded_alloc::LlffHeap as Heap;
     use rtic_monotonics::Monotonic;
-    use code::modules::FFT::{Fft, Wave, Waves};
-    use crate::make_fft;
 
     #[global_allocator]
     static HEAP: Heap = Heap::empty();
 
     #[shared]
-    struct Shared {}
+    struct Shared {
+        fft_read: Fft_read<4096, 2048>,
+        fft_write: Fft_write<4096, 2048>,
+    }
 
     #[local]
     struct Local {
@@ -50,7 +51,6 @@ mod app {
         adc1: daisy::hal::adc::Adc<daisy::hal::stm32::ADC1, daisy::hal::adc::Enabled>,
         adc1_channel: daisy::hal::gpio::gpioc::PC4<daisy::hal::gpio::Analog>,
         led: LedUser,
-        fft: Fft<4096, 2048>,
         sine_c: Sine,
         sine_e: Sine,
         sine_g: Sine,
@@ -79,6 +79,9 @@ mod app {
         cp.SCB.enable_icache();
         cp.SCB.enable_dcache(&mut cp.CPUID);
 
+        // starts stopwatch
+        cp.DWT.enable_cycle_counter();
+
         defmt::println!("Initializing ADC...");
 
         let mut delay = daisy::hal::delay::Delay::new(cp.SYST, ccdr.clocks);
@@ -98,13 +101,12 @@ mod app {
         let adc1_channel = pins.GPIO.PIN_21.into_analog();
         let led = daisy::board_split_leds!(pins).USER;
 
-
         // sets up Fft
-        let fft = make_fft!(4096, [true, true]);
+        let (fft_read, fft_write) = make_fft!(4096, [true, true]);
 
-        let sine_c: Sine = Sine::new(261.63, 0.25); 
-        let sine_e: Sine = Sine::new(329.63, 0.25);  
-        let sine_g: Sine = Sine::new(392.00, 0.5);  
+        let sine_c: Sine = Sine::new(261.63, 0.33);
+        let sine_e: Sine = Sine::new(329.63, 0.33);
+        let sine_g: Sine = Sine::new(392.00, 0.33);
 
         defmt::println!("=== Init complete ===");
 
@@ -113,15 +115,16 @@ mod app {
                                                          // use let pin_b = gpio#.###.into_pull_up_input();
                                                          // and pass to struct
 
-
         (
-            Shared {},
+            Shared {
+                fft_read,
+                fft_write,
+            },
             Local {
                 audio_interface,
                 adc1,
                 adc1_channel,
                 led,
-                fft,
                 sine_c,
                 sine_e,
                 sine_g,
@@ -129,60 +132,57 @@ mod app {
         )
     }
 
+
+    #[task(shared = [fft_read], priority = 2)]
+    async fn fft_process(mut cx: fft_process::Context) {
+        //defmt::println!("fft_process start");
+        cx.shared.fft_read.lock(|fft_read| {
+            let start = cortex_m::peripheral::DWT::cycle_count();
+            if let Ok(tuple) = fft_read.compute() {
+                if let Some(mut waves) = tuple.0 {
+                    let large_waves = waves.get_n_largest::<3>();
+                    /*
+                    defmt::println!("left waves start");
+                    large_waves
+                        .iter()
+                        .for_each(|wave| defmt::println!("[ {} ] ", wave.get_hertz()));
+                    defmt::println!("left waves end");
+                    */
+                }
+
+                if let Some(mut waves) = tuple.1 {
+                    let large_waves = waves.get_n_largest::<3>();
+                    /*
+                    defmt::println!("right waves start");
+                    large_waves
+                        .iter()
+                        .for_each(|wave| defmt::println!("[ {} ] ", wave.get_hertz()));
+                    defmt::println!("right waves end");
+                    */
+                }
+            }
+            let cycles = cortex_m::peripheral::DWT::cycle_count().wrapping_sub(start);
+            let micros = cycles / 400; // 400MHz = 400 cycles per µs
+            //defmt::println!("compute took: {}us", micros);
+        });
+        //defmt::println!("fft_process finnished");
+    }
+
     // DMA interrupt handler - called when audio buffer is ready
-    #[task(binds = DMA1_STR1, local = [audio_interface, adc1, adc1_channel, fft, sine_c, sine_e, sine_g], priority = 2)]
+    #[task(
+        binds = DMA1_STR1,
+        local = [audio_interface, adc1, adc1_channel, sine_c, sine_e, sine_g],
+        shared = [fft_write, fft_read],
+        priority = 10
+        )]
     fn audio_callback(mut cx: audio_callback::Context) {
         // Read ADC value for gain control
         let pot: u32 = cx.local.adc1.read(cx.local.adc1_channel).unwrap();
-        let fft = cx.local.fft;
         let sine_c = cx.local.sine_c;
         let sine_e = cx.local.sine_e;
         let sine_g = cx.local.sine_g;
-        
-        let start = Mono::now();
 
-        if let Ok(r) = fft.compute() {
-            let elapsed = Mono::now().checked_duration_since(start).unwrap();
-            let millis = elapsed.to_millis();
-
-
-
-            let left_largest: [Wave; 3];
-            let right_largest: [Wave; 3];
-
-            if let Some(mut left) = r.0 {
-                left_largest = left.get_n_largest::<3>();
-                let mut left_list = [0_f32; 3];
-
-                for i in 0..left_largest.len() {
-                    left_list[i] = left_largest[i].get_hertz()
-                }
-
-
-                defmt::println!("found left: {}", left_list);
-            }
-
-            if let Some(mut right) = r.1 {
-                right_largest = right.get_n_largest::<3>();
-                let mut right_list = [0_f32; 3];
-
-                for i in 0..right_largest.len() {
-                    right_list[i] = right_largest[i].get_hertz()
-                }
-
-                defmt::println!("found right: {}", right_list);
-            }
-
-            defmt::println!("took: {}", millis);
-        }
-        else {
-            //defmt::println!("WAIT");
-        }
-
-
-
-
-        // defmt::println!("adc read: {}", pot);
+        //defmt::println!("adc read: {}", pot);
 
         // Process audio buffer
         cx.local
@@ -194,14 +194,20 @@ mod app {
                     let (add_left_e, add_right_e) = sine_e.get_next();
                     let left = add_left_e + add_left_g + add_left_c;
                     let right = add_right_e + add_right_g + add_right_c;
-                    fft.add(&mut (left, right));
-
-                    
-
+                    *frame = (left, right);
+                    cx.shared.fft_write.lock(|fft_write| {
+                        fft_write.add(&mut (left, right));
+                        cx.shared.fft_read.lock(|fft_read| {
+                            if fft_read.copy_from_write(fft_write).is_ok() {
+                                //defmt::println!("successful fft copy! spawning process");
+                                fft_process::spawn().ok();
+                            }
+                        })
+                    });
                 }
             })
-            .unwrap();
-    }
+        .unwrap();
+        }
 
     #[idle(local = [led])]
     fn idle(cx: idle::Context) -> ! {

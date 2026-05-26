@@ -1,0 +1,10 @@
+=== INIT START ===
+Setting up audio interface...
+Audio interface spawned!
+Initializing ADC...
+
+ADC ready!
+
+=== Init complete ===
+=== IDLE running ===
+
