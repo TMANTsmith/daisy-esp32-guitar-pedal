@@ -104,9 +104,9 @@ mod app {
         // sets up Fft
         let (fft_read, fft_write) = make_fft!(4096, [true, true]);
 
-        let sine_c: Sine = Sine::new(261.63, 0.33);
-        let sine_e: Sine = Sine::new(329.63, 0.33);
-        let sine_g: Sine = Sine::new(392.00, 0.33);
+        let sine_c: Sine = Sine::new(261.63, 0.2);
+        let sine_e: Sine = Sine::new(329.63, 0.2);
+        let sine_g: Sine = Sine::new(392.00, 0.2);
 
         defmt::println!("=== Init complete ===");
 
@@ -192,9 +192,14 @@ mod app {
                     let (add_left_c, add_right_c) = sine_c.get_next();
                     let (add_left_g, add_right_g) = sine_g.get_next();
                     let (add_left_e, add_right_e) = sine_e.get_next();
-                    let left = add_left_e + add_left_g + add_left_c;
-                    let right = add_right_e + add_right_g + add_right_c;
+                    let mut left = add_left_e;
+                    left += add_left_g;
+                //left +=add_left_c;
+                    let mut right = add_right_e; 
+                    right += add_right_g;
+                    //right += add_right_c;
                     *frame = (left, right);
+                    /*
                     cx.shared.fft_write.lock(|fft_write| {
                         fft_write.add(&mut (left, right));
                         cx.shared.fft_read.lock(|fft_read| {
@@ -204,6 +209,7 @@ mod app {
                             }
                         })
                     });
+                    */
                 }
             })
         .unwrap();
