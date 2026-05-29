@@ -23,14 +23,13 @@ The Explenation:
 
 The expected voltage on the node should be 2.5V but instead it is 3V. This causes the bias to be at 3V instead of 2.5V causing the daisy seed, which is biased at 2.5V, to read the wave improperly.
 
-This is caused by R101 1M. This pulls the voltage up to 2.5V but because there is nothing going to GND then if the voltage goes above 2.5V there is nothing stopping it. But when shorting R101 the problem is fixed but this would mean the input impedance is 0 causing the guitar signal to be bad. The 1M being such a high value only lets a small amount of current through so if there is any amount of excess current coming from somewhere, like the capacitor, then it couldn't be dealt with
+This is caused by R101 1M. This pulls the voltage up to 2.5V but because there is nothing going to GND then if the voltage goes above 2.5V there is nothing stopping it. But when shorting R101 the problem is fixed but this would mean the input impedance is 0 causing the guitar signal to be bad. The 1M being such a high value only lets a small amount of current through so if there is any amount of excess current coming from somewhere, then it couldn't be dealt with if the resistor value is high.
 
 The Solution:
 
 ![Picture of the fixed circuit](/pictures/fixed_input.png)
 
-1. Replace the capacitor with a C0G one instead of X5R to handle high impedance signals better.
-2. Remove the LDO and use a resistor divider as the input impedance and bias.
+Remove the LDO and use a resistor divider as the input impedance and bias.
 
 #### Beeping
 

@@ -7,7 +7,7 @@ edition = "2021"
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 #crc8-rs = "1.1.1"
-daisy = { version = "0.11.0", features = ["seed_1_2"] }
+daisy = { git = "https://github.com/TMANTsmith/daisy", features = ["seed_1_2"] }
 defmt-rtt = "1.1.0"
 embedded-alloc = "0.7.0"
 libm = "0.2.16"

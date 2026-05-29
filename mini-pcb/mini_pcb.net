@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/tucker/Projects/esp-petal/mini-pcb/mini_pcb.kicad_sch")
-		(date "2026-05-16T22:37:46")
+		(date "2026-05-28T07:58:38")
 		(tool "Eeschema 10.0.0")
 		(sheet
 			(number "1")
@@ -915,6 +915,66 @@
 			)
 		)
 		(comp
+			(ref "J6")
+			(value "Screw_Terminal_01x02")
+			(footprint "TerminalBlock:TerminalBlock_Xinya_XY308-2.54-2P_1x02_P2.54mm_Horizontal")
+			(description "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			(fields
+				(field
+					(name "MPN") "C8465")
+				(field
+					(name "Footprint") "TerminalBlock:TerminalBlock_Xinya_XY308-2.54-2P_1x02_P2.54mm_Horizontal")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			)
+			(libsource
+				(lib "Connector")
+				(part "Screw_Terminal_01x02")
+				(description "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+			)
+			(property
+				(name "MPN")
+				(value "C8465")
+			)
+			(property
+				(name "Sheetname")
+				(value "mini_pcb")
+			)
+			(property
+				(name "Sheetfile")
+				(value "mini_pcb.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "screw terminal")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "TerminalBlock*:*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "721072e2-2555-4f2c-b76d-6b7678301a8e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "R21")
 			(value "100")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
@@ -1095,6 +1155,126 @@
 			)
 		)
 		(comp
+			(ref "C7")
+			(value "10uf")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(description "Unpolarized capacitor")
+			(fields
+				(field
+					(name "MPN") "C440198")
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Unpolarized capacitor")
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "MPN")
+				(value "C440198")
+			)
+			(property
+				(name "Sheetname")
+				(value "Input")
+			)
+			(property
+				(name "Sheetfile")
+				(value "Input.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/Input/")
+				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
+			)
+			(tstamps "f43ce163-bfdb-46cd-9943-d2e314961e61")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C11")
+			(value "10uf")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(description "Unpolarized capacitor")
+			(fields
+				(field
+					(name "MPN") "C440198")
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Unpolarized capacitor")
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "MPN")
+				(value "C440198")
+			)
+			(property
+				(name "Sheetname")
+				(value "Input")
+			)
+			(property
+				(name "Sheetfile")
+				(value "Input.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/Input/")
+				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
+			)
+			(tstamps "4a46cddf-3d00-476a-91e9-86181958f8f9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "C13")
 			(value "1nf")
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
@@ -1140,126 +1320,6 @@
 				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
 			)
 			(tstamps "177afd71-4e6d-4f10-893c-f412dadd4c53")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "C14")
-			(value "47nF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric")
-			(description "Unpolarized capacitor")
-			(fields
-				(field
-					(name "MPN") "C2182212")
-				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Unpolarized capacitor")
-			)
-			(libsource
-				(lib "Device")
-				(part "C")
-				(description "Unpolarized capacitor")
-			)
-			(property
-				(name "MPN")
-				(value "C2182212")
-			)
-			(property
-				(name "Sheetname")
-				(value "Input")
-			)
-			(property
-				(name "Sheetfile")
-				(value "Input.kicad_sch")
-			)
-			(property
-				(name "ki_keywords")
-				(value "cap capacitor")
-			)
-			(property
-				(name "ki_fp_filters")
-				(value "C_*")
-			)
-			(sheetpath
-				(names "/Input/")
-				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
-			)
-			(tstamps "b9743e7b-9d3e-4346-9e32-ac902441e8f3")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "C15")
-			(value "47nF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric")
-			(description "Unpolarized capacitor")
-			(fields
-				(field
-					(name "MPN") "C2182212")
-				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description") "Unpolarized capacitor")
-			)
-			(libsource
-				(lib "Device")
-				(part "C")
-				(description "Unpolarized capacitor")
-			)
-			(property
-				(name "MPN")
-				(value "C2182212")
-			)
-			(property
-				(name "Sheetname")
-				(value "Input")
-			)
-			(property
-				(name "Sheetfile")
-				(value "Input.kicad_sch")
-			)
-			(property
-				(name "ki_keywords")
-				(value "cap capacitor")
-			)
-			(property
-				(name "ki_fp_filters")
-				(value "C_*")
-			)
-			(sheetpath
-				(names "/Input/")
-				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
-			)
-			(tstamps "3daa7585-bfcd-48d5-8b9c-3ac82daac9d0")
 			(units
 				(unit
 					(name "A")
@@ -1559,7 +1619,7 @@
 				(names "/Input/")
 				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
 			)
-			(tstamps "64c0fa97-861d-4f42-abe4-3522847e0a42")
+			(tstamps "dac1e4b9-2352-4130-9066-0f1ddc734e5b")
 			(units
 				(unit
 					(name "A")
@@ -1619,7 +1679,7 @@
 				(names "/Input/")
 				(tstamps "/0ca96f51-23c0-4c17-837f-32f367c7277c/")
 			)
-			(tstamps "1f7b58c0-c376-425e-a588-5292c60b7b98")
+			(tstamps "459cd011-f38c-4ed7-8779-592b71f83fe0")
 			(units
 				(unit
 					(name "A")
@@ -3080,6 +3140,66 @@
 			)
 		)
 		(comp
+			(ref "R23")
+			(value "1k")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(description "Resistor")
+			(fields
+				(field
+					(name "MPN") "C21190")
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor")
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "MPN")
+				(value "C21190")
+			)
+			(property
+				(name "Sheetname")
+				(value "Power")
+			)
+			(property
+				(name "Sheetfile")
+				(value "power.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/Power/")
+				(tstamps "/ecf25a48-7940-4cdf-9049-43d792c69dfb/")
+			)
+			(tstamps "ba75f637-791d-448a-b419-063a327a3625")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "R27")
 			(value "330")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
@@ -3140,16 +3260,16 @@
 			)
 		)
 		(comp
-			(ref "U1")
+			(ref "U3")
 			(value "LM1117DT-5.0")
-			(footprint "Package_TO_SOT_SMD:TO-252-3_TabPin2")
+			(footprint "Package_TO_SOT_SMD:TO-252-2")
 			(datasheet "http://www.ti.com/lit/ds/symlink/lm1117.pdf")
 			(description "800mA Low-Dropout Linear Regulator, 5.0V fixed output, TO-252")
 			(fields
 				(field
 					(name "MPN") "C354068")
 				(field
-					(name "Footprint") "Package_TO_SOT_SMD:TO-252-3_TabPin2")
+					(name "Footprint") "Package_TO_SOT_SMD:TO-252-2")
 				(field
 					(name "Datasheet") "http://www.ti.com/lit/ds/symlink/lm1117.pdf")
 				(field
@@ -3158,7 +3278,7 @@
 			(libsource
 				(lib "Regulator_Linear")
 				(part "LM1117DT-5.0")
-				(description "800mA Low-Dropout Linear Regulator, 5.0V fixed output, TO-252")
+				(description "1A Low Dropout regulator, positive, 1.5V fixed output, SOT-223")
 			)
 			(property
 				(name "MPN")
@@ -3184,7 +3304,7 @@
 				(names "/Power/")
 				(tstamps "/ecf25a48-7940-4cdf-9049-43d792c69dfb/")
 			)
-			(tstamps "fefddb80-4ecb-47e3-9517-2d787756008c")
+			(tstamps "6f406202-32ad-475d-ad54-2706ba513827")
 			(units
 				(unit
 					(name "A")
@@ -3197,6 +3317,69 @@
 						)
 						(pin
 							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U4")
+			(value "CJ431")
+			(footprint "Package_TO_SOT_SMD:SOT-23-3")
+			(datasheet "http://www.ti.com/lit/ds/symlink/lm185-adj.pdf")
+			(description "Adjustable Micropower Voltage Reference Diodes, TO-92")
+			(fields
+				(field
+					(name "MPN") "C21190")
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-3")
+				(field
+					(name "Datasheet") "http://www.ti.com/lit/ds/symlink/lm185-adj.pdf")
+				(field
+					(name "Description") "Adjustable Micropower Voltage Reference Diodes, TO-92")
+			)
+			(libsource
+				(lib "Reference_Voltage")
+				(part "LM285Z-ADJ")
+				(description "Adjustable Micropower Voltage Reference Diodes, TO-92")
+			)
+			(property
+				(name "MPN")
+				(value "C21190")
+			)
+			(property
+				(name "Sheetname")
+				(value "Power")
+			)
+			(property
+				(name "Sheetfile")
+				(value "power.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "diode device voltage reference")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "TO?92*")
+			)
+			(sheetpath
+				(names "/Power/")
+				(tstamps "/ecf25a48-7940-4cdf-9049-43d792c69dfb/")
+			)
+			(tstamps "f6ce2ea9-e84f-4833-aafc-fa232a023b43")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "1")
 						)
 					)
 				)
@@ -3859,6 +4042,44 @@
 			)
 		)
 		(libpart
+			(lib "Reference_Voltage")
+			(part "LM285Z-ADJ")
+			(description "Adjustable Micropower Voltage Reference Diodes, TO-92")
+			(docs "http://www.ti.com/lit/ds/symlink/lm185-adj.pdf")
+			(footprints
+				(fp "TO?92*")
+			)
+			(fields
+				(field
+					(name "Reference") "U4")
+				(field
+					(name "Value") "LM285Z-ADJ")
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-3")
+				(field
+					(name "Datasheet") "http://www.ti.com/lit/ds/symlink/lm185-adj.pdf")
+				(field
+					(name "Description") "Adjustable Micropower Voltage Reference Diodes, TO-92")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "FB")
+					(type "input")
+				)
+				(pin
+					(num "2")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
 			(lib "Regulator_Linear")
 			(part "LM1117DT-5.0")
 			(description "800mA Low-Dropout Linear Regulator, 5.0V fixed output, TO-252")
@@ -3919,6 +4140,10 @@
 			(uri "${KICAD9_SYMBOL_DIR}/MCU_Module.kicad_sym")
 		)
 		(library
+			(logical "Reference_Voltage")
+			(uri "${KICAD9_SYMBOL_DIR}/Reference_Voltage.kicad_sym")
+		)
+		(library
 			(logical "Regulator_Linear")
 			(uri "${KICAD9_SYMBOL_DIR}/Regulator_Linear.kicad_sym")
 		)
@@ -3926,6 +4151,38 @@
 	(nets
 		(net
 			(code "1")
+			(name "+2.5V")
+			(class "Default")
+			(node
+				(ref "R1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R23")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R5")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "1")
+				(pinfunction "FB_1")
+				(pintype "input")
+			)
+			(node
+				(ref "U4")
+				(pin "2")
+				(pinfunction "K_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
 			(name "+3.3VA")
 			(class "Default")
 			(node
@@ -3936,7 +4193,7 @@
 			)
 		)
 		(net
-			(code "2")
+			(code "3")
 			(name "+3.3VD")
 			(class "Default")
 			(node
@@ -3953,7 +4210,7 @@
 			)
 		)
 		(net
-			(code "3")
+			(code "4")
 			(name "+5V")
 			(class "Default")
 			(node
@@ -3984,20 +4241,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R1")
+				(ref "R23")
 				(pin "2")
 				(pintype "passive")
-			)
-			(node
-				(ref "R5")
-				(pin "2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "2")
-				(pinfunction "VO_2")
-				(pintype "power_out")
 			)
 			(node
 				(ref "U2")
@@ -4005,9 +4251,15 @@
 				(pinfunction "V+_4")
 				(pintype "power_in")
 			)
+			(node
+				(ref "U3")
+				(pin "2")
+				(pinfunction "VO_2")
+				(pintype "power_out")
+			)
 		)
 		(net
-			(code "4")
+			(code "5")
 			(name "+9V")
 			(class "Default")
 			(node
@@ -4039,14 +4291,14 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U1")
+				(ref "U3")
 				(pin "3")
 				(pinfunction "VI_3")
 				(pintype "power_in")
 			)
 		)
 		(net
-			(code "5")
+			(code "6")
 			(name "AUDIO_IN_JACK_LEFT")
 			(class "Default")
 			(node
@@ -4067,7 +4319,7 @@
 			)
 		)
 		(net
-			(code "6")
+			(code "7")
 			(name "AUDIO_IN_JACK_LEFT_BUF")
 			(class "Default")
 			(node
@@ -4083,7 +4335,7 @@
 			)
 		)
 		(net
-			(code "7")
+			(code "8")
 			(name "AUDIO_IN_JACK_RIGHT")
 			(class "Default")
 			(node
@@ -4098,7 +4350,7 @@
 			)
 		)
 		(net
-			(code "8")
+			(code "9")
 			(name "AUDIO_IN_JACK_RIGHT_BUF")
 			(class "Default")
 			(node
@@ -4120,7 +4372,7 @@
 			)
 		)
 		(net
-			(code "9")
+			(code "10")
 			(name "AUDIO_OUT_JACK_LEFT")
 			(class "Default")
 			(node
@@ -4135,7 +4387,7 @@
 			)
 		)
 		(net
-			(code "10")
+			(code "11")
 			(name "AUDIO_OUT_JACK_LEFT_BUF")
 			(class "Default")
 			(node
@@ -4151,7 +4403,7 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "12")
 			(name "AUDIO_OUT_JACK_RIGHT")
 			(class "Default")
 			(node
@@ -4166,7 +4418,7 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "13")
 			(name "AUDIO_OUT_JACK_RIGHT_BUF")
 			(class "Default")
 			(node
@@ -4182,7 +4434,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "14")
 			(name "GND")
 			(class "Default")
 			(node
@@ -4295,20 +4547,26 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U1")
-				(pin "1")
-				(pinfunction "GND_1")
-				(pintype "power_in")
-			)
-			(node
 				(ref "U2")
 				(pin "11")
 				(pinfunction "V-_11")
 				(pintype "power_in")
 			)
+			(node
+				(ref "U3")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "power_in")
+			)
+			(node
+				(ref "U4")
+				(pin "3")
+				(pinfunction "A_3")
+				(pintype "passive")
+			)
 		)
 		(net
-			(code "14")
+			(code "15")
 			(name "Net-(A1-ADC_6)")
 			(class "Default")
 			(node
@@ -4329,7 +4587,41 @@
 			)
 		)
 		(net
-			(code "15")
+			(code "16")
+			(name "Net-(A1-I2C1_SCL)")
+			(class "Default")
+			(node
+				(ref "A1")
+				(pin "12")
+				(pinfunction "I2C1_SCL_12")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "J6")
+				(pin "1")
+				(pinfunction "Pin_1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "Net-(A1-I2C1_SDA)")
+			(class "Default")
+			(node
+				(ref "A1")
+				(pin "13")
+				(pinfunction "I2C1_SDA_13")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "J6")
+				(pin "2")
+				(pinfunction "Pin_2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "18")
 			(name "Net-(C3-Pad1)")
 			(class "Default")
 			(node
@@ -4344,7 +4636,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "19")
 			(name "Net-(C5-Pad1)")
 			(class "Default")
 			(node
@@ -4359,7 +4651,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "20")
 			(name "Net-(C6-Pad2)")
 			(class "Default")
 			(node
@@ -4374,7 +4666,27 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "21")
+			(name "Net-(C7-Pad1)")
+			(class "Default")
+			(node
+				(ref "C7")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R10")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "22")
 			(name "Net-(C9-Pad2)")
 			(class "Default")
 			(node
@@ -4389,26 +4701,11 @@
 			)
 		)
 		(net
-			(code "19")
-			(name "Net-(C14-Pad1)")
+			(code "23")
+			(name "Net-(C11-Pad1)")
 			(class "Default")
 			(node
-				(ref "C14")
-				(pin "1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R3")
-				(pin "1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "20")
-			(name "Net-(C15-Pad1)")
-			(class "Default")
-			(node
-				(ref "C15")
+				(ref "C11")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -4417,9 +4714,14 @@
 				(pin "1")
 				(pintype "passive")
 			)
+			(node
+				(ref "R8")
+				(pin "2")
+				(pintype "passive")
+			)
 		)
 		(net
-			(code "21")
+			(code "24")
 			(name "Net-(C16-Pad2)")
 			(class "Default")
 			(node
@@ -4439,7 +4741,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "25")
 			(name "Net-(C17-Pad2)")
 			(class "Default")
 			(node
@@ -4459,7 +4761,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "26")
 			(name "Net-(D2-K)")
 			(class "Default")
 			(node
@@ -4475,7 +4777,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "27")
 			(name "Net-(J1-Pin_2)")
 			(class "Default")
 			(node
@@ -4491,22 +4793,17 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "28")
 			(name "Net-(U2A-+)")
 			(class "Default")
 			(node
-				(ref "C14")
+				(ref "C7")
 				(pin "2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R1")
 				(pin "1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R10")
-				(pin "2")
 				(pintype "passive")
 			)
 			(node
@@ -4517,7 +4814,7 @@
 			)
 		)
 		(net
-			(code "26")
+			(code "29")
 			(name "Net-(U2A--)")
 			(class "Default")
 			(node
@@ -4543,22 +4840,17 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "30")
 			(name "Net-(U2B-+)")
 			(class "Default")
 			(node
-				(ref "C15")
+				(ref "C11")
 				(pin "2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R5")
 				(pin "1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R8")
-				(pin "2")
 				(pintype "passive")
 			)
 			(node
@@ -4569,7 +4861,7 @@
 			)
 		)
 		(net
-			(code "28")
+			(code "31")
 			(name "Net-(U2B--)")
 			(class "Default")
 			(node
@@ -4595,7 +4887,7 @@
 			)
 		)
 		(net
-			(code "29")
+			(code "32")
 			(name "Net-(U2C-+)")
 			(class "Default")
 			(node
@@ -4611,7 +4903,7 @@
 			)
 		)
 		(net
-			(code "30")
+			(code "33")
 			(name "Net-(U2C--)")
 			(class "Default")
 			(node
@@ -4632,7 +4924,7 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "34")
 			(name "Net-(U2D-+)")
 			(class "Default")
 			(node
@@ -4648,7 +4940,7 @@
 			)
 		)
 		(net
-			(code "32")
+			(code "35")
 			(name "Net-(U2D--)")
 			(class "Default")
 			(node
@@ -4669,7 +4961,7 @@
 			)
 		)
 		(net
-			(code "33")
+			(code "36")
 			(name "POWER_JACK_PWR")
 			(class "Default")
 			(node
@@ -4685,7 +4977,7 @@
 			)
 		)
 		(net
-			(code "34")
+			(code "37")
 			(name "unconnected-(A1-ADC_0-Pad22)")
 			(class "Default")
 			(node
@@ -4696,7 +4988,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "38")
 			(name "unconnected-(A1-ADC_1-Pad23)")
 			(class "Default")
 			(node
@@ -4707,7 +4999,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "39")
 			(name "unconnected-(A1-ADC_2-Pad24)")
 			(class "Default")
 			(node
@@ -4718,7 +5010,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "40")
 			(name "unconnected-(A1-ADC_3-Pad25)")
 			(class "Default")
 			(node
@@ -4729,7 +5021,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "41")
 			(name "unconnected-(A1-ADC_4-Pad26)")
 			(class "Default")
 			(node
@@ -4740,7 +5032,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "42")
 			(name "unconnected-(A1-ADC_5-Pad27)")
 			(class "Default")
 			(node
@@ -4751,7 +5043,7 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "43")
 			(name "unconnected-(A1-DAC_OUT1-Pad30)")
 			(class "Default")
 			(node
@@ -4762,7 +5054,7 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "44")
 			(name "unconnected-(A1-DAC_OUT2-Pad29)")
 			(class "Default")
 			(node
@@ -4773,29 +5065,7 @@
 			)
 		)
 		(net
-			(code "42")
-			(name "unconnected-(A1-I2C1_SCL-Pad12)")
-			(class "Default")
-			(node
-				(ref "A1")
-				(pin "12")
-				(pinfunction "I2C1_SCL_12")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "43")
-			(name "unconnected-(A1-I2C1_SDA-Pad13)")
-			(class "Default")
-			(node
-				(ref "A1")
-				(pin "13")
-				(pinfunction "I2C1_SDA_13")
-				(pintype "bidirectional+no_connect")
-			)
-		)
-		(net
-			(code "44")
+			(code "45")
 			(name "unconnected-(A1-SAI2_FS-Pad34)")
 			(class "Default")
 			(node
@@ -4806,7 +5076,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "46")
 			(name "unconnected-(A1-SAI2_MCLK-Pad31)")
 			(class "Default")
 			(node
@@ -4817,7 +5087,7 @@
 			)
 		)
 		(net
-			(code "46")
+			(code "47")
 			(name "unconnected-(A1-SAI2_SCK-Pad35)")
 			(class "Default")
 			(node
@@ -4828,7 +5098,7 @@
 			)
 		)
 		(net
-			(code "47")
+			(code "48")
 			(name "unconnected-(A1-SAI2_SD_A-Pad33)")
 			(class "Default")
 			(node
@@ -4839,7 +5109,7 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "49")
 			(name "unconnected-(A1-SAI2_SD_B-Pad32)")
 			(class "Default")
 			(node
@@ -4850,7 +5120,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "50")
 			(name "unconnected-(A1-SD_CLK-Pad7)")
 			(class "Default")
 			(node
@@ -4861,7 +5131,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "51")
 			(name "unconnected-(A1-SD_CMD-Pad6)")
 			(class "Default")
 			(node
@@ -4872,7 +5142,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "52")
 			(name "unconnected-(A1-SD_DATA_0-Pad5)")
 			(class "Default")
 			(node
@@ -4883,7 +5153,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "53")
 			(name "unconnected-(A1-SD_DATA_1-Pad4)")
 			(class "Default")
 			(node
@@ -4894,7 +5164,7 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "54")
 			(name "unconnected-(A1-SD_DATA_2-Pad3)")
 			(class "Default")
 			(node
@@ -4905,7 +5175,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "55")
 			(name "unconnected-(A1-SD_DATA_3-Pad2)")
 			(class "Default")
 			(node
@@ -4916,7 +5186,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "56")
 			(name "unconnected-(A1-SPI1_CS-Pad8)")
 			(class "Default")
 			(node
@@ -4927,7 +5197,7 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "57")
 			(name "unconnected-(A1-SPI1_PICO-Pad11)")
 			(class "Default")
 			(node
@@ -4938,7 +5208,7 @@
 			)
 		)
 		(net
-			(code "57")
+			(code "58")
 			(name "unconnected-(A1-SPI1_POCI-Pad10)")
 			(class "Default")
 			(node
@@ -4949,7 +5219,7 @@
 			)
 		)
 		(net
-			(code "58")
+			(code "59")
 			(name "unconnected-(A1-SPI1_SCK-Pad9)")
 			(class "Default")
 			(node
@@ -4960,7 +5230,7 @@
 			)
 		)
 		(net
-			(code "59")
+			(code "60")
 			(name "unconnected-(A1-USART1_RX-Pad15)")
 			(class "Default")
 			(node
@@ -4971,7 +5241,7 @@
 			)
 		)
 		(net
-			(code "60")
+			(code "61")
 			(name "unconnected-(A1-USART1_TX-Pad14)")
 			(class "Default")
 			(node
@@ -4982,7 +5252,7 @@
 			)
 		)
 		(net
-			(code "61")
+			(code "62")
 			(name "unconnected-(A1-USB_D_+-Pad37)")
 			(class "Default")
 			(node
@@ -4993,7 +5263,7 @@
 			)
 		)
 		(net
-			(code "62")
+			(code "63")
 			(name "unconnected-(A1-USB_D_--Pad36)")
 			(class "Default")
 			(node
@@ -5004,7 +5274,7 @@
 			)
 		)
 		(net
-			(code "63")
+			(code "64")
 			(name "unconnected-(A1-USB_ID-Pad1)")
 			(class "Default")
 			(node
@@ -5015,7 +5285,7 @@
 			)
 		)
 		(net
-			(code "64")
+			(code "65")
 			(name "unconnected-(J4-PadRN)")
 			(class "Default")
 			(node
@@ -5025,7 +5295,7 @@
 			)
 		)
 		(net
-			(code "65")
+			(code "66")
 			(name "unconnected-(J4-PadSN)")
 			(class "Default")
 			(node
@@ -5035,7 +5305,7 @@
 			)
 		)
 		(net
-			(code "66")
+			(code "67")
 			(name "unconnected-(J4-PadTN)")
 			(class "Default")
 			(node
@@ -5045,7 +5315,7 @@
 			)
 		)
 		(net
-			(code "67")
+			(code "68")
 			(name "unconnected-(J5-PadRN)")
 			(class "Default")
 			(node
@@ -5055,7 +5325,7 @@
 			)
 		)
 		(net
-			(code "68")
+			(code "69")
 			(name "unconnected-(J5-PadSN)")
 			(class "Default")
 			(node
@@ -5065,7 +5335,7 @@
 			)
 		)
 		(net
-			(code "69")
+			(code "70")
 			(name "unconnected-(J5-PadTN)")
 			(class "Default")
 			(node
