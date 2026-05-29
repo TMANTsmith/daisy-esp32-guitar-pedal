@@ -189,6 +189,9 @@ mod app {
             .audio_interface
             .handle_interrupt_dma1_str1(|buffer| {
                 for frame in buffer {
+                    let (left, right) = *frame;
+                    *frame = sine_c.get_next();
+                    /*
                     let (add_left_c, add_right_c) = sine_c.get_next();
                     let (add_left_g, add_right_g) = sine_g.get_next();
                     let (add_left_e, add_right_e) = sine_e.get_next();
@@ -209,6 +212,7 @@ mod app {
                             }
                         })
                     });
+                    */
                     */
                 }
             })
