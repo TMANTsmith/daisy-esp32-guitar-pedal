@@ -7,3 +7,5 @@ rustflags = [
   "-C", "link-arg=-Tlink.x",
   "-C", "link-arg=-Tdefmt.x",
 ]
+[env]
+DEFMT_LOG = "debug"

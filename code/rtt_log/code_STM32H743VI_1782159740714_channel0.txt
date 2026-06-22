@@ -1,0 +1,383 @@
+[1m[[97mDEBUG[0m[1m][0m ====program start====
+[1m[[32mINFO [0m[1m][0m start SAI
+[1m[[97mDEBUG[0m[1m][0m fft_compute entered
+[1m[[97mDEBUG[0m[1m][0m entered audio
+[1m[[32mINFO [0m[1m][0m enter audio callback loop
+[1m[[97mDEBUG[0m[1m][0m spawned tasks
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 1001617
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.403606e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069213 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069244 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069274 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069335 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069427 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069458 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069488 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069519 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069549 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 1069580 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.500596e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.50064e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.50064e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.500681e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.500681e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 2071655
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 2.903092e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137817 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137847 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137878 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137908 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137939 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2137969 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2138000 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2138031 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2138061 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 2138092 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 2.997944e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 2.997944e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 2.997986e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 2.997986e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 2.998029e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 3140289
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 4.400524e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206237 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206268 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206298 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206329 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206359 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206390 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206420 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206451 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206481 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 3206512 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 4.495119e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 4.495119e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 4.495162e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 4.495162e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 4.495204e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 4208679
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 5.897657e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274658 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274688 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274719 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274749 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274780 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274810 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274841 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274871 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274902 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 4274932 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 5.992296e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 5.992296e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 5.992338e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 5.992338e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 5.992381e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 5277069
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 7.394791e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343017 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343048 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343078 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343109 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343139 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343170 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343200 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343231 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343261 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 5343292 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 7.489385e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 7.489385e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 7.489429e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 7.489429e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 7.489471e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 6345428
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 8.891924e-39
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411407 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411437 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411468 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411499 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411529 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411560 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411590 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411621 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411651 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 6411712 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 8.986519e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 8.98656e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 8.98656e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 8.986604e-39
+[1m[[97mDEBUG[0m[1m][0m hertz: 8.986604e-39
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 7413818
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.0389014e-38
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479766 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479797 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479827 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479858 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479888 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479919 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479949 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7479980 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7480010 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 7480041 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.0483608e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.0483608e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.0483652e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.0483652e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.0483694e-38
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 8482208
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.1886147e-38
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548156 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548187 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548217 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548248 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+
+[1m[[97mDEBUG[0m[1m][0m bin 8548278 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548309 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548339 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548370 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548400 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 8548431 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.1980742e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.1980785e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.1980785e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.1980827e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.1980827e-38
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 9550567
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.3383238e-38
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616516 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616546 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616577 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616607 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616638 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616668 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616699 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616729 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616760 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 9616790 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.3477875e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.3477875e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.3477918e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.3477918e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.347796e-38
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 10618957
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.4880372e-38
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10684936 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10684967 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10684997 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685028 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685058 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685089 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685119 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685150 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685180 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 10685211 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.4974965e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.4975008e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.4975008e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.497505e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.4975094e-38
+[1m[[97mDEBUG[0m[1m][0m _____
+
+[1m[[97mDEBUG[0m[1m][0m samples drained 11687347
+[1m[[97mDEBUG[0m[1m][0m before print
+[1m[[97mDEBUG[0m[1m][0m before compute
+[1m[[97mDEBUG[0m[1m][0m bin_hz 1.6377503e-38
+
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753295 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753326 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753356 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753387 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753417 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753448 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753479 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753509 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753540 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m first 10
+[1m[[97mDEBUG[0m[1m][0m bin 11753570 amp 0.0
+[1m[[97mDEBUG[0m[1m][0m computed
+[1m[[97mDEBUG[0m[1m][0m _____
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.6472142e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.6472142e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.6472184e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.6472184e-38
+[1m[[97mDEBUG[0m[1m][0m hertz: 1.6472227e-38
+[1m[[97mDEBUG[0m[1m][0m _____
+

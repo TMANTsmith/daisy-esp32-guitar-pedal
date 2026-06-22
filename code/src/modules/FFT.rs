@@ -1,9 +1,10 @@
 extern crate alloc;
+use circular_buffer::CircularBuffer;
 use core::ops::Deref;
-use libm::powf;
-use libm::sqrtf;
 use microfft::real;
 use microfft::Complex32;
+use defmt::{debug, unwrap};
+
 
 use alloc::boxed::Box;
 
@@ -32,82 +33,72 @@ macro_rules! make_fft {
     }};
 }
 
-#[derive(Debug, Clone)]
-pub struct Buffers<const N: usize>(Option<Box<[f32; N]>>, Option<Box<[f32; N]>>);
-impl<const N: usize> Buffers<N> {
-    pub fn get_left(&mut self) -> &mut Option<Box<[f32; N]>> {
-        &mut self.0
-    }
-    pub fn get_right(&mut self) -> &mut Option<Box<[f32; N]>> {
-        &mut self.1
-    }
 
-    pub fn set_left(&mut self, index: usize, value: f32) -> bool {
-        if let Some(list) = &mut self.0 {
-            list[index] = value;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn set_right(&mut self, index: usize, value: f32) -> bool {
-        if let Some(list) = &mut self.1 {
-            list[index] = value;
-            true
-        } else {
-            false
-        }
-    }
-    pub fn copy_from_slice(&mut self, input: &Buffers<N>) {
-        if let (Some(buf1), Some(buf2)) = (&mut self.0, &input.0) {
-            buf1.copy_from_slice(buf2.as_slice());
-        }
-        if let (Some(buf1), Some(buf2)) = (&mut self.1, &input.1) {
-            buf1.copy_from_slice(buf2.as_slice());
-        }
-    }
-}
-
-#[derive(Debug)]
 // H = N / 2
-pub struct Fft_read<const N: usize, const H: usize> {
-    read_buf: Buffers<N>,
-    output_buf: Box<[Wave; N]>,
+pub struct Fft<const N: usize, const H: usize> {
+    circular_left: Option<Box<CircularBuffer::<N, f32>>>,
+    circular_right: Option<Box<CircularBuffer::<N, f32>>>,
+    output_left: Option<Box<Waves::<H>>>,
+    output_right: Option<Box<Waves::<H>>>,
 }
 
-impl<const N: usize, const H: usize> Fft_read<N, H> {
-    pub fn new(sides: [bool; 2]) -> Self {
-        let mut read_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
-        let mut output_buf: Box<[Wave; N]> = Box::new(
-            [Wave {
-                hertz: 0.0,
-                amplitude: 0.0,
-                confidence: None,
-            }; N],
-        );
+impl<const N: usize, const H: usize> Fft<N, H> {
+    pub fn new(sides: (bool, bool)) -> Self {
+        let mut circular_left = None;
+        let mut circular_right = None;
+        let mut output_left = None;
+        let mut output_right = None;
 
-        if sides[0] {
-            read_buf.0 = Some(Box::new([0_f32; N]));
+        if sides.0 {
+            circular_left = Some(Box::new(CircularBuffer::<N, f32>::new()));
+            output_left = Some(Box::new(Waves::<H>::new([Wave::default(); H])));
         }
-
-        if sides[1] {
-            read_buf.1 = Some(Box::new([0_f32; N]));
+        if sides.1 {
+            circular_right = Some(Box::new(CircularBuffer::<N, f32>::new()));
+            output_right = Some(Box::new(Waves::<H>::new([Wave::default(); H])));
         }
         Self {
-            read_buf,
-            output_buf,
+            circular_right,
+            circular_left,
+            output_left,
+            output_right,
+        }
+    }
+    
+    pub fn print(&self) {
+        if let Some(x) = &self.circular_left {
+            for v in x.iter() {
+                debug!("v={=f32}", v);
+            }
+        }
+        if let Some(x) = &self.circular_right {
+            for v in x.iter() {
+                debug!("v={=f32}", v);
+            }
+        }
+    }
+    pub fn add(&mut self, input: (f32, f32)) {
+        if let Some(buf) = &mut self.circular_left {
+            buf.push_back(input.0);
+        }
+        if let Some(buf) = &mut self.circular_right {
+            buf.push_back(input.0);
         }
     }
 
-    pub fn compute(&mut self) -> Result<(Option<Waves>, Option<Waves>), FftError>
+    pub fn get_result(&mut self) -> (&mut Option<Box<Waves::<H>>>, &mut Option<Box<Waves::<H>>>) {
+        (&mut self.output_left, &mut self.output_right)
+    }
+
+    pub fn compute(&mut self) 
     where
         RunFft: GetFft<N>,
     {
-        let mut right = false;
-        let mut left = false;
+        debug!("bin_hz {=f32}", Fft::<N,H>::bin_hz());
 
-        if let Some(buf) = self.read_buf.get_left().as_deref_mut() {
+        if let Some(circle) = &mut self.circular_left {
+            let buf: &mut [f32; N] = circle.make_contiguous().try_into().expect("length mismatch");
+
             // Hann window
             for i in 0..N {
                 let window = 0.5
@@ -115,21 +106,30 @@ impl<const N: usize, const H: usize> Fft_read<N, H> {
                 buf[i] *= window;
             }
 
-            left = true;
             let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
             spectrum[0].im = 0.0;
             for (i, c) in spectrum.iter().enumerate() {
                 // this is the sqrt amplitude
-                let hertz = Fft_read::<N, H>::bin_hz() * i as f32;
+                let hertz = Fft::<N, H>::bin_hz() * i as f32;
                 let amp = c.norm_sqr();
 
-                self.output_buf[i].set_hertz(hertz);
-                self.output_buf[i].set_amplitude(amp);
-                self.output_buf[i].set_confidence(None);
+                if let Some(out) = &mut self.output_left {
+                    out.get(i).set_hertz(hertz);
+                    out.get(i).set_amplitude(amp);
+                    out.get(i).set_confidence(None);
+                }
+            }
+            if let Some(out) = &mut self.output_left {
+                debug!("first 10 left");
+                for j in 0..10 {
+                    debug!("bin {=usize} amp {=f32}", j, out.get(j).get_amplitude());
+                }
             }
         }
 
-        if let Some(buf) = self.read_buf.get_right().as_deref_mut() {
+        if let Some(circle) = &mut self.circular_right {
+            let buf: &mut [f32; N] = circle.make_contiguous().try_into().expect("length mismatch");
+
             // Hann window
             for i in 0..N {
                 let window = 0.5
@@ -137,41 +137,26 @@ impl<const N: usize, const H: usize> Fft_read<N, H> {
                 buf[i] *= window;
             }
 
-            right = true;
             let spectrum = <RunFft as GetFft<N>>::get_complex(buf);
             spectrum[0].im = 0.0;
             for (i, c) in spectrum.iter().enumerate() {
                 // this is the sqrt amplitude
-                let hertz = Fft_read::<N, H>::bin_hz() * i as f32;
+                let hertz = Fft::<N, H>::bin_hz() * i as f32;
                 let amp = c.norm_sqr();
-                let confidence: Option<f32> = None;
-
-                self.output_buf[i + H].set_hertz(hertz);
-                self.output_buf[i + H].set_amplitude(amp);
-                self.output_buf[i + H].set_confidence(None);
+                
+                if let Some(out) = &mut self.output_right {
+                    out.get(i).set_hertz(hertz);
+                    out.get(i).set_amplitude(amp);
+                    out.get(i).set_confidence(None);
+                }
+            }
+            if let Some(out) = &mut self.output_right {
+                debug!("first 10 right");
+                for j in 0..10 {
+                    debug!("bin {=usize} amp {=f32}", j, out.get(j).get_amplitude());
+                }
             }
         }
-
-        let (left_out, right_out) = self.output_buf.split_at(H);
-
-        let mut rtn: (Option<Waves>, Option<Waves>) = (None, None);
-
-        if left {
-            rtn.0 = Some(Waves {
-                waves: left_out,
-                sorted: false,
-                strongest: 0.0,
-            });
-        }
-        if right {
-            rtn.1 = Some(Waves {
-                waves: right_out,
-                sorted: false,
-                strongest: 0.0,
-            });
-        }
-
-        Ok(rtn)
     }
     pub fn bin_hz() -> f32
     where
@@ -179,93 +164,38 @@ impl<const N: usize, const H: usize> Fft_read<N, H> {
     {
         <RunFft as GetFft<N>>::get_bin_hz()
     }
-    pub fn copy_from_write(&mut self, input: &mut Fft_write<N, H>) -> Result<(), FftError> {
-        if input.get_timer() != 0 {
-            return Err(FftError::Wait(input.get_timer()))
-        }
-        self.read_buf.copy_from_slice(input.get_write_buf());
-
-        input.reset_timer();
-        Ok(())
-    }
 }
-
-pub struct Fft_write<const N: usize, const H: usize> {
-    write_buf: Buffers<N>,
-    index: usize,
-    timer: usize,
-}
-
-impl<const N: usize, const H: usize> Fft_write<N, H> {
-    pub fn new(sides: [bool; 2]) -> Self {
-        let mut write_buf: Buffers<{ N }> = Buffers::<{ N }>(None, None);
-        let mut index = 0;
-        let mut timer = N;
-
-        if sides[0] {
-            write_buf.0 = Some(Box::new([0_f32; N]));
-        }
-
-        if sides[1] {
-            write_buf.1 = Some(Box::new([0_f32; N]));
-        }
-        Self {
-            write_buf,
-            index,
-            timer,
-        }
-    }
-
-    fn reset_timer(&mut self) {
-        self.timer = N;
-    }
-
-    fn get_write_buf(&mut self) -> &Buffers<N> {
-            &self.write_buf
-    }
-
-    pub fn get_timer(&self) -> usize {
-        self.timer
-    }
-
-    pub fn bin_hz() -> f32
-    where
-        RunFft: GetFft<N>,
-    {
-        <RunFft as GetFft<N>>::get_bin_hz()
-    }
-
-    pub fn add(&mut self, input: &mut (f32, f32)) {
-        let (left, right) = input;
-
-        self.write_buf.set_left(self.index, *left);
-        self.write_buf.set_right(self.index, *right);
-        self.index = (self.index + 1) % N;
-
-        if self.timer > 0 {
-            self.timer -= 1;
-        }
-    }
-}
-#[derive(defmt::Format)]
-pub struct Waves<'a> {
-    waves: &'a [Wave],
+#[derive(defmt::Format, Debug)]
+pub struct Waves<const H: usize> {
+    waves: [Wave; H],
     sorted: bool,
     strongest: f32,
 }
 
-impl<'a> Waves<'a> {
-    pub fn new(waves: &'a [Wave]) -> Self {
+impl<const H: usize> Waves<H> {
+    pub fn new(waves: [Wave; H]) -> Self {
         Self {
             waves,
             sorted: false,
             strongest: 0.0,
         }
     }
+    pub fn set(&mut self, index: usize, value: Wave) -> Result<(), ()> {
+        if index < self.waves.len() {
+            self.waves[index] = value;
+            Ok(())
+        }
+        else {
+            Err(())
+        }
+    }
+    pub fn get(&mut self, index: usize) -> &mut Wave {
+        &mut self.waves[index]
+    }
     pub fn get_largest(&mut self) {
-        for wave in self.waves {
-            if wave.get_amplitude() > self.strongest {
-                self.strongest = wave.get_amplitude();
+        for wave in &self.waves {
+            if wave.get_amplitude_raw() > self.strongest {
+                self.strongest = wave.get_amplitude_raw();
             }
         }
     }
@@ -275,6 +205,8 @@ impl<'a> Waves<'a> {
     }
 
     pub fn get_n_largest<const N: usize>(&mut self) -> [Wave; N] {
+        //TODO optimize to make function
+        // pub fn get_n_largest(&self) -> [&Wave]
         let mut top: [Wave; N] = [Wave::default(); N];
         let mut top_vals: [f32; N] = [f32::NEG_INFINITY; N];
 
@@ -286,11 +218,11 @@ impl<'a> Waves<'a> {
 
         // find local peaks only (higher than both neighbors)
         for j in 2..self.waves.len() - 2 {
-            prev_2 = self.waves[j - 2].get_amplitude();
-            prev = self.waves[j - 1].get_amplitude();
-            curr = self.waves[j].get_amplitude();
-            next = self.waves[j + 1].get_amplitude();
-            next_2 = self.waves[j + 2].get_amplitude();
+            prev_2 = self.waves[j - 2].get_amplitude_raw();
+            prev = self.waves[j - 1].get_amplitude_raw();
+            curr = self.waves[j].get_amplitude_raw();
+            next = self.waves[j + 1].get_amplitude_raw();
+            next_2 = self.waves[j + 2].get_amplitude_raw();
             if curr >= prev
                 && curr >= next
                 && curr >= prev_2
@@ -318,7 +250,7 @@ impl<'a> Waves<'a> {
         // set confidence relative to strongest
         let strongest = top_vals[0];
         for wave in top.iter_mut() {
-            wave.set_confidence(Some(wave.get_amplitude() / strongest));
+            wave.set_confidence(Some(wave.get_amplitude_raw() / strongest));
         }
 
         top
@@ -353,7 +285,10 @@ impl Wave {
         self.hertz
     }
     pub fn get_amplitude(&self) -> f32 {
-        sqrtf(self.amplitude)
+        libm::sqrtf(self.amplitude)
+    }
+    pub fn get_amplitude_raw(&self) -> f32 {
+        self.amplitude
     }
     pub fn get_confidence(&self) -> Option<f32> {
         self.confidence

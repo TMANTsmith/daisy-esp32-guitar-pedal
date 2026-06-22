@@ -23,6 +23,12 @@ embedded-hal-bus = { version = "0.3.0", features = ["async"] }
 embedded-hal-async = "1.0.0"
 grounded = "0.2.0"
 midly = { version = "0.5.3", default-features = false }
+circular-buffer = { version = "1.2.0", default-features = false, features = ["alloc"] }
+microfft = "0.6.0"
+libm = "0.2.16"
+ringbuf = {version = "0.5.0", default-features = false, features = ["alloc"] }
+static_cell = "2.1.1"
+embedded-alloc = "0.7.0"
 
 [profile.release]
 codegen-units = 1
