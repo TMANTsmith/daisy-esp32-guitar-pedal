@@ -2,17 +2,20 @@
 #![no_main]
 extern crate alloc;
 
-use code::modules::FFT::{Fft, Waves};
+use code::modules::FFT::{FftRead, FftWrite, Waves };
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
 use daisy_embassy::audio::{Interface, Running};
 use defmt::{debug, unwrap};
-use embassy_executor::{InterruptExecutor, Spawner};
+use embassy_executor::{InterruptExecutor, SendSpawner, Spawner};
 use embassy_stm32::interrupt::{self, InterruptExt, Priority};
 use embassy_time::Timer;
 use ringbuf::{traits::*, HeapRb};
 use daisy_embassy::sdram::SDRAM_SIZE;
 use embassy_time::Delay;
 use {defmt_rtt as _, panic_probe as _};
+use embassy_sync::mutex::Mutex;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::channel::Channel;
 
 use embedded_alloc::LlffHeap as Heap;
 
@@ -22,6 +25,7 @@ const FFT_L: usize = 5; // number of peaks to report
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
 static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
+static FFT_CH: Channel<CriticalSectionRawMutex, [f32; 4096], 2> = Channel::new();
 
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
@@ -42,57 +46,23 @@ fn panic() -> ! {
 
 #[embassy_executor::task]
 async fn fft_compute(
-    mut fft: Fft<FFT_N, FFT_H>,
-    frequency: u64,
+    mut fft: FftRead<FFT_N, FFT_H>,
     mut consumer: ringbuf::HeapCons<(f32, f32)>,
 ) {
-
-    debug!("fft_compute entered");
-    let mut last_report = embassy_time::Instant::now();
-    let mut samples_drained = 0;
-
-    loop {
-        // drain whatever's available right now
-        while let Some(sample) = consumer.try_pop() {
-            debug!("Sample added {=f32}", sample.0);
-            samples_drained += 1;
-        }
-
-        if last_report.elapsed() >= embassy_time::Duration::from_secs(frequency) {
-            debug!("samples drained {=usize}", samples_drained);
-
-            debug!("before print");
-            //fft.print();
-            debug!("before compute");
-            fft.compute();
-            debug!("computed");
-            let result = fft.get_result();
-            if let Some(line) = result.0 {
-                let line_largest = line.get_n_largest::<FFT_L>();
-                debug!("_____");
-                for val in line_largest {
-                    debug!("hertz: {=f32}", val.get_hertz());
-                }
-                debug!("_____");
-            }
-            if let Some(line) = result.1 {
-                let line_largest = line.get_n_largest::<FFT_L>();
-                for val in line_largest {
-                    debug!("hertz: {=f32}", val.get_hertz());
-                }
-            }
-            last_report = embassy_time::Instant::now();
-        }
-
-        // brief yield so this isn't a busy-spin hogging the executor
-        Timer::after_millis(1).await;
-    }
 }
+
+#[embassy_executor::task]
+async fn copy(mut fft_read: FftRead<FFT_N, FFT_H>, mut fft_write: FftWrite<FFT_N, FFT_H>,) {
+    FftRead.copy_from_write(fft_write);
+}
+
 
 #[embassy_executor::task]
 async fn audio_task(
     mut interface: Interface<'static, Running>,
-    mut producer: ringbuf::HeapProd<(f32, f32)>,
+    mut spawner_low: SendSpawner,
+    mut fft_read: &'static mut FftRead<FFT_N, FFT_H>,
+    mut fft_write: &'static mut FftWrite<FFT_N, FFT_H>,
 ) {
     debug!("entered audio");
     unwrap!(
@@ -101,7 +71,10 @@ async fn audio_task(
                 let mut frames: FrameBlock = [(0.0, 0.0); 32];
                 convert_to(input, &mut frames);
                 for frame in frames {
-                    let _ = producer.try_push(frame); // non-blocking, never locks
+                    fft_write.add(&frame);
+                    if fft_write.get_timer() == 0 {
+                        unwrap!(spawner_low.spawn(copy(fft_read, fft_write)))
+                    }
                 }
                 convert_from(&frames, output);
             })
@@ -141,14 +114,11 @@ async fn main(_spawner: Spawner) {
     let spawner_high = EXECUTOR_HIGH.start(interrupt::UART4);
     let spawner_low = EXECUTOR_LOW.start(interrupt::UART5);
 
-    let fft = Fft::<FFT_N, FFT_H>::new((false, true));
-
-    let rb = HeapRb::<(f32, f32)>::new(1024); // sized with headroom
-    let (producer, consumer) = rb.split();
+    let mut fft_read = FFT_READ; 
+    let mut fft_write  = FFT_WRITE;
 
 
-    unwrap!(spawner_low.spawn(fft_compute(fft, 1_u64, consumer)));
-    unwrap!(spawner_high.spawn(audio_task(interface, producer)));
+    unwrap!(spawner_high.spawn(audio_task(interface, spawner_low, &mut fft_read, &mut fft_write)));
     debug!("spawned tasks");
 }
 
