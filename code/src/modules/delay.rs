@@ -1,58 +1,44 @@
-use libm::roundf; // for f32
+extern crate alloc;
 use alloc::boxed::Box;
+use crate::modules::process::Effects;
 
-const SAMPLE_RATE: u32 = 48000;
+const SAMPLE_RATE: usize = 48000;
 
-fn ms_to_samples(ms: usize) -> usize {
-    48000 * ms / 1000
+pub const fn ms_to_samples(ms: usize) -> usize {
+    SAMPLE_RATE * ms / 1000
 }
 
 
-pub struct Delay<const MS: usize> {
-    decay_factor: f32,          // feedback/mix
-    buffer: Box<[(f32, f32); ms_to_samples(MS)]>,
+
+#[derive(Clone)]
+pub struct Delay<const T: usize> {
+    buffer: [f32; T],
     index: usize,
-    
+    decay: f32,
 }
 
-impl<const MS: usize> Delay<MS> {
-    pub fn new(length_ms: f32, decay_factor: f32) -> Self {
-
-        let mut buffer = Box::new([(f32, f32); ms_to_samples(MS)]);
-        let mut index = 0;
-
+impl<const T:usize > Delay<T> {
+    pub fn new(decay: f32) -> Self {
+        let buffer = [0_f32; T];
+        let index = 0;
         Delay {
-            decay_factor,
             buffer,
+            decay,
+            index,
         }
     }
+}
 
-    pub fn process(&mut self, input: &mut (f32, f32)) {
-        self.buffer[self.index] = *input;
-
-        input.0 = input.0 + (self.decay_factor * self.buffer[self.index + 1].0);
-        input.1 = input.1 + (self.decay_factor * self.buffer[self.index + 1].1);
-
-    
-        self.clamp(input);
-
-        self.index = (self.index + 1) % ms_to_samples(MS);
-    }
-
-    const fn clamp(sound: &mut (f32, f32)) {
-        if sound.0 > 1.0 {
-            sound.0 = 1.0
-        }
-        else if sound.0 < -1.0 {
-            sound.0 = -1.0
-        }
-
-        if sound.1 > 1.0 {
-            sound.1 = 1.0
-        }
-        else if sound.1 < -1.0 {
-            sound.1 = -1.0
-        }
+impl<const T: usize>Effects for Delay<T> {
+    fn process(&mut self, input: &mut f32) {
+        let delayed = self.buffer[self.index];
+        
+        // Feed back the delayed signal at a reduced level
+        self.buffer[self.index] = (*input + delayed * self.decay).clamp(-1.0, 1.0);
+        
+        self.index = (self.index + 1) % T;
+        
+        *input = *input + delayed * self.decay;
     }
 }
 

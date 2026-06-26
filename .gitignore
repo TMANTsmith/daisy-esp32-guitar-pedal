@@ -4,4 +4,4 @@ bash.sh
 /code/firmware.bin
 /testy
 mini-pcb/.history
-/code/rtt-log/*
+/code/rtt-log

@@ -1,5 +1,8 @@
 use libm::floorf;
+use crate::modules::process::{self, Effects};
 
+
+#[derive(Clone)]
 pub struct BitCrush {
     bits: u8,
     levels: f32,
@@ -20,12 +23,11 @@ impl BitCrush {
         self.bits = bits.clamp(1, 16);
         self.levels = (1u32 << self.bits) as f32;
     }
+}
 
-    /// Process a stereo frame
-    #[inline(always)]
-    pub fn process(&self, frame: &mut (f32, f32)) {
-        frame.0 = crush(frame.0, self.levels);
-        frame.1 = crush(frame.1, self.levels);
+impl Effects for BitCrush {
+    fn process(&mut self, input: &mut f32) {
+        *input = crush(*input, self.levels);
     }
 }
 

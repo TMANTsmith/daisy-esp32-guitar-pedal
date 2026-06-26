@@ -4,29 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-daisy-embassy = { version = "0.2.0", features = ["seed_1_2"], default-features = false }
-embassy-stm32 = { version = "0.2.0", features = ["defmt", "stm32h750ib", "time-driver-tim5", "exti", "memory-x", "unstable-pac", "chrono"] }
-embassy-time = { version = "0.4.0", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768"] }
-embassy-sync = { version = "0.6.2", features = ["defmt"] }
-embassy-executor = { version = "0.7.0", features = ["task-arena-size-32768", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
-embassy-futures = "0.1.1"
-embassy-usb = "0.4.0"
+daisy-embassy = { git = "https://github.com/daisy-embassy/daisy-embassy", features = ["seed_1_2"], default-features = false }
+#embassy-stm32 = { version = "0.6.0", features = ["defmt", "stm32h750ib", "time-driver-tim5", "exti", "memory-x", "unstable-pac", "chrono"] }
+embassy-time = { version = "0.5.1", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768", "generic-queue-8"] }
+embassy-sync = { version = "0.8.0", features = ["defmt"] }
+embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
+embassy-futures = "0.1.2"
+#embassy-usb = "0.6.0"
 cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
-cortex-m-rt = { version = "0.7.5", features = ["device"] }
+cortex-m-rt = { version = "0.7.0", features = ["device"] }
 critical-section = "1.2.0"
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 ssd1306 = { version = "0.10.0", features = ["async"] }
-embedded-graphics = "0.8.1"
-embedded-hal-bus = { version = "0.3.0", features = ["async"] }
 embedded-hal-async = "1.0.0"
 grounded = "0.2.0"
 midly = { version = "0.5.3", default-features = false }
-circular-buffer = { version = "1.2.0", default-features = false, features = ["alloc"] }
+#circular-buffer = { version = "1.2.0", default-features = false, features = ["alloc"] }
 microfft = "0.6.0"
 libm = "0.2.16"
-ringbuf = {version = "0.5.0", default-features = false, features = ["alloc"] }
+#ringbuf = {version = "0.5.0", default-features = false, features = ["alloc"] }
 static_cell = "2.1.1"
 embedded-alloc = "0.7.0"
 
