@@ -17,23 +17,12 @@ impl Sine {
         }
     }
 
-    pub fn get_next(&mut self) -> (f32, f32) {
-        let f = self.phase;
-
-        let wave = (
-            sinf(f)           * 1.0 +
-            sinf(f * 2.0)     * 0.5 +
-            sinf(f * 3.0)     * 0.33 +
-            sinf(f * 4.0)     * 0.25 +
-            sinf(f * 5.0)     * 0.2
-        ) / 2.28; // normalize by sum of coefficients
-
-        let wave = wave * self.amplitude;
-
+    pub fn get_next(&mut self) -> f32 {
+        let wave = sinf(self.phase) * self.amplitude;
         self.phase += self.phase_inc;
         if self.phase >= 2.0 * PI {
             self.phase -= 2.0 * PI;
         }
-        (wave, wave)
+        wave
     }
 }

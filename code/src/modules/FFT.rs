@@ -43,6 +43,7 @@ impl<const N: usize, const H: usize> FftRead<N, H> {
         }
     }
     pub fn set_buf(&mut self, input: Box<[f32; N]>) {
+        //debug!("read buf set: {}", *input);
         self.read_buf = Some(input);
     }
 
@@ -58,6 +59,9 @@ impl<const N: usize, const H: usize> FftRead<N, H> {
 
         if let Some(mut buf) = self.read_buf.take() {
             // Hann window
+
+
+            //debug!("buf used: {}", *buf);
             for i in 0..N {
                 let window = 0.5
                     * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
@@ -67,15 +71,28 @@ impl<const N: usize, const H: usize> FftRead<N, H> {
 
             let spectrum = <RunFft as GetFft<N>>::get_complex(&mut buf);
             spectrum[0].im = 0.0;
+            /*
+            for val in spectrum.iter() {
+                if val.norm_sqr() != 0.0 {
+                    debug!("c: {}", val.norm_sqr());
+                }
+            }
+            */
             for (i, c) in spectrum.iter().enumerate() {
                 // this is the sqrt amplitude
                 let hertz = FftRead::<N, H>::bin_hz() * i as f32;
                 let amp = c.norm_sqr();
+                /*
+                if amp != 0.0 {
+                    debug!("amp: {}", amp);
+                }
+                */
 
                 self.output_buf.get(i).set_hertz(hertz);
                 self.output_buf.get(i).set_amplitude(amp);
                 self.output_buf.get(i).set_confidence(None);
             }
+            //debug!("computed!");
             Ok(buf)
         }
         else {
@@ -100,8 +117,6 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
     pub fn new() -> Self {
         let write_buf = None;
         let index = 0;
-        debug!("index should be 0");
-        debug!("index: {=usize:?}", index);
 
         Self {
             write_buf,
@@ -112,10 +127,12 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
 
     pub fn set_buf(&mut self, input: Box<[f32; N]>) {
         self.write_buf = Some(input);
+        self.index = 0;
     }
 
     pub fn get_buf(&mut self) -> Result<Box<[f32; N]>, FftState<N>> {
         if let Some(o) = self.write_buf.take() {
+            //debug!("write buf rtn: {}", *o);
             Ok(o)
         }
         else {
@@ -131,13 +148,12 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
 
     pub fn add(&mut self, input: f32) -> Result<(), FftState<N>>{
         if let Some(mut buf) = self.write_buf.take() {
-            debug!("index: {=usize}", self.index);
-                buf[self.index] = input;
-                self.index += 1;
             if self.index == N {
                 Err(FftState::Ready(buf))
             }
             else {
+                buf[self.index] = input;
+                self.index += 1;
                 self.write_buf = Some(buf);
                 Ok(())
             }
@@ -186,6 +202,9 @@ impl<const H: usize> Waves<H> {
         let mut curr: f32;
         let mut next: f32;
         let mut next_2: f32;
+        if self.waves.len() < 2 {
+            panic!("FFT_N must be more than 4");
+        }
 
         // find local peaks only (higher than both neighbors)
         for j in 2..self.waves.len() - 2 {

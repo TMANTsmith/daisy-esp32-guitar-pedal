@@ -1848,7 +1848,7 @@
 	(symbol
 		(lib_id "Amplifier_Operational:OPA1664D")
 		(at 162.56 125.73 0)
-		(unit 1)
+		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1973,7 +1973,7 @@
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/0ca96f51-23c0-4c17-837f-32f367c7277c"
 					(reference "U2")
-					(unit 1)
+					(unit 3)
 				)
 			)
 		)

@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
-//extern crate alloc;
+extern crate alloc;
 
-use cortex_m::interrupt as stop;
 use core::num::Wrapping;
-//use code::modules::FFT::{*, FftState };
-//use code::modules::process::Effects;
+use code::modules::FFT::{*, FftState };
+use code::modules::sin::Sine;
+use code::modules::process::Effects;
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
 use daisy_embassy::audio::{Interface, Running};
-use defmt::{debug, unwrap};
+use defmt::{debug, info, unwrap};
 use embassy_executor::{InterruptExecutor, SendSpawner, Spawner};
 use hal::interrupt::{self, InterruptExt, Priority};
 use daisy_embassy::sdram::SDRAM_SIZE;
@@ -18,28 +18,28 @@ use static_cell::StaticCell;
 use critical_section::Mutex;
 use embassy_sync::signal::Signal;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-//use alloc::boxed::Box;
+use alloc::boxed::Box;
 
 
 use embedded_alloc::LlffHeap as Heap;
 
-const FFT_N: usize = 2;
+const FFT_N: usize = 4096;
 const FFT_H: usize = FFT_N / 2;
-const FFT_L: usize = 5; 
+const FFT_L: usize = 2; 
 
 
-//static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
-//static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
+static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
+static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
 
-//aastatic FFT_READ: StaticCell<FftRead<FFT_N, FFT_H>> = StaticCell::new();
-//aastatic FFT_WRITE: StaticCell<FftWrite<FFT_N, FFT_H>> = StaticCell::new();
+static FFT_READ: StaticCell<FftRead<FFT_N, FFT_H>> = StaticCell::new();
+static FFT_WRITE: StaticCell<FftWrite<FFT_N, FFT_H>> = StaticCell::new();
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
 static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
 
 
-//#[global_allocator]
-//static HEAP: Heap = Heap::empty();
+#[global_allocator]
+static HEAP: Heap = Heap::empty();
 
 #[hal::interrupt]
 unsafe fn TIM15() {
@@ -56,60 +56,60 @@ fn panic() -> ! {
     core::panic!("panic via defmt::panic!")
 }
 
-/*
 #[embassy_executor::task]
 async fn fft_compute(fft_read: &'static mut FftRead<FFT_N, FFT_H>) {
     // WAIT B 
     // SIGNAL A
     loop {
         fft_read.set_buf(BUFB.wait().await);
-        debug!("buffer received from audio");
+        //debug!("buffer received from audio");
 
         match fft_read.compute() {
-            Ok(buf) => {BUFA.signal(buf); debug!("buffer sent from compute");},
+            Ok(buf) => {BUFA.signal(buf); /* debug!("buffer sent from compute"); */},
             Err(FftState::NoBuf) => continue,
             _ => ()
         }
         let result = fft_read.get_waves().get_n_largest::<3>();
 
-        debug!("____");
+        info!("____");
         for wave in result.iter() {
-            debug!("hertz: {}", wave.get_hertz());
+            info!("hertz: {}", wave.get_hertz());
         }
-        debug!("____");
+        info!("____");
     }
 }
-*/
 
 
 #[embassy_executor::task]
 async fn audio_task(
     mut interface: Interface<'static, Running>,
-    /* fft_write: &'static mut FftWrite<FFT_N, FFT_H>, */
+    fft_write: &'static mut FftWrite<FFT_N, FFT_H>,
+    mut sin: Sine,
 ) {
     // WAIT A 
     // SIGNAL B
-    debug!("entered audio");
+    //debug!("entered audio");
     unwrap!(
         interface
             .start_callback(move |input, output| {
                 let mut frames: FrameBlock = [(0.0, 0.0); 32];
                 convert_to(input, &mut frames);
-/*
+
                 for frame in frames.iter_mut() {
+                    //frame.1 = sin.get_next();
                     match fft_write.add(frame.1) {
-                        Err(FftState::Ready(e)) => { BUFB.signal(e); debug!("buffer sent to compute")},
+                        Err(FftState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
                         Err(FftState::NoBuf) => { 
                             if let Some(b) = BUFA.try_take() { 
                                 fft_write.set_buf(b); 
-                                debug!("buffer receaved from compute");
+                                //debug!("buffer receaved from compute");
                             } 
                         },
 
                         _ => ()
                     }
                 }
-*/
+
                 convert_from(&frames, output);
 
             })
@@ -129,24 +129,21 @@ async fn main(_spawner: Spawner) {
 
     let mut core = cortex_m::Peripherals::take().unwrap();
     let mut sdram = board.sdram.build(&mut core.MPU, &mut core.SCB);
-    debug!("board config");
 
-
-    let val = 0;
-    debug!("zero {=u8}", val);
 
     let mut delay = Delay;
 
-    //let ram_ptr: *mut u32 =  sdram.init(&mut delay) as *mut _;
+    let ram_ptr: *mut u32 =  sdram.init(&mut delay) as *mut _;
+
+
+
 
 
     // Initialize the global allocator over the SDRAM region, BEFORE any
     // alloc-based type (Vec, Box, HeapRb, etc.) is constructed.
-    /*
     unsafe {
         HEAP.init(ram_ptr as usize, SDRAM_SIZE);
     }
-    */
 
 
 
@@ -166,18 +163,20 @@ async fn main(_spawner: Spawner) {
 
 
 
-    //let fft_read = FFT_READ.init(FftRead::<FFT_N, FFT_H>::new());
-    //let fft_write = FFT_WRITE.init(FftWrite::<FFT_N, FFT_H>::new());
+    let fft_read = FFT_READ.init(FftRead::<FFT_N, FFT_H>::new());
+    let fft_write = FFT_WRITE.init(FftWrite::<FFT_N, FFT_H>::new());
+
+    let sin = Sine::new(10_000.0, 0.5);
 
 
-    spawner_high.spawn(audio_task(interface, /* fft_write*/ ).unwrap());
-    //spawner_low.spawn(fft_compute(fft_read).unwrap());
+    spawner_high.spawn(audio_task(interface, fft_write, sin).unwrap());
+    spawner_low.spawn(fft_compute(fft_read).unwrap());
 
-    //let buf_a = Box::new([0_f32; FFT_N]);
-    //let buf_b = Box::new([0_f32; FFT_N]);
+    let buf_a = Box::new([0_f32; FFT_N]);
+    let buf_b = Box::new([0_f32; FFT_N]);
 
-    //BUFA.signal(buf_a);
-    //BUFB.signal(buf_b);
+    BUFA.signal(buf_a);
+    BUFB.signal(buf_b);
     debug!("spawned tasks");
 }
 

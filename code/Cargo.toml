@@ -10,17 +10,12 @@ embassy-time = { version = "0.5.1", features = ["defmt", "defmt-timestamp-uptime
 embassy-sync = { version = "0.8.0", features = ["defmt"] }
 embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
 embassy-futures = "0.1.2"
-#embassy-usb = "0.6.0"
 cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt = { version = "0.7.0", features = ["device"] }
 critical-section = "1.2.0"
 defmt = "1.0.1"
 defmt-rtt = "1.0.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
-ssd1306 = { version = "0.10.0", features = ["async"] }
-embedded-hal-async = "1.0.0"
-grounded = "0.2.0"
-midly = { version = "0.5.3", default-features = false }
 #circular-buffer = { version = "1.2.0", default-features = false, features = ["alloc"] }
 microfft = "0.6.0"
 libm = "0.2.16"
@@ -28,21 +23,17 @@ libm = "0.2.16"
 static_cell = "2.1.1"
 embedded-alloc = "0.7.0"
 
-[profile.release]
-codegen-units = 1
-debug = 2
-debug-assertions = false
-incremental = false
-lto = 'fat'
-opt-level = 's'
-overflow-checks = false
-
-# cargo build/run
 [profile.dev]
 codegen-units = 1
 debug = 2
 debug-assertions = true
 incremental = false
 opt-level = 3
-overflow-checks = true
 
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = "fat"
+opt-level = "s"
