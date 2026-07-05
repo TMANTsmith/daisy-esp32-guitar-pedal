@@ -7,6 +7,7 @@ use microfft::Complex32;
 use defmt::{debug, unwrap};
 
 // TODO: fix Wave and Waves to only store a [f32; N] and calculate the hertz so that less will be in SDRAM so more cahce hits 
+// TODO: make structs have a generic type <noBuf> or <wait> or <ready> insted of an enum state
 
 use alloc::boxed::Box;
 
