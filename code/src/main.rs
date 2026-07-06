@@ -69,12 +69,20 @@ async fn fft_compute(fft_read: &'static mut FftRead<FFT_N, FFT_H>) {
             Err(FftState::NoBuf) => continue,
             _ => ()
         }
-        let result = fft_read.get_waves().get_n_largest::<3>();
+        let result = fft_read.get_waves();
+        let mut max_amp: f32 = 0.0;
+        let mut max_i = 0;
+        for wave in result.iter().enumerate() {
+            if *wave.1 > max_amp {
+                max_amp = *wave.1;
+                max_i = wave.0;
+            }
+        }
+        let result = max_i as f32 * fft_read.bin_hz();
+
 
         info!("____");
-        for wave in result.iter() {
-            info!("hertz: {}", wave.get_hertz());
-        }
+        info!("hertz: {}", result);
         info!("____");
     }
 }
