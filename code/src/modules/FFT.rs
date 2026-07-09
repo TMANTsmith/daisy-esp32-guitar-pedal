@@ -6,8 +6,6 @@ use microfft::real;
 use microfft::Complex32;
 use defmt::{debug, unwrap};
 
-// TODO: make structs have a generic type <noBuf> or <wait> or <ready> insted of an enum state
-
 use alloc::boxed::Box;
 
 pub struct RunFft;
@@ -87,6 +85,8 @@ impl<const N: usize, const H: usize> FftRead<N, H> {
                     debug!("amp: {}", amp);
                 }
                 */
+
+                //TODO sqrt the amp
 
                 self.output_buf[i] = amp;
             }
