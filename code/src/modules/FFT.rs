@@ -50,6 +50,7 @@ impl<const N: usize, const H: usize> FftRead<N, H> {
         &mut self.output_buf
     }
 
+    // mabey just make struct a function and use the box as an input
     pub fn compute(&mut self) -> Result<Box<[f32; N]>, FftState<N>>
     where
         RunFft: GetFft<N>,
