@@ -16,7 +16,7 @@ pub trait GetFft<const N: usize> {
     fn get_bin_hz() -> f32;
 }
 
-#[derive(defmt::Format, PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum FftState<const N: usize> {
     Wait(usize),
     NoBuf,
@@ -25,87 +25,29 @@ pub enum FftState<const N: usize> {
 
 
 
-#[derive(Debug)]
-// H = N / 2
-pub struct FftRead<const N: usize, const H: usize> {
-    read_buf: Option<Box<[f32; N]>>,
-    output_buf: Box<[f32; H]>,
-}
-
-impl<const N: usize, const H: usize> FftRead<N, H> {
-    pub fn new() -> Self {
-        let read_buf = None;
-        let output_buf: Box<[f32; H]> = Box::new([0.0; H]);
-        Self {
-            read_buf,
-            output_buf,
-        }
-    }
-    pub fn set_buf(&mut self, input: Box<[f32; N]>) {
-        //debug!("read buf set: {}", *input);
-        self.read_buf = Some(input);
-    }
-
-    pub fn get_waves(&mut self) -> &mut Box<[f32; H]> {
-        &mut self.output_buf
-    }
 
     // mabey just make struct a function and use the box as an input
-    pub fn compute(&mut self) -> Result<Box<[f32; N]>, FftState<N>>
+    pub fn compute<const N: usize, const H: usize>(input: &mut [f32; N]) -> &mut [Complex32; H]
     where
         RunFft: GetFft<N>,
     {
 
 
-        if let Some(mut buf) = self.read_buf.take() {
             // Hann window
-
-
-            //debug!("buf used: {}", *buf);
             for i in 0..N {
                 let window = 0.5
                     * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
-                buf[i] *= window;
+                input[i] *= window;
             }
 
 
-            let spectrum = <RunFft as GetFft<N>>::get_complex(&mut buf);
+            let spectrum = <RunFft as GetFft<N>>::get_complex(input);
             spectrum[0].im = 0.0;
-            /*
-            for val in spectrum.iter() {
-                if val.norm_sqr() != 0.0 {
-                    debug!("c: {}", val.norm_sqr());
-                }
-            }
-            */
-            for (i, c) in spectrum.iter().enumerate() {
-                // this is the sqrt amplitude
-                let amp = c.norm_sqr();
-                /*
-                if amp != 0.0 {
-                    debug!("amp: {}", amp);
-                }
-                */
 
-                //TODO sqrt the amp
+            spectrum.try_into().expect("unexpected Complex32 length")
 
-                self.output_buf[i] = amp;
-            }
-            //debug!("computed!");
-            Ok(buf)
         }
-        else {
-            Err(FftState::NoBuf)
-        }
-    }
 
-    pub fn bin_hz(&mut self) -> f32
-    where
-        RunFft: GetFft<N>,
-    {
-        <RunFft as GetFft<N>>::get_bin_hz()
-    }
-}
 
 pub struct FftWrite<const N: usize, const H: usize> {
     write_buf: Option<Box<[f32; N]>>,

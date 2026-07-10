@@ -31,7 +31,6 @@ const FFT_L: usize = 2;
 static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
 static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
 
-static FFT_READ: StaticCell<FftRead<FFT_N, FFT_H>> = StaticCell::new();
 static FFT_WRITE: StaticCell<FftWrite<FFT_N, FFT_H>> = StaticCell::new();
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
@@ -57,32 +56,26 @@ fn panic() -> ! {
 }
 
 #[embassy_executor::task]
-async fn fft_compute(fft_read: &'static mut FftRead<FFT_N, FFT_H>) {
+async fn fft_compute() {
     // WAIT B 
     // SIGNAL A
     loop {
-        fft_read.set_buf(BUFB.wait().await);
+    let result = compute(input)BUFB.wait().await);
         //debug!("buffer received from audio");
 
-        match fft_read.compute() {
-            Ok(buf) => {BUFA.signal(buf); /* debug!("buffer sent from compute"); */},
-            Err(FftState::NoBuf) => continue,
-            _ => ()
-        }
-        let result = fft_read.get_waves();
         let mut max_amp: f32 = 0.0;
         let mut max_i = 0;
         for wave in result.iter().enumerate() {
-            if *wave.1 > max_amp {
-                max_amp = *wave.1;
+            if wave.1.norm_sqr() > max_amp {
+                max_amp = wave.1.norm_sqr();
                 max_i = wave.0;
             }
         }
-        let result = max_i as f32 * fft_read.bin_hz();
+        let freq = max_i as f32 * fft_read.bin_hz();
 
 
         info!("____");
-        info!("hertz: {}", result);
+        info!("hertz: {}", freq);
         info!("____");
     }
 }
@@ -171,14 +164,13 @@ async fn main(_spawner: Spawner) {
 
 
 
-    let fft_read = FFT_READ.init(FftRead::<FFT_N, FFT_H>::new());
     let fft_write = FFT_WRITE.init(FftWrite::<FFT_N, FFT_H>::new());
 
     let sin = Sine::new(10_000.0, 0.5);
 
 
     spawner_high.spawn(audio_task(interface, fft_write, sin).unwrap());
-    spawner_low.spawn(fft_compute(fft_read).unwrap());
+    spawner_low.spawn(fft_compute().unwrap());
 
     let buf_a = Box::new([0_f32; FFT_N]);
     let buf_b = Box::new([0_f32; FFT_N]);
