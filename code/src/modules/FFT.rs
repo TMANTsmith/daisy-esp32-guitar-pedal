@@ -23,30 +23,32 @@ pub enum FftState<const N: usize> {
     Ready(Box<[f32; N]>)
 }
 
+pub fn get_bin_hz<const N: usize>() -> f32 
+where 
+    RunFft: GetFft<N>,
+{
+    <RunFft as GetFft<N>>::get_bin_hz()
+}
+pub fn compute<const N: usize, const H: usize>(input: &mut [f32; N]) -> &mut [Complex32; H]
+where
+    RunFft: GetFft<N>,
+{
 
 
-
-    // mabey just make struct a function and use the box as an input
-    pub fn compute<const N: usize, const H: usize>(input: &mut [f32; N]) -> &mut [Complex32; H]
-    where
-        RunFft: GetFft<N>,
-    {
-
-
-            // Hann window
-            for i in 0..N {
-                let window = 0.5
-                    * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
-                input[i] *= window;
-            }
+    // Hann window
+    for i in 0..N {
+        let window = 0.5
+            * (1.0 - libm::cosf(2.0 * core::f32::consts::PI * i as f32 / (N - 1) as f32));
+        input[i] *= window;
+    }
 
 
-            let spectrum = <RunFft as GetFft<N>>::get_complex(input);
-            spectrum[0].im = 0.0;
+    let spectrum = <RunFft as GetFft<N>>::get_complex(input);
+    spectrum[0].im = 0.0;
 
-            spectrum.try_into().expect("unexpected Complex32 length")
+    spectrum.try_into().expect("unexpected Complex32 length")
 
-        }
+}
 
 
 pub struct FftWrite<const N: usize, const H: usize> {

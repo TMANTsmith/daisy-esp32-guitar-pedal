@@ -60,8 +60,12 @@ async fn fft_compute() {
     // WAIT B 
     // SIGNAL A
     loop {
-    let result = compute(input)BUFB.wait().await);
-        //debug!("buffer received from audio");
+        let mut buffer = BUFB.wait().await;
+        // Note: buffer is "cast" as a [Complex32<f32>; H]
+        // so it buffer is ever used as a [f32; N] again
+        // the format will be 
+        // [re1, im1, re2, im2, re3, im3...reH, imH]
+    let result = compute::<FFT_N, FFT_H>(&mut buffer);
 
         let mut max_amp: f32 = 0.0;
         let mut max_i = 0;
@@ -71,12 +75,14 @@ async fn fft_compute() {
                 max_i = wave.0;
             }
         }
-        let freq = max_i as f32 * fft_read.bin_hz();
+        let freq = max_i as f32 * get_bin_hz::<FFT_N>();
 
 
         info!("____");
         info!("hertz: {}", freq);
         info!("____");
+
+        BUFA.signal(buffer);
     }
 }
 

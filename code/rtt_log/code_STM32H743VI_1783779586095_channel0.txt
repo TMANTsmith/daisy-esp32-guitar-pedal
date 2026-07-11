@@ -1,0 +1,17 @@
+0.000000 [1m[[97mDEBUG[0m[1m][0m ====program start====
+0.000000 [1m[[97mDEBUG[0m[1m][0m flash: latency=4 wrhighfreq=2
+0.000000 [1m[[97mDEBUG[0m[1m][0m rcc: Clocks { csi: MaybeHertz(0), hclk1: MaybeHertz(240000000), hclk2: MaybeHertz(240000000), hclk3: MaybeHertz(240000000), hclk4: MaybeHertz(240000000), hse: MaybeHertz(16000000), hsi: MaybeHertz(64000000), hsi48: MaybeHertz(48000000), i2s_ckin: MaybeHertz(0), lse: MaybeHertz(0), lsi: MaybeHertz(0), pclk1: MaybeHertz(120000000), pclk1_tim: MaybeHertz(240000000), pclk2: MaybeHertz(120000000), pclk2_tim: MaybeHertz(240000000), pclk3: MaybeHertz(120000000), pclk4: MaybeHertz(120000000), pll1_q: MaybeHertz(48000000), pll2_p: MaybeHertz(100000000), pll2_q: MaybeHertz(0), pll2_r: MaybeHertz(166666666), pll3_p: MaybeHertz(49152000), pll3_q: MaybeHertz(0), pll3_r: MaybeHertz(81920000), rtc: MaybeHertz(32000), sys: MaybeHertz(480000000) }
+0.000244 [1m[[32mINFO [0m[1m][0m set up PCM3060
+0.000244 [1m[[32mINFO [0m[1m][0m set up sai
+0.000274 [1m[[32mINFO [0m[1m][0m start SAI
+0.000305 [1m[[32mINFO [0m[1m][0m enter audio callback loop
+
+0.051239 [1m[[32mINFO [0m[1m][0m ____
+0.051239 [1m[[32mINFO [0m[1m][0m hertz: 0.0
+0.051269 [1m[[32mINFO [0m[1m][0m ____
+0.051269 [1m[[97mDEBUG[0m[1m][0m spawned tasks
+
+0.137695 [1m[[32mINFO [0m[1m][0m ____
+0.137695 [1m[[32mINFO [0m[1m][0m hertz: 0.0
+0.137725 [1m[[32mINFO [0m[1m][0m ____
+

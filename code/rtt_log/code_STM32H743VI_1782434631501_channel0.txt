@@ -1,5 +1,0 @@
-[1m[[32mINFO [0m[1m][0m before
-[1m[[32mINFO [0m[1m][0m zero 110
-
-[1m[[32mINFO [0m[1m][0m after
-
