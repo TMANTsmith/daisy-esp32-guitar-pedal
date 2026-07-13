@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Spectrum Analyzer</title>
+    <style>
+      :root {
+        --bg-top: #0b0f1c;
+        --bg-bot: #05070d;
+        --panel: rgba(255, 255, 255, 0.035);
+        --panel-border: rgba(255, 255, 255, 0.09);
+        --text: #e8ecf5;
+        --text-dim: #7c8aa6;
+        --grid: rgba(255, 255, 255, 0.07);
+        --grid-strong: rgba(255, 255, 255, 0.14);
+        --accent-gold: #ffce54;
+        --trace-lo: #35d7d0;
+        --trace-mid: #7a7dff;
+        --trace-hi: #ff4fa3;
+        --ok: #4ee89a;
+        --bad: #ff5f6d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: radial-gradient(
+          120% 140% at 50% -10%,
+          var(--bg-top) 0%,
+          var(--bg-bot) 60%
+        );
+        color: var(--text);
+        font-family:
+          ui-monospace, "SF Mono", Consolas, "Roboto Mono", monospace;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        padding: 14px;
+        gap: 12px;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+      }
+      h1 {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text);
+        margin: 0;
+      }
+      .meta {
+        font-size: 11px;
+        color: var(--text-dim);
+        letter-spacing: 0.02em;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-dim);
+      }
+      .status .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--bad);
+        box-shadow: 0 0 6px var(--bad);
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+      .status.connected .dot {
+        background: var(--ok);
+        box-shadow: 0 0 6px var(--ok);
+      }
+
+      .dominant {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 2px 2px 4px;
+      }
+      .dominant .value {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: clamp(28px, 6vw, 42px);
+        font-weight: 700;
+        color: var(--accent-gold);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .dominant .label {
+        font-size: 11px;
+        color: var(--text-dim);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding-bottom: 6px;
+      }
+      .dominant .db {
+        font-size: 13px;
+        color: var(--text-dim);
+        padding-bottom: 7px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 10px;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+      }
+      #wrap {
+        position: relative;
+        flex: 1;
+        min-height: 220px;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        font-size: 10.5px;
+        color: var(--text-dim);
+        letter-spacing: 0.02em;
+        padding: 0 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Spectrum Analyzer</h1>
+      <span class="status" id="status"
+        ><span class="dot"></span><span id="statusText">connecting…</span></span
+      >
+    </header>
+
+    <div class="dominant">
+      <span class="value" id="domFreq">–</span>
+      <span class="label">dominant</span>
+      <span class="db" id="domDb"></span>
+    </div>
+
+    <div class="panel">
+      <div id="wrap">
+        <canvas id="grid"></canvas>
+        <canvas id="trace"></canvas>
+      </div>
+    </div>
+
+    <footer>
+      <span id="infoLeft">sample rate — · bins —</span>
+      <span id="infoRight">resolution —</span>
+    </footer>
+
+    <script>
+      (() => {
+        // ---- Config: must match the device ------------------------------------
+        const SAMPLE_RATE = 48000; // Hz, matches SAMPLE_RATE_HZ in main.rs
+        const SPECTRUM_SIZE = 512; // bins, matches SPECTRUM_SIZE in main.rs
+        const INPUT_IS_DB = true; // false => device sends linear magnitude, convert client-side
+        const DB_MIN = -100;
+        const DB_MAX = 0;
+        const MIN_DISPLAY_FREQ = 20; // Hz, log axis can't start at 0
+        const MAX_DISPLAY_FREQ = SAMPLE_RATE / 2;
+        const SMOOTHING = 0.72; // temporal smoothing, 0 = none, closer to 1 = smoother/slower
+        const PEAK_DECAY_DB_PER_SEC = 14;
+        const PEAK_MIN_DB = -82; // ignore bins quieter than this when picking labeled peaks
+        const PEAK_COUNT = 4;
+        const PEAK_MIN_SEPARATION_BINS = Math.max(
+          4,
+          Math.round(SPECTRUM_SIZE / 40),
+        );
+
+        document.getElementById("infoLeft").textContent =
+          `sample rate ${(SAMPLE_RATE / 1000).toFixed(0)} kHz · ${SPECTRUM_SIZE} bins`;
+        document.getElementById("infoRight").textContent =
+          `resolution ${(MAX_DISPLAY_FREQ / SPECTRUM_SIZE).toFixed(1)} Hz/bin`;
+
+        // ---- State --------------------------------------------------------------
+        const latest = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
+        const smoothed = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
+        const peakHold = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
+        let haveData = false;
+        let lastFrameTime = performance.now();
+
+        const startBin = Math.max(
+          1,
+          Math.ceil((MIN_DISPLAY_FREQ * SPECTRUM_SIZE) / MAX_DISPLAY_FREQ),
+        );
+
+        function binToFreq(i) {
+          return (i * MAX_DISPLAY_FREQ) / SPECTRUM_SIZE;
+        }
+        function formatFreq(hz) {
+          if (hz >= 1000)
+            return (hz / 1000).toFixed(hz >= 10000 ? 1 : 2) + " kHz";
+          return Math.round(hz) + " Hz";
+        }
+
+        // ---- WebSocket ------------------------------------------------------------
+        const statusEl = document.getElementById("status");
+        const statusText = document.getElementById("statusText");
+        let ws;
+        function connect() {
+          ws = new WebSocket("ws://" + location.host + "/");
+          ws.binaryType = "arraybuffer";
+          ws.onopen = () => {
+            statusEl.classList.add("connected");
+            statusText.textContent = "connected";
+          };
+          ws.onclose = () => {
+            statusEl.classList.remove("connected");
+            statusText.textContent = "reconnecting…";
+            setTimeout(connect, 500);
+          };
+          ws.onerror = () => ws.close();
+          ws.onmessage = (e) => {
+            if (!(e.data instanceof ArrayBuffer)) return; // ignore stray text frames
+            const floats = new Float32Array(e.data);
+            const n = Math.min(floats.length, SPECTRUM_SIZE);
+            for (let i = 0; i < n; i++) {
+              let v = floats[i];
+              if (!INPUT_IS_DB) v = 20 * Math.log10(Math.max(v, 1e-6));
+              latest[i] = v;
+            }
+            haveData = true;
+          };
+        }
+        connect();
+
+        // ---- Canvas setup -----------------------------------------------------
+        const wrap = document.getElementById("wrap");
+        const gridCanvas = document.getElementById("grid");
+        const traceCanvas = document.getElementById("trace");
+        const gctx = gridCanvas.getContext("2d");
+        const tctx = traceCanvas.getContext("2d");
+        let W = 0,
+          H = 0,
+          dpr = 1;
+        let gridDirty = true;
+
+        function resize() {
+          dpr = Math.max(1, window.devicePixelRatio || 1);
+          W = wrap.clientWidth;
+          H = wrap.clientHeight;
+          for (const c of [gridCanvas, traceCanvas]) {
+            c.width = Math.round(W * dpr);
+            c.height = Math.round(H * dpr);
+          }
+          gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          gridDirty = true;
+        }
+        new ResizeObserver(resize).observe(wrap);
+        resize();
+
+        // ---- Axis mapping -------------------------------------------------------
+        const PAD_L = 4,
+          PAD_R = 8,
+          PAD_T = 6,
+          PAD_B = 16;
+
+        function freqToX(freq) {
+          const logMin = Math.log10(MIN_DISPLAY_FREQ);
+          const logMax = Math.log10(MAX_DISPLAY_FREQ);
+          const t = (Math.log10(freq) - logMin) / (logMax - logMin);
+          return PAD_L + t * (W - PAD_L - PAD_R);
+        }
+        function dbToY(db) {
+          const t = (db - DB_MIN) / (DB_MAX - DB_MIN);
+          return PAD_T + (1 - t) * (H - PAD_T - PAD_B);
+        }
+
+        const FREQ_TICKS = [
+          20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
+        ];
+
+        function drawGrid() {
+          gctx.clearRect(0, 0, W, H);
+          gctx.strokeStyle = "var(--grid)";
+          gctx.fillStyle = getComputedStyle(document.documentElement)
+            .getPropertyValue("--text-dim")
+            .trim();
+          gctx.font = "9px ui-monospace, monospace";
+          gctx.lineWidth = 1;
+
+          // dB horizontal lines
+          const gridColor = getComputedStyle(document.documentElement)
+            .getPropertyValue("--grid")
+            .trim();
+          for (let db = DB_MAX; db >= DB_MIN; db -= 20) {
+            const y = Math.round(dbToY(db)) + 0.5;
+            gctx.strokeStyle = gridColor;
+            gctx.beginPath();
+            gctx.moveTo(PAD_L, y);
+            gctx.lineTo(W - PAD_R, y);
+            gctx.stroke();
+            gctx.fillText(db + " dB", PAD_L + 3, y - 3);
+          }
+
+          // frequency vertical lines
+          for (const f of FREQ_TICKS) {
+            if (f > MAX_DISPLAY_FREQ) break;
+            const x = Math.round(freqToX(f)) + 0.5;
+            gctx.strokeStyle = gridColor;
+            gctx.beginPath();
+            gctx.moveTo(x, PAD_T);
+            gctx.lineTo(x, H - PAD_B);
+            gctx.stroke();
+            gctx.fillText(formatFreq(f), x + 3, H - 4);
+          }
+        }
+
+        // ---- Smoothing helpers --------------------------------------------------
+        function spatialSmooth(src) {
+          const out = new Float32Array(src.length);
+          for (let i = 0; i < src.length; i++) {
+            const a = src[Math.max(0, i - 1)];
+            const b = src[i];
+            const c = src[Math.min(src.length - 1, i + 1)];
+            out[i] = (a + b * 2 + c) / 4;
+          }
+          return out;
+        }
+
+        function findPeaks(data) {
+          const candidates = [];
+          for (let i = startBin + 1; i < data.length - 1; i++) {
+            if (
+              data[i] > data[i - 1] &&
+              data[i] >= data[i + 1] &&
+              data[i] > PEAK_MIN_DB
+            ) {
+              candidates.push({ bin: i, db: data[i] });
+            }
+          }
+          candidates.sort((a, b) => b.db - a.db);
+          const chosen = [];
+          for (const c of candidates) {
+            if (chosen.length >= PEAK_COUNT) break;
+            if (
+              chosen.every(
+                (p) => Math.abs(p.bin - c.bin) >= PEAK_MIN_SEPARATION_BINS,
+              )
+            ) {
+              chosen.push(c);
+            }
+          }
+          chosen.sort((a, b) => a.bin - b.bin);
+          return chosen;
+        }
+
+        // ---- Drawing --------------------------------------------------------------
+        const domFreqEl = document.getElementById("domFreq");
+        const domDbEl = document.getElementById("domDb");
+
+        function drawTrace(display, peaks, dominant) {
+          tctx.clearRect(0, 0, W, H);
+
+          // peak-hold line (thin, dim, above the trace)
+          tctx.beginPath();
+          for (let i = startBin; i < SPECTRUM_SIZE; i++) {
+            const x = freqToX(binToFreq(i));
+            const y = dbToY(peakHold[i]);
+            if (i === startBin) tctx.moveTo(x, y);
+            else tctx.lineTo(x, y);
+          }
+          tctx.strokeStyle = "rgba(255,255,255,0.22)";
+          tctx.lineWidth = 1;
+          tctx.stroke();
+
+          // main trace: smooth curve through midpoints, gradient fill under it
+          const grad = tctx.createLinearGradient(0, PAD_T, 0, H - PAD_B);
+          grad.addColorStop(0, "rgba(255,79,163,0.9)"); // hi (top = loud)
+          grad.addColorStop(0.55, "rgba(122,125,255,0.55)");
+          grad.addColorStop(1, "rgba(53,215,208,0.05)"); // lo (bottom = quiet)
+
+          tctx.beginPath();
+          let prevX = freqToX(binToFreq(startBin));
+          let prevY = dbToY(display[startBin]);
+          tctx.moveTo(prevX, prevY);
+          for (let i = startBin + 1; i < SPECTRUM_SIZE; i++) {
+            const x = freqToX(binToFreq(i));
+            const y = dbToY(display[i]);
+            const mx = (prevX + x) / 2;
+            const my = (prevY + y) / 2;
+            tctx.quadraticCurveTo(prevX, prevY, mx, my);
+            prevX = x;
+            prevY = y;
+          }
+          tctx.lineTo(prevX, prevY);
+          // stroke the trace line before extending the path down to close the fill shape
+          tctx.save();
+          tctx.strokeStyle = "rgba(180,200,255,0.9)";
+          tctx.lineWidth = 1.5;
+          tctx.stroke();
+          tctx.restore();
+
+          tctx.lineTo(freqToX(binToFreq(SPECTRUM_SIZE - 1)), H - PAD_B);
+          tctx.lineTo(freqToX(binToFreq(startBin)), H - PAD_B);
+          tctx.closePath();
+          tctx.fillStyle = grad;
+          tctx.fill();
+
+          // labeled peak markers
+          for (const p of peaks) {
+            const x = freqToX(binToFreq(p.bin));
+            const y = dbToY(p.db);
+            const isDominant = dominant && p.bin === dominant.bin;
+
+            tctx.beginPath();
+            tctx.arc(x, y, isDominant ? 3.5 : 2.5, 0, Math.PI * 2);
+            tctx.fillStyle = isDominant ? "#ffce54" : "#e8ecf5";
+            tctx.fill();
+
+            const label = formatFreq(binToFreq(p.bin));
+            tctx.font = isDominant
+              ? "bold 10px ui-monospace, monospace"
+              : "9px ui-monospace, monospace";
+            tctx.fillStyle = isDominant ? "#ffce54" : "rgba(232,236,245,0.75)";
+            const labelY = Math.max(PAD_T + 10, y - 8);
+            const textW = tctx.measureText(label).width;
+            let labelX = x - textW / 2;
+            labelX = Math.max(PAD_L, Math.min(W - PAD_R - textW, labelX));
+            tctx.fillText(label, labelX, labelY);
+          }
+
+          // dominant frequency readout
+          if (dominant) {
+            domFreqEl.textContent = formatFreq(binToFreq(dominant.bin));
+            domDbEl.textContent = dominant.db.toFixed(1) + " dB";
+          }
+        }
+
+        function frame(now) {
+          const dt = Math.min(0.25, (now - lastFrameTime) / 1000);
+          lastFrameTime = now;
+
+          if (haveData) {
+            for (let i = 0; i < SPECTRUM_SIZE; i++) {
+              smoothed[i] =
+                smoothed[i] * SMOOTHING + latest[i] * (1 - SMOOTHING);
+              if (smoothed[i] > peakHold[i]) {
+                peakHold[i] = smoothed[i];
+              } else {
+                peakHold[i] = Math.max(
+                  smoothed[i],
+                  peakHold[i] - PEAK_DECAY_DB_PER_SEC * dt,
+                );
+              }
+            }
+          }
+
+          if (gridDirty) {
+            drawGrid();
+            gridDirty = false;
+          }
+
+          const display = spatialSmooth(smoothed);
+          const peaks = findPeaks(display);
+          let dominant = null;
+          for (const p of peaks)
+            if (!dominant || p.db > dominant.db) dominant = p;
+          if (!dominant) {
+            let best = startBin;
+            for (let i = startBin; i < SPECTRUM_SIZE; i++)
+              if (display[i] > display[best]) best = i;
+            dominant = { bin: best, db: display[best] };
+          }
+          drawTrace(display, peaks, dominant);
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
+</html>
