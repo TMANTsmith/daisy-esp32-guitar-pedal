@@ -2,6 +2,7 @@
 #![no_main]
 extern crate alloc;
 
+use core::fmt::write;
 use core::num::Wrapping;
 use code::modules::FFT::{*, FftState };
 use code::modules::sin::Sine;
@@ -18,10 +19,22 @@ use static_cell::StaticCell;
 use critical_section::Mutex;
 use embassy_sync::signal::Signal;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use daisy_embassy::hal::time::mhz;
+use daisy_embassy::hal::{ Config, bind_interrupts, dma, peripherals, spi };
+use daisy_embassy::pins::DaisyPins;
+use daisy_embassy::hal::mode::Async;
 use alloc::boxed::Box;
-
+use bytemuck::{cast_slice, Pod};
+use libm::sqrtf;
+use daisy_embassy::hal::gpio::{Level, Output, Speed};
+use embassy_time::{Duration, Timer};
 
 use embedded_alloc::LlffHeap as Heap;
+
+bind_interrupts!(struct Irqs {
+    DMA1_STREAM3 => dma::InterruptHandler<peripherals::DMA1_CH3>;
+    DMA1_STREAM4 => dma::InterruptHandler<peripherals::DMA1_CH4>;
+});
 
 const FFT_N: usize = 4096;
 const FFT_H: usize = FFT_N / 2;
@@ -30,6 +43,9 @@ const FFT_L: usize = 2;
 
 static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
 static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
+static BUFC: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
+
+// audio_task -> BUFB -> compute -> BUFC -> SPI -> BUFA -> audio_task
 
 static FFT_WRITE: StaticCell<FftWrite<FFT_N, FFT_H>> = StaticCell::new();
 
@@ -56,16 +72,46 @@ fn panic() -> ! {
 }
 
 #[embassy_executor::task]
+async fn spi(mut spi: spi::Spi<'static, Async, spi::mode::Master>, mut cs: Output<'static>) {
+    // WAIT C 
+    // SIGNAL A 
+    loop {
+        let buffer = BUFC.wait().await;
+
+        //let bytes: &[u8] = cast_slice(buffer.as_ref());
+        //let bytes: &[u8] = bytes[..FFT_H];
+        
+        
+        let bytes = "hello".as_bytes();
+        info!("sent hello");
+
+        cs.set_low();
+
+        //guessed number for the esp32 to get ready to receave
+        Timer::after(Duration::from_micros(100)).await; 
+    
+
+        if let Err(e) = spi.write(bytes).await {
+            info!("SPI error: {}", e);
+        }
+
+        cs.set_high();
+
+        BUFA.signal(buffer);
+    }
+}
+#[embassy_executor::task]
 async fn fft_compute() {
     // WAIT B 
-    // SIGNAL A
+    // SIGNAL C
     loop {
         let mut buffer = BUFB.wait().await;
-        // Note: buffer is "cast" as a [Complex32<f32>; H]
+        // Note: buffer is cast as a [Complex32<f32>; H]
         // so it buffer is ever used as a [f32; N] again
         // the format will be 
         // [re1, im1, re2, im2, re3, im3...reH, imH]
     let result = compute::<FFT_N, FFT_H>(&mut buffer);
+    result[0].im = 0.0;
 
         let mut max_amp: f32 = 0.0;
         let mut max_i = 0;
@@ -82,7 +128,23 @@ async fn fft_compute() {
         info!("hertz: {}", freq);
         info!("____");
 
-        BUFA.signal(buffer);
+        // this is a "hacky" way to get the magnitude and putting
+        // it in the first half of the list
+        let mut writing_index = 0;
+        let mut space = false;
+        for i in 0..result.len() {
+            if !space { 
+                result[writing_index].re = libm::sqrtf(result[i].norm_sqr());
+                space = true;
+            }
+            else {
+                result[writing_index].im = libm::sqrtf(result[i].norm_sqr());
+                space = false;
+                writing_index += 1;
+            }
+        }
+
+        BUFC.signal(buffer);
     }
 }
 
@@ -153,22 +215,26 @@ async fn main(_spawner: Spawner) {
     }
 
 
+    let mut spi_config = spi::Config::default();
+    spi_config.frequency = mhz(1);
+
+    let pins = board.pins;
+
+    let spi = spi::Spi::new(p.SPI1, pins.d8, pins.d10, pins.d9, p.DMA1_CH3, p.DMA1_CH4, Irqs, spi_config);
+    let mut cs = Output::new(pins.d7, Level::High, Speed::VeryHigh);
 
     let interface = board
         .audio_peripherals
         .prepare_interface(Default::default())
         .await;
+
+
     let interface = unwrap!(interface.start_interface().await);
 
     interrupt::TIM15.set_priority(Priority::P3);
     interrupt::TIM17.set_priority(Priority::P5);
     let spawner_high = EXECUTOR_HIGH.start(interrupt::TIM15); // reader
     let spawner_low = EXECUTOR_LOW.start(interrupt::TIM17); // computer
-
-
-
-
-
 
     let fft_write = FFT_WRITE.init(FftWrite::<FFT_N, FFT_H>::new());
 
@@ -180,9 +246,12 @@ async fn main(_spawner: Spawner) {
 
     let buf_a = Box::new([0_f32; FFT_N]);
     let buf_b = Box::new([0_f32; FFT_N]);
+    let buf_c = Box::new([0_f32; FFT_N]);
 
     BUFA.signal(buf_a);
     BUFB.signal(buf_b);
+    BUFC.signal(buf_c);
+
     debug!("spawned tasks");
 }
 

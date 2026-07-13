@@ -22,6 +22,7 @@ libm = "0.2.16"
 #ringbuf = {version = "0.5.0", default-features = false, features = ["alloc"] }
 static_cell = "2.1.1"
 embedded-alloc = "0.7.0"
+bytemuck = "1.25.1"
 
 [profile.dev]
 codegen-units = 1

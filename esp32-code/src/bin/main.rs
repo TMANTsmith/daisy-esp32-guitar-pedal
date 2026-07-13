@@ -28,12 +28,18 @@ use esp_hal::{
     ram,
     rng::Rng,
     timer::timg::TimerGroup,
+    spi::slave::Spi,
+    spi::Mode,
+    dma::DmaRxBuf,
+    dma::DmaTxBuf,
+    spi::slave::dma::SpiDma,
+    dma_buffers,
+    Blocking
 };
 use esp_println::{print, println};
 use esp_radio::wifi::{Config, ControllerConfig, Interface, WifiController, ap::AccessPointConfig};
 esp_bootloader_esp_idf::esp_app_desc!();
 
-// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
         static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
@@ -77,6 +83,7 @@ const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../inde
 static SPECTRUM: Mutex<RefCell<[f32; SPECTRUM_SIZE]>> =
     Mutex::new(RefCell::new([-100.0; SPECTRUM_SIZE]));
 
+
 /// Publish a new spectrum frame. `data[i]` should be the magnitude (in dB,
 /// e.g. -100.0 to 0.0) of frequency bin `i`, where bin `i` corresponds to
 /// `i * (SAMPLE_RATE_HZ / 2) / SPECTRUM_SIZE` Hz. If your FFT output is
@@ -102,6 +109,26 @@ async fn main(spawner: Spawner) -> ! {
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
+
+
+    let miso = peripherals.GPIO20;
+    let sclk = peripherals.GPIO19;
+    let mosi = peripherals.GPIO18;
+    let cs = peripherals.GPIO17;
+
+    //DMA 
+    let (rx_buffer, rx_descriptors, tx_buffer, tx_descriptors) = dma_buffers!(32000);
+
+    let dma_rx_buf = DmaRxBuf::new(rx_descriptors, rx_buffer).unwrap();
+    let dma_tx_buf = DmaTxBuf::new(tx_descriptors, tx_buffer).unwrap();
+
+    //SPI config
+    let mut spi = Spi::new(peripherals.SPI2, Mode::_0)
+    .with_sck(sclk)
+    .with_mosi(mosi)
+    .with_miso(miso)
+    .with_cs(cs)
+    .with_dma(peripherals.DMA_CH0);
 
     let access_point_config =
         Config::AccessPoint(AccessPointConfig::default().with_ssid("esp-radio"));
@@ -134,6 +161,7 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net_task(runner).unwrap());
     spawner.spawn(connection(controller).unwrap());
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
+    spawner.spawn(spi_runner(spi, dma_rx_buf, dma_tx_buf).unwrap());
     // Remove this once you're feeding set_spectrum() from a real FFT source.
     spawner.spawn(spectrum_demo_task().unwrap());
 
@@ -348,6 +376,32 @@ async fn main(spawner: Spawner) -> ! {
     }
 }
 
+
+#[embassy_executor::task]
+async fn spi_runner(
+    mut spi: SpiDma<'static, Blocking>,
+    mut dma_rx_buf: DmaRxBuf,
+    mut dma_tx_buf: DmaTxBuf,
+) {
+    loop {
+        let transfer = spi.transfer(5, dma_rx_buf, 5, dma_tx_buf).unwrap();
+
+        // slave-mode DMA has no native async wait, so poll with a yield
+        while !transfer.is_done() {
+            Timer::after(Duration::from_micros(50)).await;
+        }
+
+        (spi, (dma_rx_buf, dma_tx_buf)) = transfer.wait();
+
+        let guess: &[u8] = "hello".as_bytes();
+
+        let slice: &[u8] = dma_rx_buf.as_slice();
+
+        if dma_rx_buf.as_slice().windows(guess.len()).any(|w| w == guess) {
+            defmt::info!("hello received!");
+        }
+    }
+}
 /// Fabricates a spectrum with a slowly sweeping peak plus a quiet noise
 /// floor, purely so the page has something to draw before real FFT data is
 /// wired up. Delete this task (and its spawn call in main) once
