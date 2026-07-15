@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/tucker/Projects/esp-petal/full-pcb/full_pcb.kicad_sch")
-		(date "2026-07-13T18:47:08")
+		(date "2026-07-14T20:22:42")
 		(tool "Eeschema 10.0.0")
 		(sheet
 			(number "1")
