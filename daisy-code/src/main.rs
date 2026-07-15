@@ -28,10 +28,16 @@ use bytemuck::{cast_slice, Pod};
 use libm::sqrtf;
 use daisy_embassy::hal::gpio::{Level, Output, Speed};
 use embassy_time::{Duration, Timer};
+use daisy_embassy::hal::usart::Config as UsartConfig;
+use daisy_embassy::hal::usart::Uart;
+use daisy_embassy::hal::usart;
+use daisy_embassy::led::UserLed;
+use embassy_futures::join::join;
 
 use embedded_alloc::LlffHeap as Heap;
 
 bind_interrupts!(struct Irqs {
+    USART1 => usart::InterruptHandler<peripherals::USART1>;
     DMA1_STREAM3 => dma::InterruptHandler<peripherals::DMA1_CH3>;
     DMA1_STREAM4 => dma::InterruptHandler<peripherals::DMA1_CH4>;
 });
@@ -72,30 +78,26 @@ fn panic() -> ! {
 }
 
 #[embassy_executor::task]
-async fn spi(mut spi: spi::Spi<'static, Async, spi::mode::Master>, mut cs: Output<'static>) {
+async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) {
     // WAIT C 
     // SIGNAL A 
+    let (mut tx, mut rx) = uart.split();
     loop {
         let buffer = BUFC.wait().await;
 
-        //let bytes: &[u8] = cast_slice(buffer.as_ref());
-        //let bytes: &[u8] = bytes[..FFT_H];
         
-        
-        let bytes = "hello".as_bytes();
-        info!("sent hello");
+        const bytes: &[u8] = "hello".as_bytes();
+        let mut buf = [0_u8; bytes.len()];
 
-        cs.set_low();
+        tx.write(bytes).await.unwrap();
+        info!("hello sent");
 
-        //guessed number for the esp32 to get ready to receave
-        Timer::after(Duration::from_micros(100)).await; 
-    
 
-        if let Err(e) = spi.write(bytes).await {
-            info!("SPI error: {}", e);
-        }
+        led.on();
+        Timer::after(Duration::from_millis(500)).await;
+        led.off();
+        Timer::after(Duration::from_millis(500)).await;
 
-        cs.set_high();
 
         BUFA.signal(buffer);
     }
@@ -124,9 +126,11 @@ async fn fft_compute() {
         let freq = max_i as f32 * get_bin_hz::<FFT_N>();
 
 
+        /*
         info!("____");
         info!("hertz: {}", freq);
         info!("____");
+        */
 
         // this is a "hacky" way to get the magnitude and putting
         // it in the first half of the list
@@ -220,8 +224,9 @@ async fn main(_spawner: Spawner) {
 
     let pins = board.pins;
 
-    let spi = spi::Spi::new(p.SPI1, pins.d8, pins.d10, pins.d9, p.DMA1_CH3, p.DMA1_CH4, Irqs, spi_config);
-    let mut cs = Output::new(pins.d7, Level::High, Speed::VeryHigh);
+    let mut config = UsartConfig::default();
+    config.baudrate = 2_000_000;
+    let uart = Uart::new(p.USART1, pins.d14, pins.d13, p.DMA1_CH3, p.DMA1_CH4, Irqs, config).unwrap();
 
     let interface = board
         .audio_peripherals
@@ -240,9 +245,11 @@ async fn main(_spawner: Spawner) {
 
     let sin = Sine::new(10_000.0, 0.5);
 
+    let led = board.user_led;
 
     spawner_high.spawn(audio_task(interface, fft_write, sin).unwrap());
     spawner_low.spawn(fft_compute().unwrap());
+    spawner_low.spawn(uart_runner(uart, led).unwrap());
 
     let buf_a = Box::new([0_f32; FFT_N]);
     let buf_b = Box::new([0_f32; FFT_N]);

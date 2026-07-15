@@ -28,14 +28,11 @@ use esp_hal::{
     ram,
     rng::Rng,
     timer::timg::TimerGroup,
-    spi::slave::Spi,
-    spi::Mode,
-    dma::DmaRxBuf,
-    dma::DmaTxBuf,
-    spi::slave::dma::SpiDma,
-    dma_buffers,
-    Blocking
+    Blocking,
+    Async,
+    uart::{Uart},
 };
+use esp_hal::uart::Config as UartConfig;
 use esp_println::{print, println};
 use esp_radio::wifi::{Config, ControllerConfig, Interface, WifiController, ap::AccessPointConfig};
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -111,24 +108,16 @@ async fn main(spawner: Spawner) -> ! {
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
 
-    let miso = peripherals.GPIO20;
-    let sclk = peripherals.GPIO19;
-    let mosi = peripherals.GPIO18;
-    let cs = peripherals.GPIO17;
 
-    //DMA 
-    let (rx_buffer, rx_descriptors, tx_buffer, tx_descriptors) = dma_buffers!(32000);
+    let rx = peripherals.GPIO22;
+    let tx = peripherals.GPIO23;
 
-    let dma_rx_buf = DmaRxBuf::new(rx_descriptors, rx_buffer).unwrap();
-    let dma_tx_buf = DmaTxBuf::new(tx_descriptors, tx_buffer).unwrap();
+    let uart_config = UartConfig::default().with_baudrate(2_000_000);
+    let mut uart = Uart::new(peripherals.UART0, uart_config).unwrap()
+        .with_rx(rx)
+        .with_tx(tx)
+        .into_async();
 
-    //SPI config
-    let mut spi = Spi::new(peripherals.SPI2, Mode::_0)
-    .with_sck(sclk)
-    .with_mosi(mosi)
-    .with_miso(miso)
-    .with_cs(cs)
-    .with_dma(peripherals.DMA_CH0);
 
     let access_point_config =
         Config::AccessPoint(AccessPointConfig::default().with_ssid("esp-radio"));
@@ -161,7 +150,7 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net_task(runner).unwrap());
     spawner.spawn(connection(controller).unwrap());
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
-    spawner.spawn(spi_runner(spi, dma_rx_buf, dma_tx_buf).unwrap());
+    spawner.spawn(uart_runner(uart).unwrap());
     // Remove this once you're feeding set_spectrum() from a real FFT source.
     spawner.spawn(spectrum_demo_task().unwrap());
 
@@ -378,29 +367,22 @@ async fn main(spawner: Spawner) -> ! {
 
 
 #[embassy_executor::task]
-async fn spi_runner(
-    mut spi: SpiDma<'static, Blocking>,
-    mut dma_rx_buf: DmaRxBuf,
-    mut dma_tx_buf: DmaTxBuf,
-) {
+async fn uart_runner(mut uart: Uart<'static, Async>) {
+    //trys to receave hello 
+
+    const message: &[u8] = "hello".as_bytes();
+    let mut buf = [0u8; message.len()];
+
     loop {
-        let transfer = spi.transfer(5, dma_rx_buf, 5, dma_tx_buf).unwrap();
+        
 
-        // slave-mode DMA has no native async wait, so poll with a yield
-        while !transfer.is_done() {
-            Timer::after(Duration::from_micros(50)).await;
-        }
+        uart.read_async(&mut buf[..]).await.unwrap();
+        info!("message receaced: {}", buf);
 
-        (spi, (dma_rx_buf, dma_tx_buf)) = transfer.wait();
 
-        let guess: &[u8] = "hello".as_bytes();
 
-        let slice: &[u8] = dma_rx_buf.as_slice();
-
-        if dma_rx_buf.as_slice().windows(guess.len()).any(|w| w == guess) {
-            defmt::info!("hello received!");
-        }
     }
+
 }
 /// Fabricates a spectrum with a slowly sweeping peak plus a quiet noise
 /// floor, purely so the page has something to draw before real FFT data is
