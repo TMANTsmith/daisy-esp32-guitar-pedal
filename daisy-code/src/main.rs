@@ -2,6 +2,8 @@
 #![no_main]
 extern crate alloc;
 
+mod uart;
+use uart::Packet;
 use core::fmt::write;
 use core::num::Wrapping;
 use code::modules::FFT::{*, FftState };
@@ -42,8 +44,8 @@ bind_interrupts!(struct Irqs {
     DMA1_STREAM4 => dma::InterruptHandler<peripherals::DMA1_CH4>;
 });
 
-const FFT_N: usize = 4096;
-const FFT_H: usize = FFT_N / 2;
+const FFT_N: usize = 1024; // input size
+const FFT_H: usize = FFT_N / 2; // output size
 const FFT_L: usize = 2; 
 
 
@@ -81,72 +83,52 @@ fn panic() -> ! {
 async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) {
     // WAIT C 
     // SIGNAL A 
-    let (mut tx, mut rx) = uart.split();
+    let mut packet: Packet<f32, {FFT_H}> = Packet::new(&[0f32; FFT_H]);
+    const X25: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC);
+    const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
+
     loop {
         let buffer = BUFC.wait().await;
 
-        
-        const bytes: &[u8] = "hello".as_bytes();
-        let mut buf = [0_u8; bytes.len()];
+        let crc = X25.checksum(cast_slice(buffer.as_ref())).to_le_bytes();
 
-        tx.write(bytes).await.unwrap();
-        info!("hello sent");
-
-
-        led.on();
-        Timer::after(Duration::from_millis(500)).await;
-        led.off();
-        Timer::after(Duration::from_millis(500)).await;
-
+        // maybe have the BUF# be a packet so there are no copys
+        packet.copy_into(&buffer.as_slice()[..FFT_H]);
 
         BUFA.signal(buffer);
+
+        let info = packet.info();
+
+        // info!("10kHz {}", info[213]);
+
+        uart.write(packet.as_bytes()).await.unwrap();
     }
 }
 #[embassy_executor::task]
 async fn fft_compute() {
-    // WAIT B 
-    // SIGNAL C
+
+    let mut mags = [0.0f32; FFT_H]; // reusable scratch, stack-allocated, outside the loop
+
     loop {
         let mut buffer = BUFB.wait().await;
-        // Note: buffer is cast as a [Complex32<f32>; H]
-        // so it buffer is ever used as a [f32; N] again
-        // the format will be 
-        // [re1, im1, re2, im2, re3, im3...reH, imH]
-    let result = compute::<FFT_N, FFT_H>(&mut buffer);
-    result[0].im = 0.0;
+        let result = compute::<FFT_N, FFT_H>(&mut buffer);
+        result[0].im = 0.0;
 
         let mut max_amp: f32 = 0.0;
         let mut max_i = 0;
-        for wave in result.iter().enumerate() {
-            if wave.1.norm_sqr() > max_amp {
-                max_amp = wave.1.norm_sqr();
-                max_i = wave.0;
+        for (i, c) in result.iter().enumerate() {
+            if c.norm_sqr() > max_amp {
+                max_amp = c.norm_sqr();
+                max_i = i;
             }
         }
         let freq = max_i as f32 * get_bin_hz::<FFT_N>();
 
-
-        /*
-        info!("____");
-        info!("hertz: {}", freq);
-        info!("____");
-        */
-
-        // this is a "hacky" way to get the magnitude and putting
-        // it in the first half of the list
-        let mut writing_index = 0;
-        let mut space = false;
-        for i in 0..result.len() {
-            if !space { 
-                result[writing_index].re = libm::sqrtf(result[i].norm_sqr());
-                space = true;
-            }
-            else {
-                result[writing_index].im = libm::sqrtf(result[i].norm_sqr());
-                space = false;
-                writing_index += 1;
-            }
+        for i in 0..FFT_H {
+            mags[i] = libm::sqrtf(result[i].norm_sqr());
         }
+
+        buffer[..FFT_H].copy_from_slice(&mags);
 
         BUFC.signal(buffer);
     }
@@ -169,7 +151,7 @@ async fn audio_task(
                 convert_to(input, &mut frames);
 
                 for frame in frames.iter_mut() {
-                    //frame.1 = sin.get_next();
+                    frame.1 = sin.get_next();
                     match fft_write.add(frame.1) {
                         Err(FftState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
                         Err(FftState::NoBuf) => { 

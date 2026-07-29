@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/tucker/Projects/esp-petal/full-pcb/full_pcb.kicad_sch")
-		(date "2026-07-14T20:22:42")
+		(date "2026-07-22T21:13:57")
 		(tool "Eeschema 10.0.0")
 		(sheet
 			(number "1")
@@ -200,7 +200,7 @@
 	(components
 		(comp
 			(ref "A1")
-			(value "Electrosmith_Daisy_Seed_Rev4")
+			(value "Electrosmith_Daisy_Seed_Rev4 (2 1x20 pin headers required)")
 			(footprint "Module:Electrosmith_Daisy_Seed")
 			(datasheet "https://static1.squarespace.com/static/58d03fdc1b10e3bf442567b8/t/6227e6236f02fb68d1577146/1646781988478/Daisy_Seed_datasheet_v1.0.3.pdf")
 			(description "Daisy is an embedded platform for music.")
@@ -230,6 +230,12 @@
 			(property
 				(name "Sheetfile")
 				(value "full_pcb.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "exclude_from_pos_files")
 			)
 			(property
 				(name "ki_keywords")
@@ -628,6 +634,8 @@
 				(field
 					(name "SNAPEDA_PN") "NMJ6HCD2")
 				(field
+					(name "MPN") "C368502")
+				(field
 					(name "Footprint") "Connector_Audio:Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal")
 				(field
 					(name "Datasheet")
@@ -660,6 +668,10 @@
 			(property
 				(name "SNAPEDA_PN")
 				(value "NMJ6HCD2")
+			)
+			(property
+				(name "MPN")
+				(value "C368502")
 			)
 			(property
 				(name "Sheetname")
@@ -716,6 +728,8 @@
 				(field
 					(name "SNAPEDA_PN") "NMJ6HCD2")
 				(field
+					(name "MPN") "C368502")
+				(field
 					(name "Footprint") "Connector_Audio:Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal")
 				(field
 					(name "Datasheet")
@@ -748,6 +762,10 @@
 			(property
 				(name "SNAPEDA_PN")
 				(value "NMJ6HCD2")
+			)
+			(property
+				(name "MPN")
+				(value "C368502")
 			)
 			(property
 				(name "Sheetname")
@@ -864,6 +882,8 @@
 				(field
 					(name "SNAPEDA_PN") "NMJ6HCD2")
 				(field
+					(name "MPN") "C368502")
+				(field
 					(name "Footprint") "Connector_Audio:Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal")
 				(field
 					(name "Datasheet")
@@ -896,6 +916,10 @@
 			(property
 				(name "SNAPEDA_PN")
 				(value "NMJ6HCD2")
+			)
+			(property
+				(name "MPN")
+				(value "C368502")
 			)
 			(property
 				(name "Sheetname")
@@ -952,6 +976,8 @@
 				(field
 					(name "SNAPEDA_PN") "NMJ6HCD2")
 				(field
+					(name "MPN") "C368502")
+				(field
 					(name "Footprint") "Connector_Audio:Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal")
 				(field
 					(name "Datasheet")
@@ -984,6 +1010,10 @@
 			(property
 				(name "SNAPEDA_PN")
 				(value "NMJ6HCD2")
+			)
+			(property
+				(name "MPN")
+				(value "C368502")
 			)
 			(property
 				(name "Sheetname")
@@ -1146,9 +1176,11 @@
 		)
 		(comp
 			(ref "U5")
-			(value "XIAO-ESP32-C6-DIP")
+			(value "XIAO-ESP32-C6-DIP  (2 1x7 pin headers required)")
 			(footprint "Seeed Studio XIAO Series Library:XIAO-ESP32-C6-DIP")
 			(fields
+				(field
+					(name "MPN") "C5371993")
 				(field
 					(name "Footprint") "Seeed Studio XIAO Series Library:XIAO-ESP32-C6-DIP")
 				(field
@@ -1164,12 +1196,22 @@
 				(description "")
 			)
 			(property
+				(name "MPN")
+				(value "C5371993")
+			)
+			(property
 				(name "Sheetname")
 				(value "full_pcb")
 			)
 			(property
 				(name "Sheetfile")
 				(value "full_pcb.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "exclude_from_pos_files")
 			)
 			(sheetpath
 				(names "/")
@@ -3094,16 +3136,16 @@
 		(comp
 			(ref "L1")
 			(value "18uH")
-			(footprint "Inductor_SMD:L_6.3x6.3_H3")
+			(footprint "Inductor_SMD:L_Changjiang_FNR8040S")
+			(datasheet "C168130")
 			(description "Inductor")
 			(fields
 				(field
-					(name "MPN") "C20612510")
+					(name "MPN") "C168130")
 				(field
-					(name "Footprint") "Inductor_SMD:L_6.3x6.3_H3")
+					(name "Footprint") "Inductor_SMD:L_Changjiang_FNR8040S")
 				(field
-					(name "Datasheet")
-				)
+					(name "Datasheet") "C168130")
 				(field
 					(name "Description") "Inductor")
 			)
@@ -3114,7 +3156,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "C20612510")
+				(value "C168130")
 			)
 			(property
 				(name "Sheetname")

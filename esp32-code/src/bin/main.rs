@@ -1,5 +1,9 @@
 #![no_std]
 #![no_main]
+extern crate alloc;
+use alloc::boxed::Box;
+
+use esp32_code::Packet;
 use core::cell::RefCell;
 use core::{net::Ipv4Addr, str::FromStr};
 use critical_section::Mutex;
@@ -30,7 +34,7 @@ use esp_hal::{
     timer::timg::TimerGroup,
     Blocking,
     Async,
-    uart::{Uart},
+    uart::{Uart, RxConfig, TxConfig},
 };
 use esp_hal::uart::Config as UartConfig;
 use esp_println::{print, println};
@@ -50,12 +54,12 @@ const GW_IP_ADDR_ENV: Option<&'static str> = option_env!("GATEWAY_IP");
 
 // ---------------------------------------------------------------------------
 // Spectrum config — keep these in sync with the constants at the top of the
-// <script> block in index.html.
+// <script> block in index.html and the consts in daisy.
 // ---------------------------------------------------------------------------
 /// Number of bins in the spectrum. Must be a power of two. Increasing this
 /// increases RAM use (SPECTRUM_SIZE * 4 bytes for the shared buffer, plus
 /// roughly the same again for the outgoing frame buffer) and network load.
-const SPECTRUM_SIZE: usize = 512;
+const SPECTRUM_SIZE: usize = 512; // output of FFT
 /// Sample rate of the audio the spectrum was computed from. Only used here
 /// for the startup log message; the actual bin->frequency mapping happens in
 /// the browser.
@@ -76,6 +80,7 @@ const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../inde
 // should call `set_spectrum(&data)` whenever a new frame is ready. The WS
 // task below just reads whatever is currently here on its own timer — it
 // doesn't care how often set_spectrum is called.
+// +2 is for crc16
 // ---------------------------------------------------------------------------
 static SPECTRUM: Mutex<RefCell<[f32; SPECTRUM_SIZE]>> =
     Mutex::new(RefCell::new([-100.0; SPECTRUM_SIZE]));
@@ -112,7 +117,10 @@ async fn main(spawner: Spawner) -> ! {
     let rx = peripherals.GPIO22;
     let tx = peripherals.GPIO23;
 
-    let uart_config = UartConfig::default().with_baudrate(2_000_000);
+    let uart_config = UartConfig::default()
+        .with_baudrate(2_000_000)
+        .with_rx(RxConfig::default().with_fifo_full_threshold(64)); 
+
     let mut uart = Uart::new(peripherals.UART0, uart_config).unwrap()
         .with_rx(rx)
         .with_tx(tx)
@@ -152,7 +160,7 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
     spawner.spawn(uart_runner(uart).unwrap());
     // Remove this once you're feeding set_spectrum() from a real FFT source.
-    spawner.spawn(spectrum_demo_task().unwrap());
+    //spawner.spawn(spectrum_demo_task().unwrap());
 
     let mut rx_buffer = [0; TCP_BUF_SIZE];
     let mut tx_buffer = [0; TCP_BUF_SIZE];
@@ -368,21 +376,61 @@ async fn main(spawner: Spawner) -> ! {
 
 #[embassy_executor::task]
 async fn uart_runner(mut uart: Uart<'static, Async>) {
-    //trys to receave hello 
 
-    const message: &[u8] = "hello".as_bytes();
-    let mut buf = [0u8; message.len()];
-
-    loop {
-        
-
-        uart.read_async(&mut buf[..]).await.unwrap();
-        info!("message receaced: {}", buf);
-
-
-
+    #[derive(defmt::Format)]
+    enum State {
+        Scanning { matched: usize },
+        Collecting { filled: usize },
     }
 
+    let mut state = State::Scanning { matched: 0 };
+
+    let mut scratch = [0u8; 128];
+    let mut packet = Packet::new(&[0f32; SPECTRUM_SIZE]);
+
+
+    const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
+    const PACKET_LEN: usize = 4 + SPECTRUM_PAYLOAD_BYTES + 2;
+
+    loop {
+        let n = match uart.read_async(scratch.as_mut_slice()).await {
+            Ok(n) => n,
+            Err(e) => {
+                info!("UART error {:?}", defmt::Debug2Format(&e));
+                continue;
+            }
+        };
+
+        for &byte in &scratch[..n] {
+            match &mut state {
+                State::Scanning { matched } => {
+                    if byte == HEADER[*matched] {
+                        *matched += 1;
+                        if *matched == HEADER.len() {
+                            packet.as_bytes_mut()[..4].copy_from_slice(&HEADER);
+                            state = State::Collecting { filled: 4 };
+                        }
+                    } else {
+                        *matched = if byte == HEADER[0] { 1 } else { 0 };
+                    }
+                }
+                State::Collecting { filled } => {
+                    packet.as_bytes_mut()[*filled] = byte;
+                    *filled += 1;
+                    if *filled == PACKET_LEN {
+                        if packet.verify() {
+                            //info!("CRC passed");
+                            set_spectrum(packet.info());
+                        } else {
+                            info!("CRC failed");
+                            //info!("packet: {:?}", &packet);
+                        }
+                        state = State::Scanning { matched: 0 };
+                    }
+                }
+            }
+        }
+    }
 }
 /// Fabricates a spectrum with a slowly sweeping peak plus a quiet noise
 /// floor, purely so the page has something to draw before real FFT data is
