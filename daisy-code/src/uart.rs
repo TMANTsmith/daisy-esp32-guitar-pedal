@@ -85,6 +85,7 @@ impl<T: Pod, const N: usize> Packet<T, N> {
         .unwrap()
     }
 
+
     pub fn crc(&self) -> &[u8; 2] {
         (&self.bytes[4 + Self::PAYLOAD_LEN..]).try_into().unwrap()
     }

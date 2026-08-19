@@ -1,0 +1,6 @@
+Ref,Val,Package,PosX,PosY,Rot,Side
+"A1","Electrosmith_Daisy_Seed_Rev4","Electrosmith_Daisy_Seed",122.495000,-132.380000,-90.000000,bottom
+"J1","Screw_Terminal_01x02","TerminalBlock_Xinya_XY308-2.54-2P_1x02_P2.54mm_Horizontal",148.275000,-165.717500,180.000000,bottom
+"J3","Barrel_Jack_Switch","BarrelJack_Horizontal",135.707500,-152.250000,90.000000,bottom
+"J4","AUDIO_IN_TRS","Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal",138.000000,-112.135000,180.000000,bottom
+"J5","AUDIO_OUT_TRS","Jack_6.35mm_Neutrik_NMJ6HCD3_Horizontal",156.000000,-128.365000,0.000000,bottom

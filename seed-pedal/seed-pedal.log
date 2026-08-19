@@ -1,0 +1,3 @@
+Circuit: "Reference","Qty","Value","DNP","Exclude from BOM","Exclude from Board","Footprint","Datasheet"
+
+Fatal Error: Unknown SPICE device type """ in ""a1","1","electrosmith_daisy_seed_rev4","","","","module:electrosmith_daisy_seed","https://static1.squarespace.com/static/58d03fdc1b10e3bf442567b8/t/6227e6236f02fb68d1577146/1646781988478/daisy_seed_datasheet_v1.0.3.pdf""

@@ -10,6 +10,23 @@ The mini-pcb which includes TRS jacks for audio processing does not currently ha
 
 The full-pcb inclued a esp32 which is connected to the daisy seed through SPI and includes 2 TS jacks this pcb has ben designed but not tested yet
 
+#### mini-pcb
+
+- [x] Finished development
+- [x] Passed testing
+
+#### full-pcb
+
+- [x] Finished development
+- [ ] Passed testing
+
+#### seed-pedal
+
+This will copy the new 3Seed datasheet recommended configuration for instrument level audio and will be the final version
+
+- [ ] Finished development
+- [ ] Passed testing
+
 ### Software
 
 The project is written in rust and uses embassy as the async exacutor. Specifily the [daisy-embassy](https://github.com/daisy-embassy/daisy-embassy/tree/master) which has some audio stuff, like a DMA buffer, built in.

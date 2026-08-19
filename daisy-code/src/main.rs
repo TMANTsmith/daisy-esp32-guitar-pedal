@@ -6,7 +6,7 @@ mod uart;
 use uart::Packet;
 use core::fmt::write;
 use core::num::Wrapping;
-use code::modules::FFT::{*, FftState };
+use code::modules::FFT::{*, BufState};
 use code::modules::sin::Sine;
 use code::modules::process::Effects;
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
@@ -55,7 +55,7 @@ static BUFC: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
 
 // audio_task -> BUFB -> compute -> BUFC -> SPI -> BUFA -> audio_task
 
-static FFT_WRITE: StaticCell<FftWrite<FFT_N, FFT_H>> = StaticCell::new();
+static BUFFER_FILLER: StaticCell<BufferFiller<FFT_N>> = StaticCell::new();
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
 static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
@@ -138,7 +138,7 @@ async fn fft_compute() {
 #[embassy_executor::task]
 async fn audio_task(
     mut interface: Interface<'static, Running>,
-    fft_write: &'static mut FftWrite<FFT_N, FFT_H>,
+    buffer_filler: &'static mut BufferFiller<FFT_N>,
     mut sin: Sine,
 ) {
     // WAIT A 
@@ -151,12 +151,11 @@ async fn audio_task(
                 convert_to(input, &mut frames);
 
                 for frame in frames.iter_mut() {
-                    frame.1 = sin.get_next();
-                    match fft_write.add(frame.1) {
-                        Err(FftState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
-                        Err(FftState::NoBuf) => { 
+                    match buffer_filler.add(frame.1) {
+                        Err(BufState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
+                        Err(BufState::NoBuf) => { 
                             if let Some(b) = BUFA.try_take() { 
-                                fft_write.set_buf(b); 
+                                buffer_filler.set_buf(b); 
                                 //debug!("buffer receaved from compute");
                             } 
                         },
@@ -223,13 +222,13 @@ async fn main(_spawner: Spawner) {
     let spawner_high = EXECUTOR_HIGH.start(interrupt::TIM15); // reader
     let spawner_low = EXECUTOR_LOW.start(interrupt::TIM17); // computer
 
-    let fft_write = FFT_WRITE.init(FftWrite::<FFT_N, FFT_H>::new());
+    let buffer_filler = BUFFER_FILLER.init(BufferFiller::<FFT_N>::new());
 
     let sin = Sine::new(10_000.0, 0.5);
 
     let led = board.user_led;
 
-    spawner_high.spawn(audio_task(interface, fft_write, sin).unwrap());
+    spawner_high.spawn(audio_task(interface, buffer_filler, sin).unwrap());
     spawner_low.spawn(fft_compute().unwrap());
     spawner_low.spawn(uart_runner(uart, led).unwrap());
 

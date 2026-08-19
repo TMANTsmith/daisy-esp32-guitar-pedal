@@ -1206,7 +1206,7 @@
 		(uuid "fbde5f2c-a4c0-45c7-ae72-e269e455add5")
 	)
 	(global_label "AUDIO_OUT_JACK_RIGHT"
-		(shape input)
+		(shape output)
 		(at 195.58 67.31 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1278,7 +1278,7 @@
 		)
 	)
 	(global_label "AUDIO_OUT_JACK_LEFT"
-		(shape input)
+		(shape output)
 		(at 166.37 105.41 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1313,7 +1313,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "119d3dfd-3fa5-4bd3-b6e8-d555c73db1ae")
-		(property "Reference" "C9"
+		(property "Reference" "C6"
 			(at 165.1 59.69 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1386,7 +1386,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C9")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -1410,7 +1410,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "18137832-6a3a-4e0d-89bf-3048294f9198")
-		(property "Reference" "C3"
+		(property "Reference" "C5"
 			(at 96.52 57.15 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1483,7 +1483,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C3")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -1507,7 +1507,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2706ee63-eb76-4a6b-84fe-020f32bb895c")
-		(property "Reference" "R11"
+		(property "Reference" "R12"
 			(at 158.75 107.9499 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1582,7 +1582,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R11")
+					(reference "R12")
 					(unit 1)
 				)
 			)
@@ -1600,7 +1600,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3a81af32-dd31-49e8-b4bc-171fb4b719d3")
-		(property "Reference" "C5"
+		(property "Reference" "C8"
 			(at 81.28 95.25 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1673,7 +1673,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C5")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -1688,7 +1688,7 @@
 	(symbol
 		(lib_id "Amplifier_Operational:OPA1664D")
 		(at 115.57 105.41 0)
-		(unit 4)
+		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1697,7 +1697,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "62911e32-8bff-4676-b8f9-22df550c8094")
-		(property "Reference" "U2"
+		(property "Reference" "U1"
 			(at 115.57 95.25 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1806,8 +1806,8 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "U2")
-					(unit 4)
+					(reference "U1")
+					(unit 1)
 				)
 			)
 			(project "Output"
@@ -1830,7 +1830,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "65d13385-400d-4516-bf79-c1901e21a536")
-		(property "Reference" "R12"
+		(property "Reference" "R9"
 			(at 177.8 69.8499 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1905,7 +1905,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R12")
+					(reference "R9")
 					(unit 1)
 				)
 			)
@@ -1923,7 +1923,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6e5a0717-beb1-4c7e-99cf-f0d530396b45")
-		(property "Reference" "#PWR0108"
+		(property "Reference" "#PWR021"
 			(at 175.26 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -1984,7 +1984,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR0108")
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -2002,7 +2002,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "70a6e631-b891-4570-8004-6deb0b124ff9")
-		(property "Reference" "#PWR049"
+		(property "Reference" "#PWR022"
 			(at 72.39 116.84 0)
 			(hide yes)
 			(show_name no)
@@ -2062,7 +2062,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR049")
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -2080,7 +2080,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "77cf39d4-dcb4-48f2-b344-dc32a40aca30")
-		(property "Reference" "R3"
+		(property "Reference" "R8"
 			(at 148.59 60.96 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2153,7 +2153,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R3")
+					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -2171,7 +2171,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "792fa7c4-4a24-4613-b248-8e24ffb78b44")
-		(property "Reference" "C13"
+		(property "Reference" "C10"
 			(at 76.2 105.4099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2246,7 +2246,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C13")
+					(reference "C10")
 					(unit 1)
 				)
 			)
@@ -2264,7 +2264,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7f9a20aa-84e2-4dca-b172-534d351e3fe4")
-		(property "Reference" "C6"
+		(property "Reference" "C9"
 			(at 151.13 97.79 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2337,7 +2337,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C6")
+					(reference "C9")
 					(unit 1)
 				)
 			)
@@ -2361,7 +2361,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "80ae7897-12ae-4941-a829-abf562248562")
-		(property "Reference" "R2"
+		(property "Reference" "R11"
 			(at 135.89 99.06 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2434,7 +2434,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R2")
+					(reference "R11")
 					(unit 1)
 				)
 			)
@@ -2452,7 +2452,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "861064ad-dfe8-40f7-88de-e7bf19c4b5a1")
-		(property "Reference" "C2"
+		(property "Reference" "C7"
 			(at 91.44 68.5799 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2527,7 +2527,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "C2")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -2642,7 +2642,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "92a1a61f-c443-40a6-bdae-89497b0a66a0")
-		(property "Reference" "#PWR0107"
+		(property "Reference" "#PWR023"
 			(at 156.21 119.38 0)
 			(hide yes)
 			(show_name no)
@@ -2703,7 +2703,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR0107")
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -2721,7 +2721,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ac7addb9-cef4-4a5a-89d7-ff81a070b842")
-		(property "Reference" "R4"
+		(property "Reference" "R10"
 			(at 63.5 96.52 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2794,7 +2794,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R4")
+					(reference "R10")
 					(unit 1)
 				)
 			)
@@ -2812,7 +2812,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d2bc8286-356b-4691-b6ac-8c289599a63f")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR020"
 			(at 87.63 80.01 0)
 			(hide yes)
 			(show_name no)
@@ -2872,7 +2872,7 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR038")
+					(reference "#PWR020")
 					(unit 1)
 				)
 			)
@@ -2881,7 +2881,7 @@
 	(symbol
 		(lib_id "Amplifier_Operational:OPA1664D")
 		(at 134.62 67.31 0)
-		(unit 1)
+		(unit 4)
 		(body_style 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2890,7 +2890,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d37e44a0-757e-4283-95cc-fde077ae59d1")
-		(property "Reference" "U2"
+		(property "Reference" "U1"
 			(at 134.62 57.15 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2999,8 +2999,8 @@
 		(instances
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "U2")
-					(unit 1)
+					(reference "U1")
+					(unit 4)
 				)
 			)
 			(project "Output"

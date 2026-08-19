@@ -196,7 +196,7 @@
         const DB_MAX = 50;
         const MIN_DISPLAY_FREQ = 20; // Hz, log axis can't start at 0
         const MAX_DISPLAY_FREQ = SAMPLE_RATE / 2;
-        const SMOOTHING = 0.72; // temporal smoothing, 0 = none, closer to 1 = smoother/slower
+        const SMOOTHING = 0.5; // temporal smoothing, 0 = none, closer to 1 = smoother/slower
         const PEAK_DECAY_DB_PER_SEC = 14;
         const PEAK_MIN_DB = -82; // ignore bins quieter than this when picking labeled peaks
         const PEAK_COUNT = 4;

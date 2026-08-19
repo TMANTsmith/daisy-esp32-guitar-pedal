@@ -10,14 +10,13 @@ use alloc::boxed::Box;
 
 pub struct RunFft;
 
-
 pub trait GetFft<const N: usize> {
     fn get_complex(input: &mut [f32; N]) -> &mut [Complex32];
     fn get_bin_hz() -> f32;
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub enum FftState<const N: usize> {
+pub enum BufState<const N: usize> {
     Wait(usize),
     NoBuf,
     Ready(Box<[f32; N]>)
@@ -52,12 +51,12 @@ where
 
 
 
-pub struct FftWrite<const N: usize, const H: usize> {
+pub struct BufferFiller<const N: usize> {
     write_buf: Option<Box<[f32; N]>>,
     index: usize,
 }
 
-impl<const N: usize, const H: usize> FftWrite<N, H> {
+impl<const N: usize> BufferFiller<N> {
     pub fn new() -> Self {
         let write_buf = None;
         let index = 0;
@@ -74,13 +73,13 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
         self.index = 0;
     }
 
-    pub fn get_buf(&mut self) -> Result<Box<[f32; N]>, FftState<N>> {
+    pub fn get_buf(&mut self) -> Result<Box<[f32; N]>, BufState<N>> {
         if let Some(o) = self.write_buf.take() {
             //debug!("write buf rtn: {}", *o);
             Ok(o)
         }
         else {
-            Err(FftState::NoBuf)
+            Err(BufState::NoBuf)
         }
     }
     pub fn bin_hz() -> f32
@@ -90,10 +89,10 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
         <RunFft as GetFft<N>>::get_bin_hz()
     }
 
-    pub fn add(&mut self, input: f32) -> Result<(), FftState<N>>{
+    pub fn add(&mut self, input: f32) -> Result<(), BufState<N>> {
         if let Some(mut buf) = self.write_buf.take() {
             if self.index == N {
-                Err(FftState::Ready(buf))
+                Err(BufState::Ready(buf))
             }
             else {
                 buf[self.index] = input;
@@ -103,7 +102,7 @@ impl<const N: usize, const H: usize> FftWrite<N, H> {
             }
         }
         else {
-            Err(FftState::NoBuf) 
+            Err(BufState::NoBuf) 
         }
     }
 }

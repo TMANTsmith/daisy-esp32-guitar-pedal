@@ -119,7 +119,7 @@ async fn main(spawner: Spawner) -> ! {
 
     let uart_config = UartConfig::default()
         .with_baudrate(2_000_000)
-        .with_rx(RxConfig::default().with_fifo_full_threshold(64)); 
+        .with_rx(RxConfig::default().with_fifo_full_threshold(32)); 
 
     let mut uart = Uart::new(peripherals.UART0, uart_config).unwrap()
         .with_rx(rx)
