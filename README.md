@@ -18,7 +18,7 @@ The full-pcb inclued a esp32 which is connected to the daisy seed through SPI an
 #### full-pcb
 
 - [x] Finished development
-- [ ] Passed testing
+- [x] Passed testing
 
 #### seed-pedal
 

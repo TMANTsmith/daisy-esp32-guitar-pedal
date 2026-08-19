@@ -4,10 +4,11 @@ extern crate alloc;
 use alloc::boxed::Box;
 
 use esp32_code::Packet;
-use core::cell::RefCell;
 use core::{net::Ipv4Addr, str::FromStr};
-use critical_section::Mutex;
 use defmt::info;
+use embassy_sync::channel::Channel;
+use embassy_sync::signal::Signal;
+use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
 use embedded_websocket::{
     WebSocketServer, WebSocketReceiveMessageType, WebSocketSendMessageType,
 };
@@ -82,8 +83,11 @@ const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../inde
 // doesn't care how often set_spectrum is called.
 // +2 is for crc16
 // ---------------------------------------------------------------------------
-static SPECTRUM: Mutex<RefCell<[f32; SPECTRUM_SIZE]>> =
-    Mutex::new(RefCell::new([-100.0; SPECTRUM_SIZE]));
+
+/// FROM UART TO WEB
+static SPECTRUM_A: Signal<CriticalSectionRawMutex, Packet<f32, SPECTRUM_SIZE>> = Signal::new();
+/// FROM WEB TO UART
+static SPECTRUM_B: Signal<CriticalSectionRawMutex, Packet<f32, SPECTRUM_SIZE>> = Signal::new();
 
 
 /// Publish a new spectrum frame. `data[i]` should be the magnitude (in dB,
@@ -92,15 +96,7 @@ static SPECTRUM: Mutex<RefCell<[f32; SPECTRUM_SIZE]>> =
 /// linear magnitude rather than dB, either convert it before calling this
 /// (`20.0 * libm::log10f(mag.max(1e-6))`), or send it as-is and set
 /// `INPUT_IS_DB = false` in index.html's <script>.
-fn set_spectrum(data: &[f32; SPECTRUM_SIZE]) {
-    critical_section::with(|cs| {
-        SPECTRUM.borrow(cs).replace(*data);
-    });
-}
 
-fn get_spectrum_copy() -> [f32; SPECTRUM_SIZE] {
-    critical_section::with(|cs| *SPECTRUM.borrow(cs).borrow())
-}
 
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
@@ -332,10 +328,8 @@ async fn main(spawner: Spawner) -> ! {
                     }
                     // Timer fired: push the latest spectrum as a binary frame.
                     Either::Second(_) => {
-                        let spectrum = get_spectrum_copy();
-                        for (i, v) in spectrum.iter().enumerate() {
-                            spectrum_bytes[i * 4..i * 4 + 4].copy_from_slice(&v.to_le_bytes());
-                        }
+                        let spectrum = SPECTRUM_A.wait().await;
+                        let spectrum_bytes: &[u8] = bytemuck::cast_slice(spectrum.info());
                         let out_len = match ws.write(
                             WebSocketSendMessageType::Binary,
                             true,
@@ -352,6 +346,7 @@ async fn main(spawner: Spawner) -> ! {
                             println!("ws write error: {:?}", e);
                             break 'ws_loop;
                         }
+                        SPECTRUM_B.signal(spectrum);
                         let _ = socket.flush().await;
                     }
                 }
@@ -420,7 +415,8 @@ async fn uart_runner(mut uart: Uart<'static, Async>) {
                     if *filled == PACKET_LEN {
                         if packet.verify() {
                             //info!("CRC passed");
-                            set_spectrum(packet.info());
+                            SPECTRUM_A.signal(packet);
+                            packet = SPECTRUM_B.wait().await;
                         } else {
                             info!("CRC failed");
                             //info!("packet: {:?}", &packet);

@@ -91,7 +91,12 @@ impl<T: Pod, const N: usize> Packet<T, N> {
 
     /// Verify the CRC actually matches the payload.
     pub fn verify(&self) -> bool {
-        let expected = Self::X25.checksum(cast_slice(self.info())).to_le_bytes();
+        let payload = &self.bytes[4..4 + Self::PAYLOAD_LEN];
+
+        let expected = Self::X25
+            .checksum(payload)
+            .to_le_bytes();
+
         expected == *self.crc()
     }
 
@@ -102,6 +107,9 @@ impl<T: Pod, const N: usize> Packet<T, N> {
 
     pub fn as_bytes_mut(&mut self) -> &mut [u8] {
         &mut self.bytes
+    }
+    pub fn payload_bytes(&self) -> &[u8] {
+        &self.bytes[4..4 + Self::PAYLOAD_LEN]
     }
 }
 
