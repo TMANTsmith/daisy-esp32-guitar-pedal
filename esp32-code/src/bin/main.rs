@@ -1,8 +1,11 @@
 #![no_std]
 #![no_main]
+
+
+// TODO: double buffer with DMA on daisy seed?
 extern crate alloc;
 use alloc::boxed::Box;
-
+use core::marker::PhantomData;
 use esp32_code::Packet;
 use core::{net::Ipv4Addr, str::FromStr};
 use defmt::info;
@@ -35,7 +38,9 @@ use esp_hal::{
     timer::timg::TimerGroup,
     Blocking,
     Async,
-    uart::{Uart, RxConfig, TxConfig},
+    uart::{Uart, RxConfig, TxConfig, uhci, uhci::Uhci, uhci::UhciRx, uhci::UhciTx, uhci::UhciDmaRxTransfer},
+    dma::{DmaRxBuf, DmaTxBuf},
+    dma_buffers
 };
 use esp_hal::uart::Config as UartConfig;
 use esp_println::{print, println};
@@ -119,8 +124,29 @@ async fn main(spawner: Spawner) -> ! {
 
     let mut uart = Uart::new(peripherals.UART0, uart_config).unwrap()
         .with_rx(rx)
-        .with_tx(tx)
-        .into_async();
+        .with_tx(tx);
+
+    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(4092);
+    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(4092);
+
+    let dma_rx_a = DmaRxBuf::new(rx_descriptors_a, rx_buffer_a).unwrap();
+    let dma_rx_b = DmaRxBuf::new(rx_descriptors_b, rx_buffer_b).unwrap();
+
+    let mut uhci = Uhci::new(uart, peripherals.UHCI0, peripherals.DMA_CH0).into_async();
+    uhci.apply_rx_config(
+        &uhci::RxConfig::default().with_chunk_limit(dma_rx_a.len() as u16),
+    )
+        .unwrap();
+    uhci.apply_tx_config(&uhci::TxConfig::default())
+        .unwrap();
+    uhci.set_uart_config(&uart_config).unwrap();
+
+    let (mut uchi_rx, mut uchi_tx) = uhci.split();
+
+    let mut uart_dma = UartDmaRead::new();
+
+
+
 
 
     let access_point_config =
@@ -154,7 +180,7 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net_task(runner).unwrap());
     spawner.spawn(connection(controller).unwrap());
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
-    spawner.spawn(uart_runner(uart).unwrap());
+    spawner.spawn(uart_runner(uart_dma, uchi_rx, dma_rx_a, dma_rx_b).unwrap());
     // Remove this once you're feeding set_spectrum() from a real FFT source.
     //spawner.spawn(spectrum_demo_task().unwrap());
 
@@ -370,13 +396,15 @@ async fn main(spawner: Spawner) -> ! {
 
 
 #[embassy_executor::task]
-async fn uart_runner(mut uart: Uart<'static, Async>) {
+async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, Async>, mut dma_rx_a: DmaRxBuf, mut dma_rx_b: DmaRxBuf) {
 
     #[derive(defmt::Format)]
     enum State {
         Scanning { matched: usize },
         Collecting { filled: usize },
     }
+    
+
 
     let mut state = State::Scanning { matched: 0 };
 
@@ -387,74 +415,49 @@ async fn uart_runner(mut uart: Uart<'static, Async>) {
     const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
     const PACKET_LEN: usize = 4 + SPECTRUM_PAYLOAD_BYTES + 2;
 
-    loop {
-        let n = match uart.read_async(scratch.as_mut_slice()).await {
-            Ok(n) => n,
-            Err(e) => {
-                info!("UART error {:?}", defmt::Debug2Format(&e));
-                continue;
-            }
-        };
+    let mut uart_dma = uart_dma.on(uhci_rx, dma_rx_a);
+    let mut next_dma = dma_rx_b;
 
-        for &byte in &scratch[..n] {
-            match &mut state {
-                State::Scanning { matched } => {
-                    if byte == HEADER[*matched] {
-                        *matched += 1;
-                        if *matched == HEADER.len() {
-                            packet.as_bytes_mut()[..4].copy_from_slice(&HEADER);
-                            state = State::Collecting { filled: 4 };
-                        }
-                    } else {
-                        *matched = if byte == HEADER[0] { 1 } else { 0 };
-                    }
-                }
-                State::Collecting { filled } => {
-                    packet.as_bytes_mut()[*filled] = byte;
-                    *filled += 1;
-                    if *filled == PACKET_LEN {
-                        if packet.verify() {
-                            //info!("CRC passed");
-                            SPECTRUM_A.signal(packet);
-                            packet = SPECTRUM_B.wait().await;
+
+
+    loop {
+
+        let filled = uart_dma.read(next_dma).await.unwrap();
+
+
+        for chunk in filled.received_data() {
+            for &byte in chunk {
+                match &mut state {
+                    State::Scanning { matched } => {
+                        if byte == HEADER[*matched] {
+                            *matched += 1;
+                            if *matched == HEADER.len() {
+                                packet.as_bytes_mut()[..4].copy_from_slice(&HEADER);
+                                state = State::Collecting { filled: 4 };
+                            }
                         } else {
-                            info!("CRC failed");
-                            //info!("packet: {:?}", &packet);
+                            *matched = if byte == HEADER[0] { 1 } else { 0 };
                         }
-                        state = State::Scanning { matched: 0 };
+                    }
+                    State::Collecting { filled } => {
+                        packet.as_bytes_mut()[*filled] = byte;
+                        *filled += 1;
+                        if *filled == PACKET_LEN {
+                            if packet.verify() {
+                                //info!("CRC passed");
+                                SPECTRUM_A.signal(packet);
+                                packet = SPECTRUM_B.wait().await;
+                            } else {
+                                info!("CRC failed");
+                                //info!("packet: {:?}", &packet);
+                            }
+                            state = State::Scanning { matched: 0 };
+                        }
                     }
                 }
             }
         }
-    }
-}
-/// Fabricates a spectrum with a slowly sweeping peak plus a quiet noise
-/// floor, purely so the page has something to draw before real FFT data is
-/// wired up. Delete this task (and its spawn call in main) once
-/// set_spectrum() is being called from your actual audio pipeline.
-#[embassy_executor::task]
-async fn spectrum_demo_task() {
-    let mut rng_state: u32 = 0x1234_5678;
-    let mut center: f32 = 40.0;
-    let mut dir: f32 = 1.0;
-    loop {
-        let mut data = [0.0f32; SPECTRUM_SIZE];
-        for i in 0..SPECTRUM_SIZE {
-            let noise = (xorshift32(&mut rng_state) % 1000) as f32 / 1000.0; // 0..1
-            let floor_db = -82.0 + noise * 6.0;
-            let dist = i as f32 - center;
-            let peak_db = -6.0 - (dist * dist) * 0.015;
-            let dist2 = i as f32 - (center * 2.3 + 15.0);
-            let harmonic_db = -22.0 - (dist2 * dist2) * 0.03;
-            data[i] = floor_db.max(peak_db).max(harmonic_db);
-        }
-        set_spectrum(&data);
-
-        center += dir * 1.2;
-        if center > (SPECTRUM_SIZE as f32 * 0.35) || center < 15.0 {
-            dir = -dir;
-        }
-        Timer::after(Duration::from_millis(60)).await;
+        next_dma = filled;
     }
 }
 
@@ -524,3 +527,62 @@ async fn connection(controller: WifiController<'static>) {
 async fn net_task(mut runner: Runner<'static, esp_radio::wifi::Interface<'static>>) {
     runner.run().await
 }
+
+
+// must be made options because the transfer and dma functions consume the caller
+// and output the caller when done
+
+struct On;
+struct Off;
+
+struct UartDmaRead<State> {
+    transfer: Option<UhciDmaRxTransfer<'static, Async, DmaRxBuf>>,
+    _phantom: PhantomData<State>
+}
+
+// phudo code 
+// make function that retuns a rx buf 
+// the function when one rx buf is returned
+
+impl UartDmaRead<Off> { 
+    pub fn new() -> Self {
+        Self { 
+            transfer: None,
+            _phantom: PhantomData,
+        }
+    }
+    pub fn on(self, uhci_rx: UhciRx<'static, Async>, dma: DmaRxBuf) -> UartDmaRead<On>{
+        let transfer = Some(uhci_rx.read(dma).unwrap_or_else(|x| panic!("Something went horribly wrong: {:?}", x.0)));
+        UartDmaRead::<On> { transfer, _phantom: PhantomData }
+    }
+}
+
+impl UartDmaRead<On> { 
+    async fn read(&mut self, dma: DmaRxBuf) -> Result<DmaRxBuf, uhci::Error> {
+        if let Some(mut transfer) = self.transfer.take() {
+            transfer.wait_for_done().await;
+            let (err, uhci_rx, dma_rx) = transfer.wait();
+            self.transfer = Some(uhci_rx.read(dma).unwrap_or_else(|x| panic!("Something went horribly wrong: {:?}", x.0)));
+            if let Err(e) = err {
+                Err(e)
+            }
+            else { 
+                Ok(dma_rx)
+            }
+        }
+        else {
+            panic!("uh oh");
+        }
+    }
+}
+
+
+ 
+
+    /*
+    let transfer = uhci_rx.read(dma_rx).unwrap_or_else(|x| panic!("Something went horribly wrong: {:?}", x.0));
+    transfer.wait_for_done().await;
+    let (err, uhci_rx, dma_rx) = transfer.wait();
+    err.unwrap();
+    dma_rx.received_data();
+    */
