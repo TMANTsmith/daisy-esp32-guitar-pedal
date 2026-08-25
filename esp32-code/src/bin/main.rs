@@ -65,7 +65,7 @@ const GW_IP_ADDR_ENV: Option<&'static str> = option_env!("GATEWAY_IP");
 /// Number of bins in the spectrum. Must be a power of two. Increasing this
 /// increases RAM use (SPECTRUM_SIZE * 4 bytes for the shared buffer, plus
 /// roughly the same again for the outgoing frame buffer) and network load.
-const SPECTRUM_SIZE: usize = 512; // output of FFT
+const SPECTRUM_SIZE: usize = 2048; // output of FFT
 /// Sample rate of the audio the spectrum was computed from. Only used here
 /// for the startup log message; the actual bin->frequency mapping happens in
 /// the browser.
@@ -78,6 +78,15 @@ const WS_FRAME_MARGIN: usize = 16; // header + margin for the binary WS frame
 const TCP_BUF_SIZE: usize = SPECTRUM_PAYLOAD_BYTES + 512;
 
 const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../index.html"));
+
+
+const NYQUIST_HZ: u32 = SAMPLE_RATE_HZ / 2;          // 24_000
+const AUDIBLE_CUTOFF_HZ: u32 = 20_000;
+// round UP so we never clip a bin that's still under the cutoff
+    const TX_BINS: usize =
+((AUDIBLE_CUTOFF_HZ as usize * SPECTRUM_SIZE) + NYQUIST_HZ as usize - 1)
+    / NYQUIST_HZ as usize;                        // 1707 bins @ SPECTRUM_SIZE=2048
+    const TX_PAYLOAD_BYTES: usize = TX_BINS * 4;
 
 // ---------------------------------------------------------------------------
 // Shared spectrum state.
@@ -126,8 +135,8 @@ async fn main(spawner: Spawner) -> ! {
         .with_rx(rx)
         .with_tx(tx);
 
-    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(4092);
-    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(4092);
+    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(SPECTRUM_PAYLOAD_BYTES + 512);
+    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(SPECTRUM_PAYLOAD_BYTES + 512);
 
     let dma_rx_a = DmaRxBuf::new(rx_descriptors_a, rx_buffer_a).unwrap();
     let dma_rx_b = DmaRxBuf::new(rx_descriptors_b, rx_buffer_b).unwrap();
@@ -304,12 +313,12 @@ async fn main(spawner: Spawner) -> ! {
 
             // resp_buf holds encoded outgoing WS frames (echoed text replies
             // and binary spectrum pushes both use this buffer).
-            let mut resp_buf = [0u8; SPECTRUM_PAYLOAD_BYTES + WS_FRAME_MARGIN];
+            let mut resp_buf = [0u8; TX_PAYLOAD_BYTES + WS_FRAME_MARGIN];
             let mut frame_in = [0u8; 1024];
             // Raw bytes of the current spectrum frame, filled just before
             // each push so we're not holding the critical_section lock
             // while doing the (slower) websocket encode + TCP write.
-            let mut spectrum_bytes = [0u8; SPECTRUM_PAYLOAD_BYTES];
+            let mut spectrum_bytes = [0u8; TX_PAYLOAD_BYTES];
 
             'ws_loop: loop {
                 let read_fut = socket.read(&mut buffer);
@@ -355,7 +364,10 @@ async fn main(spawner: Spawner) -> ! {
                     // Timer fired: push the latest spectrum as a binary frame.
                     Either::Second(_) => {
                         let spectrum = SPECTRUM_A.wait().await;
-                        let spectrum_bytes: &[u8] = bytemuck::cast_slice(spectrum.info());
+                        let bytes: &[u8] = bytemuck::cast_slice(&spectrum.info()[..TX_BINS]);
+                        spectrum_bytes.copy_from_slice(bytes);
+                        SPECTRUM_B.signal(spectrum);
+
                         let out_len = match ws.write(
                             WebSocketSendMessageType::Binary,
                             true,
@@ -372,7 +384,6 @@ async fn main(spawner: Spawner) -> ! {
                             println!("ws write error: {:?}", e);
                             break 'ws_loop;
                         }
-                        SPECTRUM_B.signal(spectrum);
                         let _ = socket.flush().await;
                     }
                 }
@@ -419,10 +430,15 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
     let mut next_dma = dma_rx_b;
 
 
+    let mut failed: u32 = 0;
+    let mut all: u32 = 0;
 
     loop {
 
-        let filled = uart_dma.read(next_dma).await.unwrap();
+        let (err, filled) = uart_dma.read(next_dma).await;
+        if let Err(e) = err {
+            info!("uart dma error {:?}", e);
+        }
 
 
         for chunk in filled.received_data() {
@@ -444,11 +460,13 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
                         *filled += 1;
                         if *filled == PACKET_LEN {
                             if packet.verify() {
-                                //info!("CRC passed");
                                 SPECTRUM_A.signal(packet);
                                 packet = SPECTRUM_B.wait().await;
+                                all += 1;
                             } else {
-                                info!("CRC failed");
+                                all += 1;
+                                failed += 1;
+                                info!("CRC failed % {:?}", (failed / all) );
                                 //info!("packet: {:?}", &packet);
                             }
                             state = State::Scanning { matched: 0 };
@@ -558,17 +576,12 @@ impl UartDmaRead<Off> {
 }
 
 impl UartDmaRead<On> { 
-    async fn read(&mut self, dma: DmaRxBuf) -> Result<DmaRxBuf, uhci::Error> {
+    async fn read(&mut self, dma: DmaRxBuf) -> (Result<(), uhci::Error>, DmaRxBuf) {
         if let Some(mut transfer) = self.transfer.take() {
             transfer.wait_for_done().await;
             let (err, uhci_rx, dma_rx) = transfer.wait();
             self.transfer = Some(uhci_rx.read(dma).unwrap_or_else(|x| panic!("Something went horribly wrong: {:?}", x.0)));
-            if let Err(e) = err {
-                Err(e)
-            }
-            else { 
-                Ok(dma_rx)
-            }
+            (err, dma_rx) 
         }
         else {
             panic!("uh oh");

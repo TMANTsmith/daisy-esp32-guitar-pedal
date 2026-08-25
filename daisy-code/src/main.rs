@@ -44,7 +44,7 @@ bind_interrupts!(struct Irqs {
     DMA1_STREAM4 => dma::InterruptHandler<peripherals::DMA1_CH4>;
 });
 
-const FFT_N: usize = 1024; // input size
+const FFT_N: usize = 4096; // input size
 const FFT_H: usize = FFT_N / 2; // output size
 const FFT_L: usize = 2; 
 
@@ -99,7 +99,7 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
 
         let info = packet.info();
 
-        // info!("10kHz {}", info[213]);
+        //info!("10kHz {}", info[213]);
 
         uart.write(packet.as_bytes()).await.unwrap();
     }
@@ -246,18 +246,23 @@ async fn main(_spawner: Spawner) {
 pub type Frame = (f32, f32);
 pub type FrameBlock = [Frame; 32];
 
+#[inline(always)]
 pub fn convert_to(input: &[u32], output: &mut [Frame]) {
     for (chunk, frame) in input.chunks(2).zip(output.iter_mut()) {
         frame.0 = to_f32(chunk[0]);
         frame.1 = to_f32(chunk[1]);
     }
 }
+
+#[inline(always)]
 pub fn convert_from(input: &[Frame], output: &mut [u32]) {
     for (frame, chunk) in input.iter().zip(output.chunks_mut(2)) {
         chunk[0] = to_u32(frame.0);
         chunk[1] = to_u32(frame.1);
     }
 }
+
+#[inline(always)]
 fn to_f32(y: u32) -> f32 {
     let y = (Wrapping(y) + Wrapping(0x0080_0000)).0 & 0x00FF_FFFF; // convert to i32
     (y as f32 / 8_388_608.0) - 1.0 // (2^24) / 2

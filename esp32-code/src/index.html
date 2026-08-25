@@ -189,13 +189,15 @@
     <script>
       (() => {
         // ---- Config: must match the device ------------------------------------
-        const SAMPLE_RATE = 48000; // Hz, matches SAMPLE_RATE_HZ in main.rs
-        const SPECTRUM_SIZE = 512; // bins, matches SPECTRUM_SIZE in main.rs
+        const FFT_BINS = 2048; // total bins computed on device — matches SPECTRUM_SIZE in main.rs
+        const SAMPLE_RATE = 48000;
+        const HZ_PER_BIN = SAMPLE_RATE / 2 / FFT_BINS; // 11.71875
+        const SPECTRUM_SIZE = Math.ceil(20000 / HZ_PER_BIN); // 1707 — bins actually received, must match TX_BINS
+        const MAX_DISPLAY_FREQ = SPECTRUM_SIZE * HZ_PER_BIN; // ~20,005 Hz — top of what we now actually get
         const INPUT_IS_DB = false; // false => device sends linear magnitude, convert client-side
         const DB_MIN = -100;
         const DB_MAX = 50;
         const MIN_DISPLAY_FREQ = 20; // Hz, log axis can't start at 0
-        const MAX_DISPLAY_FREQ = SAMPLE_RATE / 2;
         const SMOOTHING = 0.5; // temporal smoothing, 0 = none, closer to 1 = smoother/slower
         const PEAK_DECAY_DB_PER_SEC = 14;
         const PEAK_MIN_DB = -82; // ignore bins quieter than this when picking labeled peaks
