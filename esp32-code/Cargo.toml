@@ -73,6 +73,11 @@ embassy-futures = "0.1.2"
 crc = "3.4.0"
 bytemuck = "1.25.2"
 embassy-sync = "0.8.0"
+settings = { path = "../settings" }
+
+[build-dependencies]
+settings = { path = "../settings" }
+
 
 
 # For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html

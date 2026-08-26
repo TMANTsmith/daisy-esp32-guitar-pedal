@@ -2,6 +2,7 @@
 #![no_main]
 extern crate alloc;
 
+use settings::{FFT_N};
 mod uart;
 use uart::Packet;
 use core::fmt::write;
@@ -44,9 +45,6 @@ bind_interrupts!(struct Irqs {
     DMA1_STREAM4 => dma::InterruptHandler<peripherals::DMA1_CH4>;
 });
 
-const FFT_N: usize = 4096; // input size
-const FFT_H: usize = FFT_N / 2; // output size
-const FFT_L: usize = 2; 
 
 
 static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
@@ -59,6 +57,8 @@ static BUFFER_FILLER: StaticCell<BufferFiller<FFT_N>> = StaticCell::new();
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
 static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
+
+const FFT_H: usize = FFT_N / 2;
 
 
 #[global_allocator]
@@ -85,7 +85,6 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
     // SIGNAL A 
     let mut packet: Packet<f32, {FFT_H}> = Packet::new(&[0f32; FFT_H]);
     const X25: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC);
-    const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
 
     loop {
         let buffer = BUFC.wait().await;

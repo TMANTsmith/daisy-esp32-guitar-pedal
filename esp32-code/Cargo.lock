@@ -1175,6 +1175,7 @@ dependencies = [
  "esp-radio",
  "esp-rtos",
  "heapless 0.8.0",
+ "settings",
  "smoltcp",
  "static_cell",
 ]
@@ -1963,6 +1964,10 @@ dependencies = [
  "serde",
  "unsafe-libyaml",
 ]
+
+[[package]]
+name = "settings"
+version = "0.1.0"
 
 [[package]]
 name = "sha1"

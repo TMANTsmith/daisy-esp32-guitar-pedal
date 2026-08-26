@@ -1,5 +1,6 @@
 /esp32-code/target
 /daisy-code/target
+/settings/target
 bash.sh
 /esp32-code/kernel8.img
 /daisy-code/kernel8.img

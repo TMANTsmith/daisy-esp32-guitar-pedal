@@ -1,71 +1,63 @@
+use settings::consts::*;
+
 fn main() {
-    linker_be_nice();
+    let js = format!(
+        r#"window.RUST_CONSTS = {{
+  FFT_BINS: {fft_bins},
+  SAMPLE_RATE: {sample_rate},
+  INPUT_IS_DB: {input_is_db},
+  DB_MIN: {db_min},
+  DB_MAX: {db_max},
+  MIN_DISPLAY_FREQ: {min_display_freq},
+  SMOOTHING: {smoothing},
+  PEAK_DECAY_DB_PER_SEC: {peak_decay},
+  PEAK_MIN_DB: {peak_min_db},
+  PEAK_COUNT: {peak_count},
+  SPECTRUM_SIZE: {spectrum_size},
+  HZ_PER_BIN: {hz_per_bin},
+  MAX_DISPLAY_FREQ: {max_display_freq},
+  PEAK_MIN_SEPARATION_BINS: {peak_min_sep},
+}};
+"#,
+        fft_bins = FFT_BINS,
+        sample_rate = SAMPLE_RATE,
+        input_is_db = INPUT_IS_DB,
+        db_min = DB_MIN,
+        db_max = DB_MAX,
+        min_display_freq = MIN_DISPLAY_FREQ,
+        smoothing = SMOOTHING,
+        peak_decay = PEAK_DECAY_DB_PER_SEC,
+        peak_min_db = PEAK_MIN_DB,
+        peak_count = PEAK_COUNT,
+        spectrum_size = spectrum_size(),
+        hz_per_bin = hz_per_bin(),
+        max_display_freq = max_display_freq(),
+        peak_min_sep = peak_min_separation_bins(),
+    );
+
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+    std::fs::write(std::path::Path::new(&out_dir).join("consts.js"), &js)
+        .expect("failed to write consts.js to OUT_DIR");
+
+    let static_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/consts.js");
+    std::fs::write(&static_path, &js)
+        .expect("failed to write consts.js to src dir");
+
+    println!("cargo:rerun-if-changed=../settings/src/consts.rs");
+    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rustc-link-arg=-Tdefmt.x");
-    // make sure linkall.x is the last linker script (otherwise might cause problems with flip-link)
     println!("cargo:rustc-link-arg=-Tlinkall.x");
 }
 
-fn linker_be_nice() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 {
-        let kind = &args[1];
-        let what = &args[2];
-
-        match kind.as_str() {
-            "undefined-symbol" => match what.as_str() {
-                what if what.starts_with("_defmt_") => {
-                    eprintln!();
-                    eprintln!(
-                        "💡 `defmt` not found - make sure `defmt.x` is added as a linker script and you have included `use defmt_rtt as _;`"
-                    );
-                    eprintln!();
-                }
-                "_stack_start" => {
-                    eprintln!();
-                    eprintln!("💡 Is the linker script `linkall.x` missing?");
-                    eprintln!();
-                }
-                what if what.starts_with("esp_rtos_") => {
-                    eprintln!();
-                    eprintln!(
-                        "💡 `esp-radio` has no scheduler enabled. Make sure you have initialized `esp-rtos` or provided an external scheduler."
-                    );
-                    eprintln!();
-                }
-                "embedded_test_linker_file_not_added_to_rustflags" => {
-                    eprintln!();
-                    eprintln!(
-                        "💡 `embedded-test` not found - make sure `embedded-test.x` is added as a linker script for tests"
-                    );
-                    eprintln!();
-                }
-                "free"
-                | "malloc"
-                | "calloc"
-                | "get_free_internal_heap_size"
-                | "malloc_internal"
-                | "realloc_internal"
-                | "calloc_internal"
-                | "free_internal" => {
-                    eprintln!();
-                    eprintln!(
-                        "💡 Did you forget the `esp-alloc` dependency or didn't enable the `compat` feature on it?"
-                    );
-                    eprintln!();
-                }
-                _ => (),
-            },
-            // we don't have anything helpful for "missing-lib" yet
-            _ => {
-                std::process::exit(1);
-            }
-        }
-
-        std::process::exit(0);
-    }
-
-    println!(
-        "cargo:rustc-link-arg=--error-handling-script={}",
-        std::env::current_exe().unwrap().display()
-    );
+fn hz_per_bin() -> f64 {
+    SAMPLE_RATE as f64 / 2.0 / FFT_BINS as f64
+}
+fn spectrum_size() -> usize {
+    (20000.0 / hz_per_bin()).ceil() as usize
+}
+fn max_display_freq() -> f64 {
+    spectrum_size() as f64 * hz_per_bin()
+}
+fn peak_min_separation_bins() -> usize {
+    4usize.max((spectrum_size() as f64 / 40.0).round() as usize)
 }

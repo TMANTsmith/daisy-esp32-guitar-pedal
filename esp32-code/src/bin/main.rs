@@ -9,6 +9,7 @@ use core::marker::PhantomData;
 use esp32_code::Packet;
 use core::{net::Ipv4Addr, str::FromStr};
 use defmt::info;
+use embassy_time::Instant;
 use embassy_sync::channel::Channel;
 use embassy_sync::signal::Signal;
 use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
@@ -419,7 +420,6 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
 
     let mut state = State::Scanning { matched: 0 };
 
-    let mut scratch = [0u8; 128];
     let mut packet = Packet::new(&[0f32; SPECTRUM_SIZE]);
 
 
