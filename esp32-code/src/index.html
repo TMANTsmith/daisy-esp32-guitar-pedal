@@ -204,6 +204,9 @@
         const PEAK_COUNT = window.RUST_CONSTS.PEAK_COUNT;
         const PEAK_MIN_SEPARATION_BINS =
           window.RUST_CONSTS.PEAK_MIN_SEPARATION_BINS;
+        const BIN_VALUE_SIZE = window.RUST_CONSTS.BIN_VALUE_SIZE;
+        const BIN_IS_FLOAT = window.RUST_CONSTS.BIN_IS_FLOAT;
+        const BIN_SCALE = window.RUST_CONSTS.BIN_SCALE;
 
         document.getElementById("infoLeft").textContent =
           `sample rate ${(SAMPLE_RATE / 1000).toFixed(0)} kHz · ${SPECTRUM_SIZE} bins`;
@@ -250,10 +253,16 @@
           ws.onerror = () => ws.close();
           ws.onmessage = (e) => {
             if (!(e.data instanceof ArrayBuffer)) return; // ignore stray text frames
-            const floats = new Float32Array(e.data);
-            const n = Math.min(floats.length, SPECTRUM_SIZE);
+            // View type/scale follow BinValue's real Rust type (see build.rs) —
+            // this adapts automatically if BinValue changes to f32/i16/i8.
+            const raw = BIN_IS_FLOAT
+              ? new Float32Array(e.data)
+              : BIN_VALUE_SIZE === 2
+                ? new Int16Array(e.data)
+                : new Int8Array(e.data);
+            const n = Math.min(raw.length, SPECTRUM_SIZE);
             for (let i = 0; i < n; i++) {
-              let v = floats[i];
+              let v = raw[i] / BIN_SCALE; // BIN_SCALE = 1 for float, no-op
               if (!INPUT_IS_DB) v = 20 * Math.log10(Math.max(v, 1e-6));
               latest[i] = v;
             }

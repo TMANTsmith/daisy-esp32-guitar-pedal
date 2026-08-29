@@ -1,5 +1,4 @@
-use settings::consts::*;
-
+use settings::*;
 fn main() {
     let js = format!(
         r#"window.RUST_CONSTS = {{
@@ -17,6 +16,9 @@ fn main() {
   HZ_PER_BIN: {hz_per_bin},
   MAX_DISPLAY_FREQ: {max_display_freq},
   PEAK_MIN_SEPARATION_BINS: {peak_min_sep},
+  BIN_VALUE_SIZE: {bin_value_size},
+  BIN_IS_FLOAT: {bin_is_float},
+  BIN_SCALE: {bin_scale},
 }};
 "#,
         fft_bins = FFT_BINS,
@@ -33,6 +35,9 @@ fn main() {
         hz_per_bin = hz_per_bin(),
         max_display_freq = max_display_freq(),
         peak_min_sep = peak_min_separation_bins(),
+        bin_value_size = BIN_VALUE_SIZE,
+        bin_is_float = BIN_IS_FLOAT,
+        bin_scale = BIN_SCALE,
     );
 
     let out_dir = std::env::var("OUT_DIR").unwrap();

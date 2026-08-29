@@ -24,7 +24,11 @@ static_cell = "2.1.1"
 embedded-alloc = "0.7.0"
 bytemuck = { version = "1.25.1", features = ["derive", "min_const_generics" ] }
 crc = "3.4.0"
-settings = { path = "../settings/src/main.rs" }
+settings = { path = "../settings" }
+pcobs = "1.0.0"
+serde = { version = "1.0.229", default-features = false, features = ["derive"] }
+serde-big-array = "0.5.1"
+
 
 [profile.dev]
 codegen-units = 1

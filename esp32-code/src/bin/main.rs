@@ -4,9 +4,10 @@
 
 // TODO: double buffer with DMA on daisy seed?
 extern crate alloc;
+use pcobs::{serialize, deserialize};
+use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32};
 use alloc::boxed::Box;
 use core::marker::PhantomData;
-use esp32_code::Packet;
 use core::{net::Ipv4Addr, str::FromStr};
 use defmt::info;
 use embassy_time::Instant;
@@ -64,9 +65,9 @@ const GW_IP_ADDR_ENV: Option<&'static str> = option_env!("GATEWAY_IP");
 // <script> block in index.html and the consts in daisy.
 // ---------------------------------------------------------------------------
 /// Number of bins in the spectrum. Must be a power of two. Increasing this
-/// increases RAM use (SPECTRUM_SIZE * 4 bytes for the shared buffer, plus
+/// increases RAM use (FFT_BINS* 4 bytes for the shared buffer, plus
 /// roughly the same again for the outgoing frame buffer) and network load.
-const SPECTRUM_SIZE: usize = 2048; // output of FFT
+const FFT_BINS: usize = 2048; // output of FFT
 /// Sample rate of the audio the spectrum was computed from. Only used here
 /// for the startup log message; the actual bin->frequency mapping happens in
 /// the browser.
@@ -74,7 +75,7 @@ const SAMPLE_RATE_HZ: u32 = 48_000;
 /// How often a new spectrum frame is pushed to a connected WebSocket client.
 const SPECTRUM_PUSH_INTERVAL: Duration = Duration::from_millis(50); // ~20 fps
 
-const SPECTRUM_PAYLOAD_BYTES: usize = SPECTRUM_SIZE * 4; // f32 = 4 bytes each
+const SPECTRUM_PAYLOAD_BYTES: usize = FFT_BINS* core::mem::size_of::<BinValue>(); // f32 = 4 bytes each
 const WS_FRAME_MARGIN: usize = 16; // header + margin for the binary WS frame
 const TCP_BUF_SIZE: usize = SPECTRUM_PAYLOAD_BYTES + 512;
 
@@ -85,8 +86,8 @@ const NYQUIST_HZ: u32 = SAMPLE_RATE_HZ / 2;          // 24_000
 const AUDIBLE_CUTOFF_HZ: u32 = 20_000;
 // round UP so we never clip a bin that's still under the cutoff
     const TX_BINS: usize =
-((AUDIBLE_CUTOFF_HZ as usize * SPECTRUM_SIZE) + NYQUIST_HZ as usize - 1)
-    / NYQUIST_HZ as usize;                        // 1707 bins @ SPECTRUM_SIZE=2048
+((AUDIBLE_CUTOFF_HZ as usize * FFT_BINS) + NYQUIST_HZ as usize - 1)
+    / NYQUIST_HZ as usize;                        // 1707 bins @ FFT_BINS=2048
     const TX_PAYLOAD_BYTES: usize = TX_BINS * 4;
 
 // ---------------------------------------------------------------------------
@@ -100,14 +101,13 @@ const AUDIBLE_CUTOFF_HZ: u32 = 20_000;
 // ---------------------------------------------------------------------------
 
 /// FROM UART TO WEB
-static SPECTRUM_A: Signal<CriticalSectionRawMutex, Packet<f32, SPECTRUM_SIZE>> = Signal::new();
+static SPECTRUM_A: Signal<CriticalSectionRawMutex, [BinValue; FFT_BINS]> = Signal::new();
 /// FROM WEB TO UART
-static SPECTRUM_B: Signal<CriticalSectionRawMutex, Packet<f32, SPECTRUM_SIZE>> = Signal::new();
 
 
 /// Publish a new spectrum frame. `data[i]` should be the magnitude (in dB,
 /// e.g. -100.0 to 0.0) of frequency bin `i`, where bin `i` corresponds to
-/// `i * (SAMPLE_RATE_HZ / 2) / SPECTRUM_SIZE` Hz. If your FFT output is
+/// `i * (SAMPLE_RATE_HZ / 2) / FFT_BINS` Hz. If your FFT output is
 /// linear magnitude rather than dB, either convert it before calling this
 /// (`20.0 * libm::log10f(mag.max(1e-6))`), or send it as-is and set
 /// `INPUT_IS_DB = false` in index.html's <script>.
@@ -199,7 +199,7 @@ async fn main(spawner: Spawner) -> ! {
     println!(
         "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:80/"
     );
-    println!("Spectrum: {} bins @ {} Hz sample rate", SPECTRUM_SIZE, SAMPLE_RATE_HZ);
+    println!("Spectrum: {} bins @ {} Hz sample rate", FFT_BINS, SAMPLE_RATE_HZ);
     println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
     stack.wait_config_up().await;
     stack
@@ -365,9 +365,8 @@ async fn main(spawner: Spawner) -> ! {
                     // Timer fired: push the latest spectrum as a binary frame.
                     Either::Second(_) => {
                         let spectrum = SPECTRUM_A.wait().await;
-                        let bytes: &[u8] = bytemuck::cast_slice(&spectrum.info()[..TX_BINS]);
+                        let bytes: &[u8] = bytemuck::cast_slice(&spectrum[..TX_BINS]);
                         spectrum_bytes.copy_from_slice(bytes);
-                        SPECTRUM_B.signal(spectrum);
 
                         let out_len = match ws.write(
                             WebSocketSendMessageType::Binary,
@@ -410,22 +409,6 @@ async fn main(spawner: Spawner) -> ! {
 #[embassy_executor::task]
 async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, Async>, mut dma_rx_a: DmaRxBuf, mut dma_rx_b: DmaRxBuf) {
 
-    #[derive(defmt::Format)]
-    enum State {
-        Scanning { matched: usize },
-        Collecting { filled: usize },
-    }
-    
-
-
-    let mut state = State::Scanning { matched: 0 };
-
-    let mut packet = Packet::new(&[0f32; SPECTRUM_SIZE]);
-
-
-    const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
-    const PACKET_LEN: usize = 4 + SPECTRUM_PAYLOAD_BYTES + 2;
-
     let mut uart_dma = uart_dma.on(uhci_rx, dma_rx_a);
     let mut next_dma = dma_rx_b;
 
@@ -433,44 +416,40 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
     let mut failed: u32 = 0;
     let mut all: u32 = 0;
 
-    loop {
+    let mut rx_buf = [0u8; COBS_BUF];
 
+    let mut filled_len: usize = 0;
+
+
+    loop {
         let (err, filled) = uart_dma.read(next_dma).await;
         if let Err(e) = err {
             info!("uart dma error {:?}", e);
         }
 
-
         for chunk in filled.received_data() {
             for &byte in chunk {
-                match &mut state {
-                    State::Scanning { matched } => {
-                        if byte == HEADER[*matched] {
-                            *matched += 1;
-                            if *matched == HEADER.len() {
-                                packet.as_bytes_mut()[..4].copy_from_slice(&HEADER);
-                                state = State::Collecting { filled: 4 };
-                            }
-                        } else {
-                            *matched = if byte == HEADER[0] { 1 } else { 0 };
+                if byte == FRAME_DELIM {
+                    // End of COBS frame — attempt to decode
+                    all += 1;
+                    let msg: Result<FFTUart, _> = deserialize(&mut rx_buf, filled_len);
+                    match msg {
+                        Ok(frame) => {
+                            SPECTRUM_A.signal(frame.into());
+                        }
+                        Err(e) => {
+                            failed += 1;
+                            info!("decode failed % {:?}", (failed as f32 / all as f32));
                         }
                     }
-                    State::Collecting { filled } => {
-                        packet.as_bytes_mut()[*filled] = byte;
-                        *filled += 1;
-                        if *filled == PACKET_LEN {
-                            if packet.verify() {
-                                SPECTRUM_A.signal(packet);
-                                packet = SPECTRUM_B.wait().await;
-                                all += 1;
-                            } else {
-                                all += 1;
-                                failed += 1;
-                                info!("CRC failed % {:?}", (failed / all) );
-                                //info!("packet: {:?}", &packet);
-                            }
-                            state = State::Scanning { matched: 0 };
-                        }
+                    filled_len = 0; // reset for next frame
+                } else {
+                    if filled_len < rx_buf.len() {
+                        rx_buf[filled_len] = byte;
+                        filled_len += 1;
+                    } else {
+                        // overflowed the buffer without seeing a delimiter — drop this frame
+                        filled_len = 0;
                     }
                 }
             }

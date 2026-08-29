@@ -2,12 +2,13 @@
 #![no_main]
 extern crate alloc;
 
-use settings::{FFT_N};
-mod uart;
-use uart::Packet;
+
+
+use pcobs::{serialize, deserialize};
+use settings::{FFT_INPUT, FFT_BINS, BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32};
 use core::fmt::write;
 use core::num::Wrapping;
-use code::modules::FFT::{*, BufState};
+use code::modules::FFT::{self, BufState, *};
 use code::modules::sin::Sine;
 use code::modules::process::Effects;
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
@@ -47,18 +48,17 @@ bind_interrupts!(struct Irqs {
 
 
 
-static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
-static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
-static BUFC: Signal<CriticalSectionRawMutex, Box<[f32; FFT_N]>> = Signal::new();
+static BUFA: Signal<CriticalSectionRawMutex, Box<[f32; FFT_INPUT]>> = Signal::new();
+static BUFB: Signal<CriticalSectionRawMutex, Box<[f32; FFT_INPUT]>> = Signal::new();
+static BUFC: Signal<CriticalSectionRawMutex, Box<[f32; FFT_INPUT]>> = Signal::new();
 
 // audio_task -> BUFB -> compute -> BUFC -> SPI -> BUFA -> audio_task
 
-static BUFFER_FILLER: StaticCell<BufferFiller<FFT_N>> = StaticCell::new();
+static BUFFER_FILLER: StaticCell<BufferFiller<FFT_INPUT>> = StaticCell::new();
 
 static EXECUTOR_HIGH: InterruptExecutor = InterruptExecutor::new();
 static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
 
-const FFT_H: usize = FFT_N / 2;
 
 
 #[global_allocator]
@@ -83,34 +83,40 @@ fn panic() -> ! {
 async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) {
     // WAIT C 
     // SIGNAL A 
-    let mut packet: Packet<f32, {FFT_H}> = Packet::new(&[0f32; FFT_H]);
-    const X25: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_IBM_SDLC);
 
+
+
+    let mut cobs = [0_u8; COBS_BUF];
+    let mut convertion: [BinValue; FFT_BINS] = [BinValue::from(0u8); FFT_BINS];
     loop {
-        let buffer = BUFC.wait().await;
+        let mut bufc = BUFC.wait().await;
+        let buffer: &mut [f32; FFT_BINS] = (&mut bufc[..FFT_BINS]).try_into().unwrap();
+        FromF32::slice_from_f32(buffer, &mut convertion);
+        let msg = FFTUart::new(convertion);
+        let len = serialize(&msg, cobs.as_mut_slice());
+        BUFA.signal(bufc);
 
-        let crc = X25.checksum(cast_slice(buffer.as_ref())).to_le_bytes();
-
-        // maybe have the BUF# be a packet so there are no copys
-        packet.copy_into(&buffer.as_slice()[..FFT_H]);
-
-        BUFA.signal(buffer);
-
-        let info = packet.info();
-
-        //info!("10kHz {}", info[213]);
-
-        uart.write(packet.as_bytes()).await.unwrap();
+        match len {
+            Err(e) =>
+            {
+                info!("uart error");
+            },
+            Ok(len) =>
+            {
+                uart.write(&cobs[..len]).await.unwrap();
+                uart.write(&[FRAME_DELIM]).await.unwrap();
+            }
+        }
     }
 }
 #[embassy_executor::task]
 async fn fft_compute() {
 
-    let mut mags = [0.0f32; FFT_H]; // reusable scratch, stack-allocated, outside the loop
+    let mut mags = [0.0f32; FFT_BINS]; // reusable scratch, stack-allocated, outside the loop
 
     loop {
         let mut buffer = BUFB.wait().await;
-        let result = compute::<FFT_N, FFT_H>(&mut buffer);
+        let result = compute::<FFT_INPUT, FFT_BINS>(&mut buffer);
         result[0].im = 0.0;
 
         let mut max_amp: f32 = 0.0;
@@ -121,13 +127,13 @@ async fn fft_compute() {
                 max_i = i;
             }
         }
-        let freq = max_i as f32 * get_bin_hz::<FFT_N>();
+        let freq = max_i as f32 * get_bin_hz::<FFT_INPUT>();
 
-        for i in 0..FFT_H {
+        for i in 0..FFT_BINS{
             mags[i] = libm::sqrtf(result[i].norm_sqr());
         }
 
-        buffer[..FFT_H].copy_from_slice(&mags);
+        buffer[..FFT_BINS].copy_from_slice(&mags);
 
         BUFC.signal(buffer);
     }
@@ -137,7 +143,7 @@ async fn fft_compute() {
 #[embassy_executor::task]
 async fn audio_task(
     mut interface: Interface<'static, Running>,
-    buffer_filler: &'static mut BufferFiller<FFT_N>,
+    buffer_filler: &'static mut BufferFiller<FFT_INPUT>,
     mut sin: Sine,
 ) {
     // WAIT A 
@@ -221,7 +227,7 @@ async fn main(_spawner: Spawner) {
     let spawner_high = EXECUTOR_HIGH.start(interrupt::TIM15); // reader
     let spawner_low = EXECUTOR_LOW.start(interrupt::TIM17); // computer
 
-    let buffer_filler = BUFFER_FILLER.init(BufferFiller::<FFT_N>::new());
+    let buffer_filler = BUFFER_FILLER.init(BufferFiller::<FFT_INPUT>::new());
 
     let sin = Sine::new(10_000.0, 0.5);
 
@@ -231,9 +237,9 @@ async fn main(_spawner: Spawner) {
     spawner_low.spawn(fft_compute().unwrap());
     spawner_low.spawn(uart_runner(uart, led).unwrap());
 
-    let buf_a = Box::new([0_f32; FFT_N]);
-    let buf_b = Box::new([0_f32; FFT_N]);
-    let buf_c = Box::new([0_f32; FFT_N]);
+    let buf_a = Box::new([0_f32; FFT_INPUT]);
+    let buf_b = Box::new([0_f32; FFT_INPUT]);
+    let buf_c = Box::new([0_f32; FFT_INPUT]);
 
     BUFA.signal(buf_a);
     BUFB.signal(buf_b);
