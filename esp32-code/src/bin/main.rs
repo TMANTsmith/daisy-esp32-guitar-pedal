@@ -430,10 +430,19 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
             for &byte in chunk {
                 if byte == FRAME_DELIM {
                     // End of COBS frame — attempt to decode
-                    let msg: Result<FFTUart, _> = deserialize(&mut rx_buf, filled_len);
+                    info!("decrealizing: {}", rx_buf[..filled_len]);
+
+                    #[derive(serde::Serialize, serde::Deserialize)]
+                    struct Test {
+                        test: [usize; 3]
+                    }
+
+                    let msg: Result<Test, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
+                    //let msg: Result<FFTUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
                     match msg {
                         Ok(frame) => {
-                            SPECTRUM_A.signal(frame.into());
+                            info!("sucess");
+                            //SPECTRUM_A.signal(frame.into());
                         }
                         Err(err) => {
                             let err: DecodeErrorWrapper = err.into();
@@ -447,6 +456,7 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
                         filled_len += 1;
                     } else {
                         // overflowed the buffer without seeing a delimiter — drop this frame
+                        info!("rx_buf overflowed");
                         filled_len = 0;
                     }
                 }

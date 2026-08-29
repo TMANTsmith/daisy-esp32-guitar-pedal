@@ -86,6 +86,10 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
 
     // try to remove box here and optimize for more memory
 
+    #[derive(serde::Serialize, serde::Deserialize)]
+    struct Test {
+        test: [usize; 3]
+    }
 
     let mut cobs = Box::new([0_u8; COBS_BUF]);
     let mut convertion: [BinValue; FFT_BINS] = [BinValue::from(0u8); FFT_BINS];
@@ -94,7 +98,9 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
         let mut bufc = BUFC.wait().await;
         let buffer: &mut [f32; FFT_BINS] = (&mut bufc[..FFT_BINS]).try_into().unwrap();
         FromF32::slice_from_f32(buffer, &mut convertion);
-        let msg = FFTUart::new(convertion);
+        // let msg = FFTUart::new(convertion);
+        let temp = [1, 2, 3];
+        let msg = Test { test: temp };
         let len = serialize(&msg, cobs.as_mut_slice());
         BUFA.signal(bufc);
 
@@ -107,6 +113,7 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
             Ok(len) =>
             {
                 uart.write(&cobs[..len]).await.unwrap();
+                info!("writing: {}", &cobs[..len]);
                 uart.write(&[FRAME_DELIM]).await.unwrap();
             }
         }
