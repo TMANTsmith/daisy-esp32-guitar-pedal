@@ -6,7 +6,7 @@
 extern crate alloc;
 
 use pcobs::{serialize, deserialize};
-use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, DecodeErrorWrapper};
+use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, DecodeErrorWrapper, FFT_BINS, SAMPLE_RATE};
 use alloc::boxed::Box;
 use core::marker::PhantomData;
 use core::{net::Ipv4Addr, str::FromStr};
@@ -68,11 +68,9 @@ const GW_IP_ADDR_ENV: Option<&'static str> = option_env!("GATEWAY_IP");
 /// Number of bins in the spectrum. Must be a power of two. Increasing this
 /// increases RAM use (FFT_BINS* 4 bytes for the shared buffer, plus
 /// roughly the same again for the outgoing frame buffer) and network load.
-const FFT_BINS: usize = 2048; // output of FFT
 /// Sample rate of the audio the spectrum was computed from. Only used here
 /// for the startup log message; the actual bin->frequency mapping happens in
 /// the browser.
-const SAMPLE_RATE_HZ: u32 = 48_000;
 /// How often a new spectrum frame is pushed to a connected WebSocket client.
 const SPECTRUM_PUSH_INTERVAL: Duration = Duration::from_millis(50); // ~20 fps
 
@@ -83,8 +81,8 @@ const TCP_BUF_SIZE: usize = SPECTRUM_PAYLOAD_BYTES + 512;
 const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../index.html"));
 
 
-const NYQUIST_HZ: u32 = SAMPLE_RATE_HZ / 2;          // 24_000
-const AUDIBLE_CUTOFF_HZ: u32 = 20_000;
+const NYQUIST_HZ: usize = SAMPLE_RATE / 2;          // 24_000
+const AUDIBLE_CUTOFF_HZ: usize = 20_000;
 // round UP so we never clip a bin that's still under the cutoff
     const TX_BINS: usize =
 ((AUDIBLE_CUTOFF_HZ as usize * FFT_BINS) + NYQUIST_HZ as usize - 1)
@@ -108,7 +106,7 @@ static SPECTRUM_A: Signal<CriticalSectionRawMutex, [BinValue; FFT_BINS]> = Signa
 
 /// Publish a new spectrum frame. `data[i]` should be the magnitude (in dB,
 /// e.g. -100.0 to 0.0) of frequency bin `i`, where bin `i` corresponds to
-/// `i * (SAMPLE_RATE_HZ / 2) / FFT_BINS` Hz. If your FFT output is
+/// `i * (SAMPLE_RATE / 2) / FFT_BINS` Hz. If your FFT output is
 /// linear magnitude rather than dB, either convert it before calling this
 /// (`20.0 * libm::log10f(mag.max(1e-6))`), or send it as-is and set
 /// `INPUT_IS_DB = false` in index.html's <script>.
@@ -200,7 +198,7 @@ async fn main(spawner: Spawner) -> ! {
     println!(
         "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:80/"
     );
-    println!("Spectrum: {} bins @ {} Hz sample rate", FFT_BINS, SAMPLE_RATE_HZ);
+    println!("Spectrum: {} bins @ {} Hz sample rate", FFT_BINS, SAMPLE_RATE);
     println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
     stack.wait_config_up().await;
     stack
@@ -430,19 +428,10 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
             for &byte in chunk {
                 if byte == FRAME_DELIM {
                     // End of COBS frame — attempt to decode
-                    info!("decrealizing: {}", rx_buf[..filled_len]);
-
-                    #[derive(serde::Serialize, serde::Deserialize)]
-                    struct Test {
-                        test: [usize; 3]
-                    }
-
-                    let msg: Result<Test, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
-                    //let msg: Result<FFTUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
+                    let msg: Result<FFTUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
                     match msg {
                         Ok(frame) => {
-                            info!("sucess");
-                            //SPECTRUM_A.signal(frame.into());
+                            SPECTRUM_A.signal(frame.into());
                         }
                         Err(err) => {
                             let err: DecodeErrorWrapper = err.into();
