@@ -4,8 +4,9 @@
 
 // TODO: double buffer with DMA on daisy seed?
 extern crate alloc;
+
 use pcobs::{serialize, deserialize};
-use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32};
+use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, DecodeErrorWrapper};
 use alloc::boxed::Box;
 use core::marker::PhantomData;
 use core::{net::Ipv4Addr, str::FromStr};
@@ -144,7 +145,7 @@ async fn main(spawner: Spawner) -> ! {
 
     let mut uhci = Uhci::new(uart, peripherals.UHCI0, peripherals.DMA_CH0).into_async();
     uhci.apply_rx_config(
-        &uhci::RxConfig::default().with_chunk_limit(dma_rx_a.len() as u16),
+        &uhci::RxConfig::default().with_chunk_limit(dma_rx_a.len().min(4095) as u16),
     )
         .unwrap();
     uhci.apply_tx_config(&uhci::TxConfig::default())
@@ -413,8 +414,6 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
     let mut next_dma = dma_rx_b;
 
 
-    let mut failed: u32 = 0;
-    let mut all: u32 = 0;
 
     let mut rx_buf = [0u8; COBS_BUF];
 
@@ -431,15 +430,14 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
             for &byte in chunk {
                 if byte == FRAME_DELIM {
                     // End of COBS frame — attempt to decode
-                    all += 1;
                     let msg: Result<FFTUart, _> = deserialize(&mut rx_buf, filled_len);
                     match msg {
                         Ok(frame) => {
                             SPECTRUM_A.signal(frame.into());
                         }
-                        Err(e) => {
-                            failed += 1;
-                            info!("decode failed % {:?}", (failed as f32 / all as f32));
+                        Err(err) => {
+                            let err: DecodeErrorWrapper = err.into();
+                            info!("uart decode error {}", err);
                         }
                     }
                     filled_len = 0; // reset for next frame

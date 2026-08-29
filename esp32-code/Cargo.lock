@@ -2019,6 +2019,8 @@ name = "settings"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "defmt 1.1.1",
+ "pcobs",
  "serde",
  "serde-big-array",
 ]

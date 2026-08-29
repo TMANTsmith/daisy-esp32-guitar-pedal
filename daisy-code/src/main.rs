@@ -4,13 +4,13 @@ extern crate alloc;
 
 
 
+mod modules;
+use modules::FFT::*;
+use modules::sin::*;
 use pcobs::{serialize, deserialize};
-use settings::{FFT_INPUT, FFT_BINS, BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32};
+use settings::{FFT_INPUT, FFT_BINS, BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, EncodeErrorWrapper};
 use core::fmt::write;
 use core::num::Wrapping;
-use code::modules::FFT::{self, BufState, *};
-use code::modules::sin::Sine;
-use code::modules::process::Effects;
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
 use daisy_embassy::audio::{Interface, Running};
 use defmt::{debug, info, unwrap};
@@ -84,10 +84,12 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
     // WAIT C 
     // SIGNAL A 
 
+    // try to remove box here and optimize for more memory
 
 
-    let mut cobs = [0_u8; COBS_BUF];
+    let mut cobs = Box::new([0_u8; COBS_BUF]);
     let mut convertion: [BinValue; FFT_BINS] = [BinValue::from(0u8); FFT_BINS];
+
     loop {
         let mut bufc = BUFC.wait().await;
         let buffer: &mut [f32; FFT_BINS] = (&mut bufc[..FFT_BINS]).try_into().unwrap();
@@ -97,9 +99,10 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
         BUFA.signal(bufc);
 
         match len {
-            Err(e) =>
+            Err(err) =>
             {
-                info!("uart error");
+                let err: EncodeErrorWrapper = err.into();
+                info!("uart error {}", err);
             },
             Ok(len) =>
             {

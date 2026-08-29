@@ -1,6 +1,7 @@
 #![no_std]
 
 use core::marker::PhantomData;
+use pcobs::{ EncodeError, DecodeError };
 
 extern crate serde;
 #[macro_use]
@@ -18,7 +19,7 @@ pub type BinValue = i16;
 
 pub const FFT_BYTES_TAKEN: usize = FFT_BINS * BIN_VALUE_SIZE;
 
-pub const COBS_BUF: usize = BIN_VALUE_SIZE * FFT_BINS+ (BIN_VALUE_SIZE* FFT_BINS + 253) / 254 + 1;
+pub const COBS_BUF: usize = BIN_VALUE_SIZE * FFT_BINS + (BIN_VALUE_SIZE* FFT_BINS + 253) / 254 + 10;
 
 pub const FRAME_DELIM: u8 = 0x00;
 
@@ -122,6 +123,60 @@ impl FromF32 for f32 {
     }
     fn to_f32(self) -> f32 {
         self // pass through
+    }
+}
+
+
+
+pub enum DecodeErrorWrapper {
+    CobsDecodeFailed,
+    PostcardDeserializationFailed,
+    CrcMismatch {
+        expected: u16,
+        computed: u16,
+    },
+}
+impl defmt::Format for DecodeErrorWrapper{
+    fn format(&self, f: defmt::Formatter) {
+        match self {
+            Self::PostcardDeserializationFailed => defmt::write!(f, "PostcardDeserializationFailed" ),
+            Self::CobsDecodeFailed => defmt::write!(f, "CobsDecodeFailed"),
+            Self::CrcMismatch { expected, computed } => defmt::write!(f, "CrcMismatch: expected: {}, computed: {}", expected, computed),
+        }
+    }
+}
+impl From<DecodeError> for DecodeErrorWrapper {
+    fn from(err: DecodeError) -> Self {
+        match err {
+            DecodeError::PostcardDeserializationFailed=> Self::PostcardDeserializationFailed,
+            DecodeError::CobsDecodeFailed => Self::CobsDecodeFailed,
+            DecodeError::CrcMismatch { expected, computed } => Self::CrcMismatch { expected, computed },
+        }
+    }
+}
+pub enum EncodeErrorWrapper {
+    PostcardSerializationFailed,
+    BufferOverflow {
+        needed: usize,
+        capacity: usize,
+    },
+}
+
+
+impl defmt::Format for EncodeErrorWrapper{
+    fn format(&self, f: defmt::Formatter) {
+        match self {
+            EncodeErrorWrapper::PostcardSerializationFailed => defmt::write!(f, "PostcardSerializationFailed" ),
+            EncodeErrorWrapper::BufferOverflow { needed, capacity } => defmt::write!(f, "BufferOverflow: needed: {}, capacity: {}", needed, capacity),
+        }
+    }
+}
+impl From<EncodeError> for EncodeErrorWrapper {
+    fn from(err: EncodeError) -> Self {
+        match err {
+            EncodeError::PostcardSerializationFailed => Self::PostcardSerializationFailed,
+            EncodeError::BufferOverflow { needed, capacity } => Self::BufferOverflow { needed, capacity },
+        }
     }
 }
 
