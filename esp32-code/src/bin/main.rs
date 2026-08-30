@@ -5,6 +5,11 @@
 // TODO: double buffer with DMA on daisy seed?
 extern crate alloc;
 
+const CONSTS_JS: &str = concat!(
+    "HTTP/1.0 200 OK\r\nContent-Type: application/javascript\r\n\r\n",
+    include_str!("../consts.js")
+);
+
 use pcobs::{serialize, deserialize};
 use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, DecodeErrorWrapper, FFT_BINS, SAMPLE_RATE};
 use alloc::boxed::Box;
@@ -260,6 +265,7 @@ async fn main(spawner: Spawner) -> ! {
         print!("{}", request);
         println!();
 
+        let path = request.lines().next().and_then(|line| line.split_whitespace().nth(1)).unwrap_or("/");
         if request.contains("Upgrade: websocket") || request.contains("upgrade: websocket") {
             println!("WebSocket upgrade requested");
             let header_iter = request
@@ -387,15 +393,14 @@ async fn main(spawner: Spawner) -> ! {
                     }
                 }
             }
+        } else if path == "/consts.js" {
+            let r = socket.write_all(CONSTS_JS.as_bytes()).await;
+            if let Err(e) = r { println!("write error: {:?}", e); }
+            let _ = socket.flush().await;
         } else {
             let r = socket.write_all(HTML_PAGE.as_bytes()).await;
-            if let Err(e) = r {
-                println!("write error: {:?}", e);
-            }
-            let r = socket.flush().await;
-            if let Err(e) = r {
-                println!("flush error: {:?}", e);
-            }
+            if let Err(e) = r { println!("write error: {:?}", e); }
+            let _ = socket.flush().await;
         }
 
         socket.close();
@@ -413,7 +418,7 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
 
 
 
-    let mut rx_buf = [0u8; COBS_BUF];
+    let mut rx_buf = [0u8; COBS_BUF + 512];
 
     let mut filled_len: usize = 0;
 
