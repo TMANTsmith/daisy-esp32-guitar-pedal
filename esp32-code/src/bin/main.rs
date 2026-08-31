@@ -184,11 +184,13 @@ async fn main(spawner: Spawner) -> ! {
     let rng = Rng::new();
     let seed = (rng.random() as u64) << 32 | rng.random() as u64;
 
-    // Init network stack
+    // Init network stack.
+    // StackResources<4>: 1 UDP socket for DHCP + 2 TCP sockets (one per
+    // http_worker instance below) + 1 spare.
     let (stack, runner) = embassy_net::new(
         device,
         config,
-        mk_static!(StackResources<3>, StackResources::<3>::new()),
+        mk_static!(StackResources<4>, StackResources::<4>::new()),
         seed,
     );
     spawner.spawn(net_task(runner).unwrap());
@@ -198,8 +200,6 @@ async fn main(spawner: Spawner) -> ! {
     // Remove this once you're feeding set_spectrum() from a real FFT source.
     //spawner.spawn(spectrum_demo_task().unwrap());
 
-    let mut rx_buffer = [0; TCP_BUF_SIZE];
-    let mut tx_buffer = [0; TCP_BUF_SIZE];
     println!(
         "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:80/"
     );
@@ -210,6 +210,24 @@ async fn main(spawner: Spawner) -> ! {
         .config_v4()
         .inspect(|c| println!("ipv4 config: {c:?}"));
 
+    // Two independent HTTP workers, each with its own TcpSocket, both
+    // listening on port 80. This lets one connection be torn down while
+    // the other is available to accept, avoiding the "connection refused"
+    // race a single-socket server hits when the browser opens a second
+    // request (e.g. /consts.js) right after the first response.
+    spawner.spawn(http_worker(stack).unwrap());
+    spawner.spawn(http_worker(stack).unwrap());
+
+    // main has nothing left to do.
+    loop {
+        Timer::after(Duration::from_secs(3600)).await;
+    }
+}
+
+#[embassy_executor::task(pool_size = 2)]
+async fn http_worker(stack: Stack<'static>) {
+    let mut rx_buffer = [0u8; TCP_BUF_SIZE];
+    let mut tx_buffer = [0u8; TCP_BUF_SIZE];
     let mut socket = TcpSocket::new(stack, &mut rx_buffer, &mut tx_buffer);
     socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
 
@@ -256,7 +274,7 @@ async fn main(spawner: Spawner) -> ! {
 
         if pos == 0 {
             socket.close();
-            Timer::after(Duration::from_millis(100)).await;
+            Timer::after(Duration::from_millis(10)).await;
             socket.abort();
             continue;
         }
@@ -282,14 +300,14 @@ async fn main(spawner: Spawner) -> ! {
                 Ok(None) => {
                     println!("not a valid websocket upgrade request");
                     socket.close();
-                    Timer::after(Duration::from_millis(100)).await;
+                    Timer::after(Duration::from_millis(10)).await;
                     socket.abort();
                     continue;
                 }
                 Err(e) => {
                     println!("header parse error: {:?}", e);
                     socket.close();
-                    Timer::after(Duration::from_millis(100)).await;
+                    Timer::after(Duration::from_millis(10)).await;
                     socket.abort();
                     continue;
                 }
@@ -302,7 +320,7 @@ async fn main(spawner: Spawner) -> ! {
                     Err(e) => {
                         println!("ws handshake error: {:?}", e);
                         socket.close();
-                        Timer::after(Duration::from_millis(100)).await;
+                        Timer::after(Duration::from_millis(10)).await;
                         socket.abort();
                         continue;
                     }
@@ -310,7 +328,7 @@ async fn main(spawner: Spawner) -> ! {
             if let Err(e) = socket.write_all(&handshake_buf[..resp_len]).await {
                 println!("write error: {:?}", e);
                 socket.close();
-                Timer::after(Duration::from_millis(100)).await;
+                Timer::after(Duration::from_millis(10)).await;
                 socket.abort();
                 continue;
             }
@@ -404,7 +422,7 @@ async fn main(spawner: Spawner) -> ! {
         }
 
         socket.close();
-        Timer::after(Duration::from_millis(100)).await;
+        Timer::after(Duration::from_millis(10)).await;
         socket.abort();
     }
 }
@@ -437,6 +455,7 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
                     match msg {
                         Ok(frame) => {
                             SPECTRUM_A.signal(frame.into());
+                            info!("success");
                         }
                         Err(err) => {
                             let err: DecodeErrorWrapper = err.into();

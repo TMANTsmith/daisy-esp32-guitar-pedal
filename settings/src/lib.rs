@@ -11,11 +11,11 @@ use serde_big_array::BigArray;
 
 // shaired 
 pub const BIN_VALUE_SIZE: usize = core::mem::size_of::<BinValue>();
-pub const FFT_INPUT: usize = 16;
+pub const FFT_INPUT: usize = 2048;
 pub const FFT_BINS: usize = FFT_INPUT / 2;
 pub const HEADER: [u8; 4] = [0xAA, 0x55, 0xAA, 0x55];
 
-pub type BinValue = i16; 
+pub type BinValue = f32; 
 
 pub const FFT_BYTES_TAKEN: usize = FFT_BINS * BIN_VALUE_SIZE;
 
