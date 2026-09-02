@@ -11,8 +11,9 @@ const CONSTS_JS: &str = concat!(
 );
 
 use pcobs::{serialize, deserialize};
-use settings::{ BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, DecodeErrorWrapper, FFT_BINS, SAMPLE_RATE};
+use settings::*;
 use alloc::boxed::Box;
+use core::error::Error;
 use core::marker::PhantomData;
 use core::{net::Ipv4Addr, str::FromStr};
 use defmt::info;
@@ -133,15 +134,16 @@ async fn main(spawner: Spawner) -> ! {
     let tx = peripherals.GPIO23;
 
     let uart_config = UartConfig::default()
-        .with_baudrate(2_000_000)
-        .with_rx(RxConfig::default().with_fifo_full_threshold(32)); 
+        .with_baudrate(BAUDRATE)
+        .with_rx(RxConfig::default().with_fifo_full_threshold(64)); 
 
     let mut uart = Uart::new(peripherals.UART0, uart_config).unwrap()
         .with_rx(rx)
         .with_tx(tx);
 
-    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(SPECTRUM_PAYLOAD_BYTES + 512);
-    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(SPECTRUM_PAYLOAD_BYTES + 512);
+    const MIN: usize = if (SPECTRUM_PAYLOAD_BYTES + 512) < 4095 { SPECTRUM_PAYLOAD_BYTES + 512  } else { 4095 };
+    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(MIN);
+    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(MIN);
 
     let dma_rx_a = DmaRxBuf::new(rx_descriptors_a, rx_buffer_a).unwrap();
     let dma_rx_b = DmaRxBuf::new(rx_descriptors_b, rx_buffer_b).unwrap();
@@ -450,16 +452,16 @@ async fn uart_runner(mut uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, As
         for chunk in filled.received_data() {
             for &byte in chunk {
                 if byte == FRAME_DELIM {
+                    info!("filled_len: {}", &filled_len);
                     // End of COBS frame — attempt to decode
                     let msg: Result<FFTUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
                     match msg {
                         Ok(frame) => {
-                            SPECTRUM_A.signal(frame.into());
                             info!("success");
+                            SPECTRUM_A.signal(frame.into());
                         }
                         Err(err) => {
-                            let err: DecodeErrorWrapper = err.into();
-                            info!("uart decode error {}", err);
+                            info!("uart decode error {:?}", defmt::Debug2Format(&err));
                         }
                     }
                     filled_len = 0; // reset for next frame

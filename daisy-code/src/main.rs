@@ -8,7 +8,7 @@ mod modules;
 use modules::FFT::*;
 use modules::sin::*;
 use pcobs::{serialize, deserialize};
-use settings::{FFT_INPUT, FFT_BINS, BinValue, COBS_BUF, FFTUart, FRAME_DELIM, FromF32, EncodeErrorWrapper};
+use settings::*;
 use core::fmt::write;
 use core::num::Wrapping;
 use daisy_embassy::{DaisyBoard, hal, new_daisy_board};
@@ -101,8 +101,7 @@ async fn uart_runner(mut uart: Uart<'static, Async>, mut led: UserLed<'static>) 
         match len {
             Err(err) =>
             {
-                let err: EncodeErrorWrapper = err.into();
-                info!("uart error {}", err);
+                info!("uart error {}", defmt::Debug2Format(&err));
             },
             Ok(len) =>
             {
@@ -121,16 +120,6 @@ async fn fft_compute() {
         let mut buffer = BUFB.wait().await;
         let result = compute::<FFT_INPUT, FFT_BINS>(&mut buffer);
         result[0].im = 0.0;
-
-        let mut max_amp: f32 = 0.0;
-        let mut max_i = 0;
-        for (i, c) in result.iter().enumerate() {
-            if c.norm_sqr() > max_amp {
-                max_amp = c.norm_sqr();
-                max_i = i;
-            }
-        }
-        let freq = max_i as f32 * get_bin_hz::<FFT_INPUT>();
 
         for i in 0..FFT_BINS{
             mags[i] = libm::sqrtf(result[i].norm_sqr());
@@ -157,7 +146,6 @@ async fn audio_task(
             .start_callback(move |input, output| {
                 let mut frames: FrameBlock = [(0.0, 0.0); 32];
                 convert_to(input, &mut frames);
-
                 for frame in frames.iter_mut() {
                     match buffer_filler.add(frame.1) {
                         Err(BufState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
@@ -214,7 +202,7 @@ async fn main(_spawner: Spawner) {
     let pins = board.pins;
 
     let mut config = UsartConfig::default();
-    config.baudrate = 2_000_000;
+    config.baudrate = BAUDRATE;
     let uart = Uart::new(p.USART1, pins.d14, pins.d13, p.DMA1_CH3, p.DMA1_CH4, Irqs, config).unwrap();
 
     let interface = board
