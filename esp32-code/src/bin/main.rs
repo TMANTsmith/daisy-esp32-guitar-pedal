@@ -93,7 +93,7 @@ const AUDIBLE_CUTOFF_HZ: usize = 20_000;
     const TX_BINS: usize =
 ((AUDIBLE_CUTOFF_HZ as usize * FFT_BINS) + NYQUIST_HZ as usize - 1)
     / NYQUIST_HZ as usize;                        // 1707 bins @ FFT_BINS=2048
-    const TX_PAYLOAD_BYTES: usize = TX_BINS * 4;
+    const TX_PAYLOAD_BYTES: usize = TX_BINS * core::mem::size_of::<BinValue>();
 
 // ---------------------------------------------------------------------------
 // Shared spectrum state.
