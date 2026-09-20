@@ -1413,7 +1413,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0a83b4dc-ba1b-4745-9dcf-59a8f2b8f478")
-		(property "Reference" "R17"
+		(property "Reference" "R15"
 			(at 114.3 35.56 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1486,7 +1486,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R17")
+					(reference "R15")
 					(unit 1)
 				)
 			)
@@ -1504,7 +1504,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "224c017d-d61a-473e-bf6e-021c7d24e34b")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR023"
 			(at 142.24 114.3 0)
 			(hide yes)
 			(show_name no)
@@ -1564,7 +1564,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR025")
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -1582,7 +1582,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "377193d5-71d1-4bf8-9b54-569a7122165d")
-		(property "Reference" "R24"
+		(property "Reference" "R22"
 			(at 144.78 102.8699 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1657,7 +1657,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R24")
+					(reference "R22")
 					(unit 1)
 				)
 			)
@@ -1945,7 +1945,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8884e624-928e-4719-9483-8ea75ff56594")
-		(property "Reference" "#PWR027"
+		(property "Reference" "#PWR025"
 			(at 133.35 127 0)
 			(hide yes)
 			(show_name no)
@@ -2006,7 +2006,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR027")
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -2024,7 +2024,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "88b4888e-c26e-4e36-8a2e-1ee4e84d2621")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR022"
 			(at 138.43 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -2084,7 +2084,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR024")
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -2102,7 +2102,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8a722936-d4ba-46fe-a257-0e238f9585e4")
-		(property "Reference" "R19"
+		(property "Reference" "R17"
 			(at 125.73 49.53 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2175,7 +2175,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R19")
+					(reference "R17")
 					(unit 1)
 				)
 			)
@@ -2193,7 +2193,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9a4d6958-79e3-412f-86e8-c5025e1a98f0")
-		(property "Reference" "R18"
+		(property "Reference" "R16"
 			(at 101.6 45.72 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2266,7 +2266,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R18")
+					(reference "R16")
 					(unit 1)
 				)
 			)
@@ -2284,7 +2284,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9df047aa-8ebf-47e3-ba43-06603ad1dd85")
-		(property "Reference" "#PWR026"
+		(property "Reference" "#PWR024"
 			(at 114.935 127 0)
 			(hide yes)
 			(show_name no)
@@ -2345,7 +2345,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "#PWR026")
+					(reference "#PWR024")
 					(unit 1)
 				)
 			)
@@ -2453,7 +2453,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ba5e645f-0ac5-4cc3-961d-d297db8a3389")
-		(property "Reference" "R20"
+		(property "Reference" "R18"
 			(at 140.97 59.6899 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2528,7 +2528,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R20")
+					(reference "R18")
 					(unit 1)
 				)
 			)
@@ -2644,7 +2644,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ca544e51-dfc1-4679-9b8b-35fd5d28d6cc")
-		(property "Reference" "R22"
+		(property "Reference" "R20"
 			(at 105.41 88.9 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2717,7 +2717,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R22")
+					(reference "R20")
 					(unit 1)
 				)
 			)
@@ -3021,7 +3021,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fec12683-74cc-49b3-841c-366ed383ad6a")
-		(property "Reference" "R21"
+		(property "Reference" "R19"
 			(at 118.11 78.74 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3094,7 +3094,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R21")
+					(reference "R19")
 					(unit 1)
 				)
 			)
@@ -3112,7 +3112,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ff516852-a5fe-4167-b2f4-0acc69a9ea3b")
-		(property "Reference" "R23"
+		(property "Reference" "R21"
 			(at 129.54 92.71 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3185,7 +3185,7 @@
 		(instances
 			(project "seed-pedal"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/71b17037-91e4-4ab7-a98f-0d6408c65901"
-					(reference "R23")
+					(reference "R21")
 					(unit 1)
 				)
 			)

@@ -1,10 +1,11 @@
-/esp32-code/target
-/daisy-code/target
-/settings/target
+/target
 bash.sh
+*-backups/
+*-backup/
 /esp32-code/kernel8.img
 /daisy-code/kernel8.img
 /esp32-code/firmware.bin
 /daisy-code/firmware.bin
 /testy
 mini-pcb/.history
+EOF
