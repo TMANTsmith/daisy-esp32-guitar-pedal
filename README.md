@@ -17,9 +17,9 @@ The full-pcb inclued a esp32 which is connected to the daisy seed through SPI an
 
 #### full-pcb
 
-|                 Front                 |                 Back                  |
-| :-----------------------------------: | :-----------------------------------: |
-| ![front](pictures/front_full_pcb.png) | ![After](pictures/front_full_pcb.png) |
+|                 Front                 |                Back                 |
+| :-----------------------------------: | :---------------------------------: |
+| ![front](pictures/front_full_pcb.png) | ![Back](pictures/back_full_pcb.png) |
 
 - [x] Finished development
 - [x] Passed testing
