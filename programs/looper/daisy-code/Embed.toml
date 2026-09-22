@@ -1,0 +1,16 @@
+[default.general]
+chip = "STM32H743VI"
+
+[default.reset]
+enabled = true
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+timeout = 5000
+up_mode = "NoBlockSkip"
+log_enabled = true          # write RTT to a log file directly
+log_path = "rtt_log"    # probe-rs writes clean output here
+
+[default.gdb]
+enabled = false
