@@ -17,9 +17,9 @@ The full-pcb inclued a esp32 which is connected to the daisy seed through UART (
 
 #### full-pcb
 
-|                 Front                 |                Back                 |
-| :-----------------------------------: | :---------------------------------: |
-| ![front](pictures/front_full_pcb.png) | ![Back](pictures/back_full_pcb.png) |
+|                                 Front                                  |                                 Back                                  |
+| :--------------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| <imp src = "pictures/front_full_pcb.png" width = "400" height = "300"> | <imp src = "pictures/back_full_pcb.png" width = "400" height = "300"> |
 
 - [x] Finished development
 - [x] Passed testing
