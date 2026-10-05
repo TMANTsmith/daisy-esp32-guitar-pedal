@@ -3269,12 +3269,6 @@
 		(uuid "6bcc839f-c519-4bb9-9e39-0ebe57f179f4")
 	)
 	(junction
-		(at 52.07 31.75)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "6e83ac38-ac7a-4fcb-a6ef-b382445a8fac")
-	)
-	(junction
 		(at 116.84 90.17)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3399,16 +3393,6 @@
 			(type default)
 		)
 		(uuid "30ae350b-47c3-4dbf-9587-088bd62cfdb4")
-	)
-	(wire
-		(pts
-			(xy 52.07 31.75) (xy 58.42 31.75)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "38e39fa7-0151-46f0-8ebc-c3c428cb85c5")
 	)
 	(wire
 		(pts
@@ -3542,7 +3526,7 @@
 	)
 	(wire
 		(pts
-			(xy 45.72 31.75) (xy 52.07 31.75)
+			(xy 45.72 31.75) (xy 58.42 31.75)
 		)
 		(stroke
 			(width 0)
@@ -6157,98 +6141,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Polarized")
-		(at 52.07 35.56 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "9cfb8895-bdd8-4328-9813-533e3e63e0e6")
-		(property "Reference" "C12"
-			(at 42.418 35.56 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100uf"
-			(at 42.418 38.1 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-3528-21_Kemet-B"
-			(at 53.0352 39.37 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 52.07 35.56 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Polarized capacitor"
-			(at 52.07 35.56 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "C16133"
-			(at 52.07 35.56 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "2"
-			(uuid "b4db30c3-de58-436e-8893-a3d19f7fbcb8")
-		)
-		(pin "1"
-			(uuid "0780c826-ad3c-46a9-bffd-0626af19c558")
-		)
-		(instances
-			(project "full_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/ecf25a48-7940-4cdf-9049-43d792c69dfb"
-					(reference "C12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 83.82 35.56 180)
 		(unit 1)
@@ -8196,85 +8088,6 @@
 			(project "full_pcb"
 				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/ecf25a48-7940-4cdf-9049-43d792c69dfb"
 					(reference "C19")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_name "GND_1")
-		(lib_id "power:GND")
-		(at 52.07 39.37 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "ffbe23ce-66e5-4e60-b46c-27083b118fef")
-		(property "Reference" "#PWR029"
-			(at 52.07 45.72 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 52.07 44.45 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 52.07 39.37 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 52.07 39.37 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 52.07 39.37 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "53403bea-03f3-47a2-8895-ca3132ab31c4")
-		)
-		(instances
-			(project "full_pcb"
-				(path "/ac8ee366-0662-41f8-9745-078ec3fbb21b/ecf25a48-7940-4cdf-9049-43d792c69dfb"
-					(reference "#PWR029")
 					(unit 1)
 				)
 			)

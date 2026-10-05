@@ -28,10 +28,12 @@ async fn uart_sender(mut pin: ExtiInput<'static, Async>) {
             State::OverDubbing => { state = State::Replaying },
             State::Clear => { state = State::Idle },
         }
+        STATE.signal(state);
         pin.wait_for_falling_edge().await;
         let held_for = time.elapsed().as_millis();
 
         if held_for >= 1000 {
+            state = State::Idle;
             STATE.signal(State::Clear);
         }
 
@@ -52,9 +54,13 @@ pub struct Looper {
 }
 
 impl Looper {
-    pub fn new(&mut self, buffer: Vec<Frame>) -> Self {
+    pub fn new(buffer: Vec<Frame>) -> Self {
         let state = State::Idle;
         Self { buffer, index: 0, state }
+    }
+    fn add_tuple(a: &mut Frame, b: &Frame) {
+        a.0 += b.0;
+        a.1 += b.1;
     }
 
     fn advance(&mut self) {
@@ -71,13 +77,13 @@ impl Looper {
                 self.buffer.push(*input);
             }
             State::Replaying => {
-                *input += self.buffer[self.index];
+                Self::add_tuple(input, &self.buffer[self.index]);
                 self.advance();
             }
             State::OverDubbing => {
-                let dry = *input;
-                *input += self.buffer[self.index];   // hear the loop
-                self.buffer[self.index] += dry;      // add new material
+                let dry: Frame = *input;
+                Self::add_tuple(input, &self.buffer[self.index]);   // hear the loop
+                Self::add_tuple(&mut self.buffer[self.index], &dry);      // add new material
                 self.advance();
             }
             State::Clear => {

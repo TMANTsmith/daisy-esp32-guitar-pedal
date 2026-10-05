@@ -28,6 +28,7 @@ settings = { path = "../settings" }
 pcobs = "1.0.0"
 serde = { version = "1.0.229", default-features = false, features = ["derive"] }
 serde-big-array = "0.5.1"
+modular-bitfield = "0.13.1"
 
 
 [profile.dev]
