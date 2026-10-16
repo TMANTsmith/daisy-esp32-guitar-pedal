@@ -1,0 +1,5 @@
+0.000244 [1m[[32mINFO [0m[1m][0m set up PCM3060
+0.000244 [1m[[32mINFO [0m[1m][0m set up sai
+0.000274 [1m[[32mINFO [0m[1m][0m start SAI
+0.000305 [1m[[32mINFO [0m[1m][0m enter audio callback loop
+

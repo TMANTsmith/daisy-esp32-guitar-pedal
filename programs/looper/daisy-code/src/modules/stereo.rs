@@ -3,15 +3,16 @@ pub struct Stereo<E> {
     right: E,
 }
 
+
 impl<E: Effect> Stereo<E> {
     pub fn new(effect: E) -> Self {
-        left = effect.clone();
-        right = effect;
+        let left = effect.clone();
+        let right = effect;
         Self { left, right }
     }
 
-    pub fn process(input: (f32, f32)) {
-        left.process(input.0);
-        right.process(input.1);
+    pub fn process(&mut self, input: (f32, f32)) {
+        self.left.process(input.0);
+        self.right.process(input.1);
     }
 }

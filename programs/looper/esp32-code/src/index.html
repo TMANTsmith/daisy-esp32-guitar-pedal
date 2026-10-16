@@ -1,579 +1,794 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-    />
-    <title>Spectrum Analyzer</title>
-    <link rel="icon" href="data:," />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Daisy Looper</title>
+
     <style>
       :root {
-        --bg-top: #0b0f1c;
-        --bg-bot: #05070d;
-        --panel: rgba(255, 255, 255, 0.035);
-        --panel-border: rgba(255, 255, 255, 0.09);
-        --text: #e8ecf5;
-        --text-dim: #7c8aa6;
-        --grid: rgba(255, 255, 255, 0.07);
-        --grid-strong: rgba(255, 255, 255, 0.14);
-        --accent-gold: #ffce54;
-        --trace-lo: #35d7d0;
-        --trace-mid: #7a7dff;
-        --trace-hi: #ff4fa3;
-        --ok: #4ee89a;
-        --bad: #ff5f6d;
+        color-scheme: dark;
+        --bg: #11111b;
+        --panel: #1e1e2e;
+        --panel-hover: #29293d;
+        --border: #313244;
+        --text: #cdd6f4;
+        --muted: #a6adc8;
+        --purple: #cba6f7;
+        --green: #a6e3a1;
+        --red: #f38ba8;
+        --yellow: #f9e2af;
       }
+
       * {
         box-sizing: border-box;
       }
-      html,
+
       body {
         margin: 0;
-        height: 100%;
-        background: radial-gradient(
-          120% 140% at 50% -10%,
-          var(--bg-top) 0%,
-          var(--bg-bot) 60%
-        );
+        min-height: 100vh;
+        padding: 28px 16px;
+        background: var(--bg);
         color: var(--text);
         font-family:
-          ui-monospace, "SF Mono", Consolas, "Roboto Mono", monospace;
-        -webkit-tap-highlight-color: transparent;
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
       }
-      body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100%;
-        padding: 14px;
-        gap: 12px;
+
+      button {
+        font: inherit;
+        color: inherit;
+        touch-action: manipulation;
       }
+
+      .app {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
       header {
         display: flex;
-        align-items: baseline;
         justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 8px 16px;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
       }
+
       h1 {
-        font-family:
-          ui-sans-serif,
-          system-ui,
-          -apple-system,
-          sans-serif;
-        font-size: 15px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--text);
         margin: 0;
-      }
-      .meta {
-        font-size: 11px;
-        color: var(--text-dim);
-        letter-spacing: 0.02em;
-      }
-      .status {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        color: var(--text-dim);
-      }
-      .status .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--bad);
-        box-shadow: 0 0 6px var(--bad);
-        transition:
-          background 0.2s,
-          box-shadow 0.2s;
-      }
-      .status.connected .dot {
-        background: var(--ok);
-        box-shadow: 0 0 6px var(--ok);
+        font-size: clamp(25px, 5vw, 34px);
+        letter-spacing: -1px;
       }
 
-      .controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      #muteBtn {
-        font: inherit;
-        font-size: 11px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--text);
-        background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-radius: 6px;
-        padding: 5px 12px;
-        cursor: pointer;
-        transition:
-          background 0.15s,
-          border-color 0.15s,
-          color 0.15s;
-      }
-      #muteBtn:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      #muteBtn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      #muteBtn.muted {
-        color: var(--bad);
-        border-color: var(--bad);
+      .subtitle {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 14px;
       }
 
-      .dominant {
+      .connection {
         display: flex;
-        align-items: flex-end;
-        gap: 10px;
-        padding: 2px 2px 4px;
-      }
-      .dominant .value {
-        font-family:
-          ui-sans-serif,
-          system-ui,
-          -apple-system,
-          sans-serif;
-        font-size: clamp(28px, 6vw, 42px);
-        font-weight: 700;
-        color: var(--accent-gold);
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
-      }
-      .dominant .label {
-        font-size: 11px;
-        color: var(--text-dim);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding-bottom: 6px;
-      }
-      .dominant .db {
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        color: var(--muted);
         font-size: 13px;
-        color: var(--text-dim);
-        padding-bottom: 7px;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 10px #f38ba844;
+      }
+
+      .dot.connected {
+        background: var(--green);
+        box-shadow: 0 0 10px #a6e3a144;
       }
 
       .panel {
+        padding: 22px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
         background: var(--panel);
-        border: 1px solid var(--panel-border);
-        border-radius: 10px;
-        padding: 10px;
-        flex: 1;
-        min-height: 0;
-        display: flex;
-      }
-      #wrap {
-        position: relative;
-        flex: 1;
-        min-height: 220px;
-      }
-      canvas {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
       }
 
-      footer {
+      .section-heading {
         display: flex;
         justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 6px 16px;
-        font-size: 10.5px;
-        color: var(--text-dim);
-        letter-spacing: 0.02em;
-        padding: 0 2px;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 650;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tracks {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .track {
+        min-width: 0;
+        padding: 16px 6px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #181825;
+        cursor: pointer;
+        transition:
+          background 120ms,
+          border-color 120ms;
+      }
+
+      .track:hover {
+        background: var(--panel-hover);
+      }
+
+      .track.selected {
+        border-color: var(--purple);
+        background: #302644;
+        box-shadow: inset 0 0 0 1px var(--purple);
+      }
+
+      .track-number {
+        display: block;
+        font-size: 19px;
+        font-weight: 750;
+      }
+
+      .track-status {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+
+      .track.recording .track-status {
+        color: var(--red);
+      }
+
+      .track.recording .track-number::before {
+        content: "● ";
+        color: var(--red);
+        font-size: 11px;
+      }
+
+      .track.stopped .track-status {
+        color: var(--green);
+      }
+
+      .selected-label {
+        margin-top: 15px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .selected-label strong {
+        color: var(--purple);
+      }
+
+      .record-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .action-button {
+        min-height: 76px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #181825;
+        cursor: pointer;
+        font-weight: 700;
+        transition:
+          filter 120ms,
+          transform 120ms;
+      }
+
+      .action-button:hover:not(:disabled) {
+        filter: brightness(1.12);
+      }
+
+      .action-button:active:not(:disabled) {
+        transform: scale(0.985);
+      }
+
+      .action-button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .record-button {
+        border-color: #f38ba855;
+        background: #452333;
+        color: #f9dce4;
+      }
+
+      .record-button.is-recording {
+        border-color: var(--green);
+        background: #243c32;
+        color: var(--green);
+      }
+
+      .clear-button {
+        position: relative;
+        overflow: hidden;
+        border-color: #f9e2af55;
+        color: var(--yellow);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .hold-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0%;
+        height: 4px;
+        background: var(--yellow);
+        pointer-events: none;
+      }
+
+      .button-title {
+        display: block;
+        font-size: 16px;
+      }
+
+      .button-description {
+        display: block;
+        margin-top: 5px;
+        font-size: 12px;
+        font-weight: 400;
+        opacity: 0.8;
+      }
+
+      .mute-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .mute-description {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .mute-button {
+        min-width: 112px;
+        padding: 12px 18px;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        background: #181825;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .mute-button.muted {
+        border-color: var(--purple);
+        background: #302644;
+        color: var(--purple);
+      }
+
+      .log {
+        max-height: 180px;
+        overflow-y: auto;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #11111b;
+        color: var(--muted);
+        font:
+          12px/1.7 ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+      }
+
+      .footer {
+        margin-top: 18px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 20px 12px;
+        }
+
+        .panel {
+          padding: 16px;
+        }
+
+        header {
+          align-items: flex-start;
+        }
+
+        .connection {
+          font-size: 11px;
+        }
+
+        .tracks {
+          gap: 6px;
+        }
+
+        .track {
+          padding: 13px 3px;
+        }
+
+        .track-number {
+          font-size: 16px;
+        }
+
+        .track-status {
+          font-size: 10px;
+        }
+
+        .record-area {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
+
   <body>
-    <header>
-      <h1>Spectrum Analyzer</h1>
-      <div class="controls">
-        <button id="muteBtn" type="button" disabled>Mute</button>
-        <span class="status" id="status"
-          ><span class="dot"></span
-          ><span id="statusText">connecting…</span></span
-        >
-      </div>
-    </header>
+    <main class="app">
+      <header>
+        <div>
+          <h1>Daisy Looper</h1>
+          <div class="subtitle">Wireless pedal controller</div>
+        </div>
 
-    <div class="dominant">
-      <span class="value" id="domFreq">–</span>
-      <span class="label">dominant</span>
-      <span class="db" id="domDb"></span>
-    </div>
+        <div class="connection">
+          <span id="connectionDot" class="dot"></span>
+          <span id="connectionText">Connecting…</span>
+        </div>
+      </header>
 
-    <div class="panel">
-      <div id="wrap">
-        <canvas id="grid"></canvas>
-        <canvas id="trace"></canvas>
-      </div>
-    </div>
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Tracks</h2>
+          <span class="hint">Switch anytime</span>
+        </div>
 
-    <footer>
-      <span id="infoLeft">sample rate — · bins —</span>
-      <span id="infoRight">resolution —</span>
-    </footer>
+        <div class="tracks">
+          <button class="track selected" data-track="1" type="button">
+            <span class="track-number">1</span>
+            <span class="track-status">Idle</span>
+          </button>
 
-    <script src="/consts.js"></script>
+          <button class="track" data-track="2" type="button">
+            <span class="track-number">2</span>
+            <span class="track-status">Idle</span>
+          </button>
+
+          <button class="track" data-track="3" type="button">
+            <span class="track-number">3</span>
+            <span class="track-status">Idle</span>
+          </button>
+
+          <button class="track" data-track="4" type="button">
+            <span class="track-number">4</span>
+            <span class="track-status">Idle</span>
+          </button>
+        </div>
+
+        <div class="selected-label">
+          Selected track: <strong id="selectedTrackLabel">Track 1</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Looper controls</h2>
+          <span class="hint" id="recordHint">Ready</span>
+        </div>
+
+        <div class="record-area">
+          <button
+            id="recordButton"
+            class="action-button record-button"
+            type="button"
+            disabled
+          >
+            <span id="recordLabel" class="button-title">● Record</span>
+            <span id="recordDescription" class="button-description">
+              Start recording this track
+            </span>
+          </button>
+
+          <button
+            id="clearButton"
+            class="action-button clear-button"
+            type="button"
+            disabled
+          >
+            <span class="button-title">Clear track</span>
+            <span class="button-description" id="clearHint">
+              Press and hold for 1 second
+            </span>
+            <span id="holdProgress" class="hold-progress"></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="mute-row">
+          <div>
+            <h2>Output mute</h2>
+            <div class="mute-description" id="muteDescription">
+              Audio output is unmuted
+            </div>
+          </div>
+
+          <button id="muteButton" class="mute-button" type="button" disabled>
+            Mute
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Command log</h2>
+          <button
+            id="clearLogButton"
+            type="button"
+            style="
+              border: 0;
+              background: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 12px;
+            "
+          >
+            Clear log
+          </button>
+        </div>
+        <pre id="log" class="log">Waiting for ESP32 connection…</pre>
+      </section>
+
+      <div class="footer">Daisy Seed · ESP32 · WebSocket</div>
+    </main>
+
     <script>
-      (() => {
-        // ---- Config: must match the device ------------------------------------
-        const FFT_BINS = window.RUST_CONSTS.FFT_BINS;
-        const SAMPLE_RATE = window.RUST_CONSTS.SAMPLE_RATE;
-        const HZ_PER_BIN = window.RUST_CONSTS.HZ_PER_BIN;
-        const SPECTRUM_SIZE = window.RUST_CONSTS.SPECTRUM_SIZE;
-        const MAX_DISPLAY_FREQ = window.RUST_CONSTS.MAX_DISPLAY_FREQ;
-        const INPUT_IS_DB = window.RUST_CONSTS.INPUT_IS_DB;
-        const DB_MIN = window.RUST_CONSTS.DB_MIN;
-        const DB_MAX = window.RUST_CONSTS.DB_MAX;
-        const MIN_DISPLAY_FREQ = window.RUST_CONSTS.MIN_DISPLAY_FREQ;
-        const SMOOTHING = window.RUST_CONSTS.SMOOTHING;
-        const PEAK_DECAY_DB_PER_SEC = window.RUST_CONSTS.PEAK_DECAY_DB_PER_SEC;
-        const PEAK_MIN_DB = window.RUST_CONSTS.PEAK_MIN_DB;
-        const PEAK_COUNT = window.RUST_CONSTS.PEAK_COUNT;
-        const PEAK_MIN_SEPARATION_BINS =
-          window.RUST_CONSTS.PEAK_MIN_SEPARATION_BINS;
-        const BIN_VALUE_SIZE = window.RUST_CONSTS.BIN_VALUE_SIZE;
-        const BIN_IS_FLOAT = window.RUST_CONSTS.BIN_IS_FLOAT;
-        const BIN_SCALE = window.RUST_CONSTS.BIN_SCALE;
+      "use strict";
 
-        document.getElementById("infoLeft").textContent =
-          `sample rate ${(SAMPLE_RATE / 1000).toFixed(0)} kHz · ${SPECTRUM_SIZE} bins`;
-        document.getElementById("infoRight").textContent =
-          `resolution ${(MAX_DISPLAY_FREQ / SPECTRUM_SIZE).toFixed(1)} Hz/bin`;
+      // Change "/ws" if your ESP32 registers its WebSocket at another path.
+      const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${wsProtocol}//${location.host}/ws`;
 
-        // ---- State --------------------------------------------------------------
-        const latest = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
-        const smoothed = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
-        const peakHold = new Float32Array(SPECTRUM_SIZE).fill(DB_MIN);
-        let haveData = false;
-        let lastFrameTime = performance.now();
+      const connectionDot = document.getElementById("connectionDot");
+      const connectionText = document.getElementById("connectionText");
+      const recordButton = document.getElementById("recordButton");
+      const recordLabel = document.getElementById("recordLabel");
+      const recordDescription = document.getElementById("recordDescription");
+      const recordHint = document.getElementById("recordHint");
+      const clearButton = document.getElementById("clearButton");
+      const clearHint = document.getElementById("clearHint");
+      const holdProgress = document.getElementById("holdProgress");
+      const muteButton = document.getElementById("muteButton");
+      const muteDescription = document.getElementById("muteDescription");
+      const logElement = document.getElementById("log");
 
-        const startBin = Math.max(
-          1,
-          Math.ceil((MIN_DISPLAY_FREQ * SPECTRUM_SIZE) / MAX_DISPLAY_FREQ),
-        );
+      let socket = null;
+      let connected = false;
+      let selectedTrack = 1;
+      let muted = false;
 
-        function binToFreq(i) {
-          return (i * MAX_DISPLAY_FREQ) / SPECTRUM_SIZE;
+      // Track states are independent. Changing selectedTrack never resets them.
+      // "recording" means this UI has sent Recording without subsequently
+      // sending Idle or Clear for that track.
+      const tracks = {
+        1: { recording: false },
+        2: { recording: false },
+        3: { recording: false },
+        4: { recording: false },
+      };
+
+      const MODE_BITS = {
+        Idle: 0,
+        Recording: 1,
+        Clear: 2,
+      };
+
+      function log(message) {
+        const time = new Date().toLocaleTimeString();
+        const lines = logElement.textContent.split("\n");
+        if (lines.length === 1 && lines[0].startsWith("Waiting for")) {
+          logElement.textContent = "";
         }
-        function formatFreq(hz) {
-          if (hz >= 1000)
-            return (hz / 1000).toFixed(hz >= 10000 ? 1 : 2) + " kHz";
-          return Math.round(hz) + " Hz";
-        }
 
-        // ---- WebSocket ------------------------------------------------------------
-        const statusEl = document.getElementById("status");
-        const statusText = document.getElementById("statusText");
-        let ws;
+        logElement.textContent += `[${time}] ${message}\n`;
 
-        // ---- Mute button ----------------------------------------------------------
-        // Sends a text frame ("mute" / "unmute"); the ESP32 parses it and forwards
-        // CommandUart::Mute(..) to the daisy over UART.
-        const muteBtn = document.getElementById("muteBtn");
-        let muted = false;
-        function renderMute() {
-          muteBtn.textContent = muted ? "Unmute" : "Mute";
-          muteBtn.classList.toggle("muted", muted);
-        }
-        muteBtn.addEventListener("click", () => {
-          if (!ws || ws.readyState !== WebSocket.OPEN) return;
-          muted = !muted;
-          ws.send(muted ? "mute" : "unmute");
-          renderMute();
+        // Keep the log from growing indefinitely.
+        const entries = logElement.textContent.trimEnd().split("\n");
+        logElement.textContent = entries.slice(-60).join("\n") + "\n";
+        logElement.scrollTop = logElement.scrollHeight;
+      }
+
+      function setConnectionState(isConnected) {
+        connected = isConnected;
+        connectionDot.classList.toggle("connected", connected);
+        connectionText.textContent = connected ? "Connected" : "Disconnected";
+
+        recordButton.disabled = !connected;
+        clearButton.disabled = !connected;
+        muteButton.disabled = !connected;
+
+        renderTracks();
+        updateControls();
+      }
+
+      function connect() {
+        connectionText.textContent = "Connecting…";
+        log(`Connecting to ${wsUrl}`);
+
+        socket = new WebSocket(wsUrl);
+
+        socket.addEventListener("open", () => {
+          setConnectionState(true);
+          log("WebSocket connected");
         });
 
-        function connect() {
-          ws = new WebSocket("ws://" + location.host + "/");
-          ws.binaryType = "arraybuffer";
-          ws.onopen = () => {
-            muteBtn.disabled = false;
-            statusEl.classList.add("connected");
-            statusText.textContent = "connected";
-          };
-          ws.onclose = () => {
-            muteBtn.disabled = true;
-            statusEl.classList.remove("connected");
-            statusText.textContent = "reconnecting…";
-            setTimeout(connect, 500);
-          };
-          ws.onerror = () => ws.close();
-          ws.onmessage = (e) => {
-            if (!(e.data instanceof ArrayBuffer)) return; // ignore stray text frames
-            // View type/scale follow BinValue's real Rust type (see build.rs) —
-            // this adapts automatically if BinValue changes to f32/i16/i8.
-            const raw = BIN_IS_FLOAT
-              ? new Float32Array(e.data)
-              : BIN_VALUE_SIZE === 2
-                ? new Int16Array(e.data)
-                : new Int8Array(e.data);
-            const n = Math.min(raw.length, SPECTRUM_SIZE);
-            for (let i = 0; i < n; i++) {
-              let v = raw[i] / BIN_SCALE; // BIN_SCALE = 1 for float, no-op
-              if (!INPUT_IS_DB) v = 20 * Math.log10(Math.max(v, 1e-6));
-              latest[i] = v;
-            }
-            haveData = true;
-          };
-        }
-        connect();
+        socket.addEventListener("close", () => {
+          setConnectionState(false);
+          log("WebSocket disconnected; retrying in 2 seconds");
 
-        // ---- Canvas setup -----------------------------------------------------
-        const wrap = document.getElementById("wrap");
-        const gridCanvas = document.getElementById("grid");
-        const traceCanvas = document.getElementById("trace");
-        const gctx = gridCanvas.getContext("2d");
-        const tctx = traceCanvas.getContext("2d");
-        let W = 0,
-          H = 0,
-          dpr = 1;
-        let gridDirty = true;
+          setTimeout(() => {
+            if (!connected) connect();
+          }, 2000);
+        });
 
-        function resize() {
-          dpr = Math.max(1, window.devicePixelRatio || 1);
-          W = wrap.clientWidth;
-          H = wrap.clientHeight;
-          for (const c of [gridCanvas, traceCanvas]) {
-            c.width = Math.round(W * dpr);
-            c.height = Math.round(H * dpr);
-          }
-          gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          gridDirty = true;
-        }
-        new ResizeObserver(resize).observe(wrap);
-        resize();
+        socket.addEventListener("error", () => {
+          log("WebSocket error");
+        });
 
-        // ---- Axis mapping -------------------------------------------------------
-        const PAD_L = 4,
-          PAD_R = 8,
-          PAD_T = 6,
-          PAD_B = 16;
+        socket.addEventListener("message", (event) => {
+          // Optional: process status messages if your ESP32 sends any.
+          log(`Received: ${String(event.data)}`);
+        });
+      }
 
-        function freqToX(freq) {
-          const logMin = Math.log10(MIN_DISPLAY_FREQ);
-          const logMax = Math.log10(MAX_DISPLAY_FREQ);
-          const t = (Math.log10(freq) - logMin) / (logMax - logMin);
-          return PAD_L + t * (W - PAD_L - PAD_R);
-        }
-        function dbToY(db) {
-          const t = (db - DB_MIN) / (DB_MAX - DB_MIN);
-          return PAD_T + (1 - t) * (H - PAD_T - PAD_B);
+      function sendCommand(command, description) {
+        if (!connected || !socket || socket.readyState !== WebSocket.OPEN) {
+          log(`Not sent — disconnected: ${description}`);
+          return false;
         }
 
-        const FREQ_TICKS = [
-          20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
-        ];
+        socket.send(JSON.stringify(command));
+        log(`Sent: ${description}`);
+        return true;
+      }
 
-        function drawGrid() {
-          gctx.clearRect(0, 0, W, H);
-          gctx.strokeStyle = "var(--grid)";
-          gctx.fillStyle = getComputedStyle(document.documentElement)
-            .getPropertyValue("--text-dim")
-            .trim();
-          gctx.font = "9px ui-monospace, monospace";
-          gctx.lineWidth = 1;
+      function sendLooper(mode, trackNumber) {
+        // UI tracks 1–4 map to Rust track numbers 0–3.
+        const trackBits = trackNumber - 1;
+        const stateByte = (MODE_BITS[mode] << 6) | trackBits;
 
-          // dB horizontal lines
-          const gridColor = getComputedStyle(document.documentElement)
-            .getPropertyValue("--grid")
-            .trim();
-          for (let db = DB_MAX; db >= DB_MIN; db -= 20) {
-            const y = Math.round(dbToY(db)) + 0.5;
-            gctx.strokeStyle = gridColor;
-            gctx.beginPath();
-            gctx.moveTo(PAD_L, y);
-            gctx.lineTo(W - PAD_R, y);
-            gctx.stroke();
-            gctx.fillText(db + " dB", PAD_L + 3, y - 3);
+        return sendCommand(
+          { Looper: { bytes: [stateByte] } },
+          `Track ${trackNumber}: ${mode} (byte ${stateByte})`,
+        );
+      }
+
+      function renderTracks() {
+        document.querySelectorAll("[data-track]").forEach((button) => {
+          const number = Number(button.dataset.track);
+          const state = tracks[number];
+          const status = button.querySelector(".track-status");
+
+          button.classList.toggle("selected", number === selectedTrack);
+          button.classList.toggle("recording", state.recording);
+          button.classList.toggle("stopped", !state.recording);
+
+          status.textContent = state.recording ? "Recording" : "Idle";
+          button.setAttribute(
+            "aria-pressed",
+            number === selectedTrack ? "true" : "false",
+          );
+        });
+
+        document.getElementById("selectedTrackLabel").textContent =
+          `Track ${selectedTrack}`;
+      }
+
+      function updateControls() {
+        const state = tracks[selectedTrack];
+
+        recordButton.classList.toggle("is-recording", state.recording);
+        recordLabel.textContent = state.recording ? "■ Stop" : "● Record";
+        recordDescription.textContent = state.recording
+          ? "Stop recording this track"
+          : "Start recording this track";
+
+        recordHint.textContent = state.recording
+          ? `Track ${selectedTrack} is recording`
+          : `Track ${selectedTrack} is idle`;
+
+        muteButton.textContent = muted ? "Unmute" : "Mute";
+        muteButton.classList.toggle("muted", muted);
+        muteDescription.textContent = muted
+          ? "Audio output is muted"
+          : "Audio output is unmuted";
+      }
+
+      // Track switching is always allowed, even if other tracks are recording.
+      document.querySelectorAll("[data-track]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedTrack = Number(button.dataset.track);
+          renderTracks();
+          updateControls();
+          log(`Selected Track ${selectedTrack}`);
+        });
+      });
+
+      recordButton.addEventListener("click", () => {
+        const state = tracks[selectedTrack];
+
+        if (!connected) return;
+
+        if (state.recording) {
+          // A recording track can only be started again after Idle or Clear.
+          if (sendLooper("Idle", selectedTrack)) {
+            state.recording = false;
+            renderTracks();
+            updateControls();
           }
-
-          // frequency vertical lines
-          for (const f of FREQ_TICKS) {
-            if (f > MAX_DISPLAY_FREQ) break;
-            const x = Math.round(freqToX(f)) + 0.5;
-            gctx.strokeStyle = gridColor;
-            gctx.beginPath();
-            gctx.moveTo(x, PAD_T);
-            gctx.lineTo(x, H - PAD_B);
-            gctx.stroke();
-            gctx.fillText(formatFreq(f), x + 3, H - 4);
-          }
-        }
-
-        // ---- Smoothing helpers --------------------------------------------------
-        function spatialSmooth(src) {
-          const out = new Float32Array(src.length);
-          for (let i = 0; i < src.length; i++) {
-            const a = src[Math.max(0, i - 1)];
-            const b = src[i];
-            const c = src[Math.min(src.length - 1, i + 1)];
-            out[i] = (a + b * 2 + c) / 4;
-          }
-          return out;
-        }
-
-        function findPeaks(data) {
-          const candidates = [];
-          for (let i = startBin + 1; i < data.length - 1; i++) {
-            if (
-              data[i] > data[i - 1] &&
-              data[i] >= data[i + 1] &&
-              data[i] > PEAK_MIN_DB
-            ) {
-              candidates.push({ bin: i, db: data[i] });
-            }
-          }
-          candidates.sort((a, b) => b.db - a.db);
-          const chosen = [];
-          for (const c of candidates) {
-            if (chosen.length >= PEAK_COUNT) break;
-            if (
-              chosen.every(
-                (p) => Math.abs(p.bin - c.bin) >= PEAK_MIN_SEPARATION_BINS,
-              )
-            ) {
-              chosen.push(c);
-            }
-          }
-          chosen.sort((a, b) => a.bin - b.bin);
-          return chosen;
-        }
-
-        // ---- Drawing --------------------------------------------------------------
-        const domFreqEl = document.getElementById("domFreq");
-        const domDbEl = document.getElementById("domDb");
-
-        function drawTrace(display, peaks, dominant) {
-          tctx.clearRect(0, 0, W, H);
-
-          // peak-hold line (thin, dim, above the trace)
-          tctx.beginPath();
-          for (let i = startBin; i < SPECTRUM_SIZE; i++) {
-            const x = freqToX(binToFreq(i));
-            const y = dbToY(peakHold[i]);
-            if (i === startBin) tctx.moveTo(x, y);
-            else tctx.lineTo(x, y);
-          }
-          tctx.strokeStyle = "rgba(255,255,255,0.22)";
-          tctx.lineWidth = 1;
-          tctx.stroke();
-
-          // main trace: smooth curve through midpoints, gradient fill under it
-          const grad = tctx.createLinearGradient(0, PAD_T, 0, H - PAD_B);
-          grad.addColorStop(0, "rgba(255,79,163,0.9)"); // hi (top = loud)
-          grad.addColorStop(0.55, "rgba(122,125,255,0.55)");
-          grad.addColorStop(1, "rgba(53,215,208,0.05)"); // lo (bottom = quiet)
-
-          tctx.beginPath();
-          let prevX = freqToX(binToFreq(startBin));
-          let prevY = dbToY(display[startBin]);
-          tctx.moveTo(prevX, prevY);
-          for (let i = startBin + 1; i < SPECTRUM_SIZE; i++) {
-            const x = freqToX(binToFreq(i));
-            const y = dbToY(display[i]);
-            const mx = (prevX + x) / 2;
-            const my = (prevY + y) / 2;
-            tctx.quadraticCurveTo(prevX, prevY, mx, my);
-            prevX = x;
-            prevY = y;
-          }
-          tctx.lineTo(prevX, prevY);
-          // stroke the trace line before extending the path down to close the fill shape
-          tctx.save();
-          tctx.strokeStyle = "rgba(180,200,255,0.9)";
-          tctx.lineWidth = 1.5;
-          tctx.stroke();
-          tctx.restore();
-
-          tctx.lineTo(freqToX(binToFreq(SPECTRUM_SIZE - 1)), H - PAD_B);
-          tctx.lineTo(freqToX(binToFreq(startBin)), H - PAD_B);
-          tctx.closePath();
-          tctx.fillStyle = grad;
-          tctx.fill();
-
-          // labeled peak markers
-          for (const p of peaks) {
-            const x = freqToX(binToFreq(p.bin));
-            const y = dbToY(p.db);
-            const isDominant = dominant && p.bin === dominant.bin;
-
-            tctx.beginPath();
-            tctx.arc(x, y, isDominant ? 3.5 : 2.5, 0, Math.PI * 2);
-            tctx.fillStyle = isDominant ? "#ffce54" : "#e8ecf5";
-            tctx.fill();
-
-            const label = formatFreq(binToFreq(p.bin));
-            tctx.font = isDominant
-              ? "bold 10px ui-monospace, monospace"
-              : "9px ui-monospace, monospace";
-            tctx.fillStyle = isDominant ? "#ffce54" : "rgba(232,236,245,0.75)";
-            const labelY = Math.max(PAD_T + 10, y - 8);
-            const textW = tctx.measureText(label).width;
-            let labelX = x - textW / 2;
-            labelX = Math.max(PAD_L, Math.min(W - PAD_R - textW, labelX));
-            tctx.fillText(label, labelX, labelY);
-          }
-
-          // dominant frequency readout
-          if (dominant) {
-            domFreqEl.textContent = formatFreq(binToFreq(dominant.bin));
-            domDbEl.textContent = dominant.db.toFixed(1) + " dB";
+        } else {
+          if (sendLooper("Recording", selectedTrack)) {
+            state.recording = true;
+            renderTracks();
+            updateControls();
           }
         }
+      });
 
-        function frame(now) {
-          const dt = Math.min(0.25, (now - lastFrameTime) / 1000);
-          lastFrameTime = now;
+      // Clear requires a continuous 1-second hold. Pointer events support touch
+      // screens and mouse input. A short press sends no command.
+      let holdTimer = null;
+      let holdStart = 0;
+      let holdPointerId = null;
+      let clearTriggered = false;
+      let progressFrame = null;
 
-          if (haveData) {
-            for (let i = 0; i < SPECTRUM_SIZE; i++) {
-              smoothed[i] =
-                smoothed[i] * SMOOTHING + latest[i] * (1 - SMOOTHING);
-              if (smoothed[i] > peakHold[i]) {
-                peakHold[i] = smoothed[i];
-              } else {
-                peakHold[i] = Math.max(
-                  smoothed[i],
-                  peakHold[i] - PEAK_DECAY_DB_PER_SEC * dt,
-                );
-              }
-            }
-          }
-
-          if (gridDirty) {
-            drawGrid();
-            gridDirty = false;
-          }
-
-          const display = spatialSmooth(smoothed);
-          const peaks = findPeaks(display);
-          let dominant = null;
-          for (const p of peaks)
-            if (!dominant || p.db > dominant.db) dominant = p;
-          if (!dominant) {
-            let best = startBin;
-            for (let i = startBin; i < SPECTRUM_SIZE; i++)
-              if (display[i] > display[best]) best = i;
-            dominant = { bin: best, db: display[best] };
-          }
-          drawTrace(display, peaks, dominant);
-
-          requestAnimationFrame(frame);
+      function resetHold() {
+        if (holdTimer !== null) {
+          clearTimeout(holdTimer);
+          holdTimer = null;
         }
-        requestAnimationFrame(frame);
-      })();
+
+        if (progressFrame !== null) {
+          cancelAnimationFrame(progressFrame);
+          progressFrame = null;
+        }
+
+        holdPointerId = null;
+        holdProgress.style.width = "0%";
+        clearHint.textContent = "Press and hold for 1 second";
+      }
+
+      function animateHoldProgress() {
+        if (!holdStart || clearTriggered) return;
+
+        const elapsed = performance.now() - holdStart;
+        const progress = Math.min(100, (elapsed / 1000) * 100);
+        holdProgress.style.width = `${progress}%`;
+
+        if (progress < 100) {
+          progressFrame = requestAnimationFrame(animateHoldProgress);
+        }
+      }
+
+      clearButton.addEventListener("pointerdown", (event) => {
+        if (!connected || clearTriggered || holdPointerId !== null) return;
+
+        event.preventDefault();
+        holdPointerId = event.pointerId;
+        holdStart = performance.now();
+        clearTriggered = false;
+
+        try {
+          clearButton.setPointerCapture(event.pointerId);
+        } catch (_) {
+          // Pointer capture may not be available in every browser.
+        }
+
+        clearHint.textContent = "Keep holding…";
+        progressFrame = requestAnimationFrame(animateHoldProgress);
+
+        holdTimer = setTimeout(() => {
+          const trackNumber = selectedTrack;
+
+          if (sendLooper("Clear", trackNumber)) {
+            // Clear ends the current recording state for this track only.
+            tracks[trackNumber].recording = false;
+            clearTriggered = true;
+            clearHint.textContent = `Track ${trackNumber} cleared`;
+            log(`Track ${trackNumber} cleared`);
+            renderTracks();
+            updateControls();
+          } else {
+            clearHint.textContent = "Command not sent";
+          }
+
+          if (progressFrame !== null) {
+            cancelAnimationFrame(progressFrame);
+            progressFrame = null;
+          }
+
+          holdProgress.style.width = "100%";
+          holdTimer = null;
+        }, 1000);
+      });
+
+      function finishHold(event) {
+        if (holdPointerId === null) return;
+        if (
+          event &&
+          event.pointerId !== undefined &&
+          event.pointerId !== holdPointerId
+        )
+          return;
+
+        const wasTriggered = clearTriggered;
+        resetHold();
+
+        if (!wasTriggered) {
+          log("Clear cancelled — button was not held for 1 second");
+        }
+
+        clearTriggered = false;
+      }
+
+      clearButton.addEventListener("pointerup", finishHold);
+      clearButton.addEventListener("pointercancel", finishHold);
+      clearButton.addEventListener("lostpointercapture", finishHold);
+
+      // Mute commands use the JSON representation from your Rust enum.
+      muteButton.addEventListener("click", () => {
+        const nextMuted = !muted;
+        const command = { Muter: nextMuted ? "Mute" : "Unmute" };
+
+        if (sendCommand(command, nextMuted ? "Mute" : "Unmute")) {
+          muted = nextMuted;
+          updateControls();
+        }
+      });
+
+      document
+        .getElementById("clearLogButton")
+        .addEventListener("click", () => {
+          logElement.textContent = "";
+        });
+
+      renderTracks();
+      updateControls();
+      setConnectionState(false);
+      connect();
     </script>
   </body>
 </html>

@@ -9,6 +9,8 @@ const CONSTS_JS: &str = concat!(
     include_str!("../consts.js")
 );
 
+use esp_println as _;
+use serde_json::{to_string, from_str};
 use pcobs::{serialize, deserialize};
 use settings::*;
 use alloc::boxed::Box;
@@ -16,6 +18,7 @@ use core::error::Error;
 use core::marker::PhantomData;
 use core::{net::Ipv4Addr, str::FromStr};
 use defmt::info;
+use defmt::Debug2Format;
 use embassy_time::Instant;
 use embassy_sync::channel::Channel;
 use embassy_sync::signal::Signal;
@@ -51,7 +54,6 @@ use esp_hal::{
     dma_buffers
 };
 use esp_hal::uart::Config as UartConfig;
-use esp_println::{print, println};
 use esp_radio::wifi::{Config, ControllerConfig, Interface, WifiController, ap::AccessPointConfig};
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -79,20 +81,12 @@ const GW_IP_ADDR_ENV: Option<&'static str> = option_env!("GATEWAY_IP");
 /// How often a new spectrum frame is pushed to a connected WebSocket client.
 const SPECTRUM_PUSH_INTERVAL: Duration = Duration::from_millis(50); // ~20 fps
 
-const SPECTRUM_PAYLOAD_BYTES: usize = FFT_BINS* core::mem::size_of::<BinValue>(); // f32 = 4 bytes each
 const WS_FRAME_MARGIN: usize = 16; // header + margin for the binary WS frame
-const TCP_BUF_SIZE: usize = SPECTRUM_PAYLOAD_BYTES + 512;
+const TCP_BUF_SIZE: usize = 128 + 512;
 
 const HTML_PAGE: &str = concat!("HTTP/1.0 200 OK\r\n\r\n", include_str!("../index.html"));
 
 
-const NYQUIST_HZ: usize = SAMPLE_RATE / 2;          // 24_000
-const AUDIBLE_CUTOFF_HZ: usize = 20_000;
-// round UP so we never clip a bin that's still under the cutoff
-    const TX_BINS: usize =
-((AUDIBLE_CUTOFF_HZ as usize * FFT_BINS) + NYQUIST_HZ as usize - 1)
-    / NYQUIST_HZ as usize;                        // 1707 bins @ FFT_BINS=2048
-    const TX_PAYLOAD_BYTES: usize = TX_BINS * core::mem::size_of::<BinValue>();
 
 // ---------------------------------------------------------------------------
 // Shared spectrum state.
@@ -105,7 +99,6 @@ const AUDIBLE_CUTOFF_HZ: usize = 20_000;
 // ---------------------------------------------------------------------------
 
 /// FROM UART TO WEB
-static SPECTRUM_A: Signal<CriticalSectionRawMutex, [BinValue; FFT_BINS]> = Signal::new();
 static COMMAND: Signal<CriticalSectionRawMutex, CommandUart> = Signal::new();
 /// FROM WEB TO UART
 
@@ -141,10 +134,9 @@ async fn main(spawner: Spawner) -> ! {
         .with_rx(rx)
         .with_tx(tx);
 
-    const MIN: usize = if (SPECTRUM_PAYLOAD_BYTES + 512) < 4095 { SPECTRUM_PAYLOAD_BYTES + 512  } else { 4095 };
     // use these tx buffers
-    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(MIN);
-    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(MIN);
+    let (rx_buffer_a, rx_descriptors_a, tx_buffer_a, tx_descriptors_a) = dma_buffers!(128);
+    let (rx_buffer_b, rx_descriptors_b, tx_buffer_b, tx_descriptors_b) = dma_buffers!(128);
 
     let dma_rx_a = DmaRxBuf::new(rx_descriptors_a, rx_buffer_a).unwrap();
     let dma_rx_b = DmaRxBuf::new(rx_descriptors_b, rx_buffer_b).unwrap();
@@ -170,13 +162,13 @@ async fn main(spawner: Spawner) -> ! {
 
     let access_point_config =
         Config::AccessPoint(AccessPointConfig::default().with_ssid("esp-radio"));
-    println!("Starting wifi");
+    //info!("Starting wifi");
     let (controller, interfaces) = esp_radio::wifi::new(
         peripherals.WIFI,
         ControllerConfig::default().with_initial_config(access_point_config),
     )
     .unwrap();
-    println!("Wifi started!");
+    //info!("Wifi started!");
     let device = interfaces.access_point;
 
     let gw_ip_addr_str = GW_IP_ADDR_ENV.unwrap_or("192.168.2.1");
@@ -201,20 +193,15 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net_task(runner).unwrap());
     spawner.spawn(connection(controller).unwrap());
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
-    spawner.spawn(uart_receiver(uart_dma_rx, uhci_rx, dma_rx_a, dma_rx_b).unwrap());
+    //spawner.spawn(uart_receiver(uart_dma_rx, uhci_rx, dma_rx_a, dma_rx_b).unwrap());
     spawner.spawn(uart_sender(uhci_tx, dma_tx_a).unwrap());
-    // Remove this once you're feeding set_spectrum() from a real FFT source.
-    //spawner.spawn(spectrum_demo_task().unwrap());
 
-    println!(
-        "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:80/"
-    );
-    println!("Spectrum: {} bins @ {} Hz sample rate", FFT_BINS, SAMPLE_RATE);
-    println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
+    //info!("Connect to the AP `esp-radio` and point your browser to http://{:?}:80/", gw_ip_addr_str);
+    //info!("DHCP is enabled so there's no need to configure a static IP, just in case:");
     stack.wait_config_up().await;
     stack
-        .config_v4()
-        .inspect(|c| println!("ipv4 config: {c:?}"));
+        .config_v4();
+        //.inspect(|c| info!("ipv4 config: {:?}", c));
 
     // Two independent HTTP workers, each with its own TcpSocket, both
     // listening on port 80. This lets one connection be torn down while
@@ -238,16 +225,16 @@ async fn http_worker(stack: Stack<'static>) {
     socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
 
     loop {
-        println!("Wait for connection...");
+        //info!("Wait for connection...");
         let r = socket
             .accept(IpListenEndpoint {
                 addr: None,
                 port: 80,
             })
             .await;
-        println!("Connected...");
+        //info!("Connected...");
         if let Err(e) = r {
-            println!("connect error: {:?}", e);
+            //info!("connect error: {:?}", e);
             continue;
         }
 
@@ -255,13 +242,13 @@ async fn http_worker(stack: Stack<'static>) {
         let mut pos = 0;
         loop {
             if pos >= buffer.len() {
-                println!("request header too large, dropping connection");
+                //info!("request header too large, dropping connection");
                 pos = 0; // nothing usable to parse
                 break;
             }
             match socket.read(&mut buffer[pos..]).await {
                 Ok(0) => {
-                    println!("read EOF");
+                    //info!("read EOF");
                     break;
                 }
                 Ok(len) => {
@@ -272,7 +259,7 @@ async fn http_worker(stack: Stack<'static>) {
                     }
                 }
                 Err(e) => {
-                    println!("read error: {:?}", e);
+                    //info!("read error: {:?}", e);
                     break;
                 }
             };
@@ -286,12 +273,10 @@ async fn http_worker(stack: Stack<'static>) {
         }
 
         let request = unsafe { core::str::from_utf8_unchecked(&buffer[..pos]) };
-        print!("{}", request);
-        println!();
 
         let path = request.lines().next().and_then(|line| line.split_whitespace().nth(1)).unwrap_or("/");
         if request.contains("Upgrade: websocket") || request.contains("upgrade: websocket") {
-            println!("WebSocket upgrade requested");
+            //info!("WebSocket upgrade requested");
             let header_iter = request
                 .lines()
                 .skip(1) // skip the request line, e.g. "GET / HTTP/1.1"
@@ -304,14 +289,14 @@ async fn http_worker(stack: Stack<'static>) {
             let ws_context = match embedded_websocket::read_http_header(header_iter) {
                 Ok(Some(ctx)) => ctx,
                 Ok(None) => {
-                    println!("not a valid websocket upgrade request");
+                    //info!("not a valid websocket upgrade request");
                     socket.close();
                     Timer::after(Duration::from_millis(10)).await;
                     socket.abort();
                     continue;
                 }
                 Err(e) => {
-                    println!("header parse error: {:?}", e);
+                    //info!("header parse error: {:?}", Debug2Format(&e));
                     socket.close();
                     Timer::after(Duration::from_millis(10)).await;
                     socket.abort();
@@ -324,7 +309,7 @@ async fn http_worker(stack: Stack<'static>) {
                 match ws.server_accept(&ws_context.sec_websocket_key, None, &mut handshake_buf) {
                     Ok(len) => len,
                     Err(e) => {
-                        println!("ws handshake error: {:?}", e);
+                        //info!("ws handshake error: {:?}", Debug2Format(&e));
                         socket.close();
                         Timer::after(Duration::from_millis(10)).await;
                         socket.abort();
@@ -332,23 +317,23 @@ async fn http_worker(stack: Stack<'static>) {
                     }
                 };
             if let Err(e) = socket.write_all(&handshake_buf[..resp_len]).await {
-                println!("write error: {:?}", e);
+                //info!("write error: {:?}", e);
                 socket.close();
                 Timer::after(Duration::from_millis(10)).await;
                 socket.abort();
                 continue;
             }
             let _ = socket.flush().await;
-            println!("WebSocket handshake complete");
+            //info!("WebSocket handshake complete");
 
             // resp_buf holds encoded outgoing WS frames (echoed text replies
             // and binary spectrum pushes both use this buffer).
-            let mut resp_buf = [0u8; TX_PAYLOAD_BYTES + WS_FRAME_MARGIN];
+            let mut resp_buf = [0u8; 1024];
             let mut frame_in = [0u8; 1024];
             // Raw bytes of the current spectrum frame, filled just before
             // each push so we're not holding the critical_section lock
             // while doing the (slower) websocket encode + TCP write.
-            let mut spectrum_bytes = [0u8; TX_PAYLOAD_BYTES];
+            let mut spectrum_bytes = [0u8; 1024];
 
             'ws_loop: loop {
                 let read_fut = socket.read(&mut buffer);
@@ -359,12 +344,12 @@ async fn http_worker(stack: Stack<'static>) {
                     Either::First(res) => {
                         let n = match res {
                             Ok(0) => {
-                                println!("ws connection closed");
+                                //info!("ws connection closed");
                                 break 'ws_loop;
                             }
                             Ok(n) => n,
                             Err(e) => {
-                                println!("ws read error: {:?}", e);
+                                //info!("ws read error: {:?}", e);
                                 break 'ws_loop;
                             }
                         };
@@ -372,63 +357,47 @@ async fn http_worker(stack: Stack<'static>) {
                             Ok(info_) => match info_.message_type {
                                 WebSocketReceiveMessageType::Text => {
                                     // this is where commands go
-                                    info!("command receaved");
-                                    let text = core::str::from_utf8(&frame_in[..info_.len_to]).unwrap_or("");
-                                    let cmd = match text.trim() {
-                                        "mute"   => Some(CommandUart::Mute(Mute::Mute)),
-                                        "unmute" => Some(CommandUart::Mute(Mute::Unmute)),
-                                        _ => None,
-                                    };
-                                    if let Some(cmd) = cmd {
-                                        info!("command spliced");
-                                        COMMAND.signal(cmd);   // uart_sender picks this up and serializes it
+                                    //info!("command receaved from web");
+                                    let text = core::str::from_utf8(&frame_in[..info_.len_to]).unwrap_or("").trim();
+                                    let cmd: Result<CommandUart, serde_json::Error> = from_str(text);
+                                    match cmd {
+                                        Ok(cmd) => {
+                                            //info!("command spliced");
+                                            //info!("cmd: {}", Debug2Format(&cmd));
+                                            COMMAND.signal(cmd);   // uart_sender picks this up and serializes it
+                                        },
+                                        Err(e) => {
+                                            //info!("json from str error: {}", Debug2Format(&e));
+                                        }
                                     }
                                 }
                                 WebSocketReceiveMessageType::CloseMustReply => {
-                                    println!("ws close requested");
+                                    //info!("ws close requested");
                                     break 'ws_loop;
                                 }
                                 _ => {}
                             },
                             Err(e) => {
-                                println!("ws frame error: {:?}", e);
+                                //info!("ws frame error: {:?}", Debug2Format(&e));
                                 break 'ws_loop;
                             }
                         }
                     }
                     // Timer fired: push the latest spectrum as a binary frame.
                     Either::Second(_) => {
-                        let Some(spectrum) = SPECTRUM_A.try_take() else { continue 'ws_loop; };
-                        let bytes: &[u8] = bytemuck::cast_slice(&spectrum[..TX_BINS]);
-                        spectrum_bytes.copy_from_slice(bytes);
-
-                        let out_len = match ws.write(
-                            WebSocketSendMessageType::Binary,
-                            true,
-                            &spectrum_bytes,
-                            &mut resp_buf,
-                        ) {
-                            Ok(len) => len,
-                            Err(e) => {
-                                println!("ws encode error: {:?}", e);
-                                break 'ws_loop;
-                            }
-                        };
-                        if let Err(e) = socket.write_all(&resp_buf[..out_len]).await {
-                            println!("ws write error: {:?}", e);
-                            break 'ws_loop;
-                        }
-                        let _ = socket.flush().await;
                     }
                 }
             }
         } else if path == "/consts.js" {
             let r = socket.write_all(CONSTS_JS.as_bytes()).await;
-            if let Err(e) = r { println!("write error: {:?}", e); }
+            if let Err(e) = r { //info!("write error: {:?}", e); 
+            }
             let _ = socket.flush().await;
         } else {
             let r = socket.write_all(HTML_PAGE.as_bytes()).await;
-            if let Err(e) = r { println!("write error: {:?}", e); }
+            if let Err(e) = r { 
+                //info!("write error: {:?}", e); 
+            }
             let _ = socket.flush().await;
         }
 
@@ -453,10 +422,11 @@ async fn uart_sender(mut uhci_tx: UhciTx<'static, Async>, mut dma_tx_a: DmaTxBuf
                 l + 1
             },
             Err(err) => {
-                info!("error: {}", defmt::Debug2Format(&err));
+                //info!("error: {}", Debug2Format(&err));
                 continue;
             }
         };
+        //info!("sending: {}", &buf[0..len]);
         dma_tx_a.as_mut_slice()[0..len].copy_from_slice(&buf[0..len]);
         dma_tx_a.set_length(len);
         let mut transfer = uhci_tx
@@ -466,63 +436,13 @@ async fn uart_sender(mut uhci_tx: UhciTx<'static, Async>, mut dma_tx_a: DmaTxBuf
         let (err, uhci, dma_tx) = transfer.wait();
         uhci_tx = uhci;
         dma_tx_a = dma_tx;
-        info!("uart sent");
+        //info!("uart sent");
         if let Err(err) = err {
-            info!("error: {}", defmt::Debug2Format(&err));
+            //info!("error: {}", Debug2Format(&err));
         }
     }
 }
 
-#[embassy_executor::task]
-async fn uart_receiver(uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, Async>, dma_rx_a: DmaRxBuf, dma_rx_b: DmaRxBuf) {
-
-    let mut uart_dma = uart_dma.on(uhci_rx, dma_rx_a);
-    let mut next_dma = dma_rx_b;
-
-    info!("uart reveacer up");
-
-
-    let mut rx_buf = [0u8; COBS_BUF + 512];
-
-    let mut filled_len: usize = 0;
-
-
-    loop {
-        let (err, filled) = uart_dma.read(next_dma).await;
-        if let Err(e) = err {
-            info!("uart dma error {:?}", e);
-        }
-        info!("uart receaved");
-
-        for chunk in filled.received_data() {
-            for &byte in chunk {
-                if byte == FRAME_DELIM {
-                    // End of COBS frame — attempt to decode
-                    let msg: Result<FFTUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
-                    match msg {
-                        Ok(frame) => {
-                            SPECTRUM_A.signal(frame.into());
-                        }
-                        Err(err) => {
-                            info!("uart decode error {:?}", defmt::Debug2Format(&err));
-                        }
-                    }
-                    filled_len = 0; // reset for next frame
-                } else {
-                    if filled_len < rx_buf.len() {
-                        rx_buf[filled_len] = byte;
-                        filled_len += 1;
-                    } else {
-                        // overflowed the buffer without seeing a delimiter — drop this frame
-                        info!("rx_buf overflowed");
-                        filled_len = 0;
-                    }
-                }
-            }
-        }
-        next_dma = filled;
-    }
-}
 
 /// Small, dependency-free PRNG — good enough for fake demo noise, not for
 /// anything security-sensitive.
@@ -552,13 +472,13 @@ async fn run_dhcp(stack: Stack<'static>, gw_ip_addr: Ipv4Addr) {
     let mut leaser = SingleDhcpLeaser::new(Ipv4Addr::new(192, 168, 2, 69)); // any free address on your subnet
     let res = esp_hal_dhcp_server::run_dhcp_server(stack, config, &mut leaser).await;
     if let Err(e) = res {
-        defmt::error!("DHCP server error: {:?}", defmt::Debug2Format(&e));
+        defmt::error!("DHCP server error: {:?}", Debug2Format(&e));
     }
 }
 
 #[embassy_executor::task]
 async fn connection(controller: WifiController<'static>) {
-    println!("start connection task");
+    //info!("start connection task");
     loop {
         let ev = controller
             .wait_for_access_point_connected_event_async()
@@ -567,18 +487,12 @@ async fn connection(controller: WifiController<'static>) {
             Ok(esp_radio::wifi::AccessPointStationEventInfo::Connected(
                 access_point_station_connected_info,
             )) => {
-                println!(
-                    "Station connected: {:?}",
-                    access_point_station_connected_info
-                );
+                //info!("Station connected: {:?}", access_point_station_connected_info);
             }
             Ok(esp_radio::wifi::AccessPointStationEventInfo::Disconnected(
                 access_point_station_disconnected_info,
             )) => {
-                println!(
-                    "Station disconnected: {:?}",
-                    access_point_station_disconnected_info
-                );
+                //info!("Station disconnected: {:?}", access_point_station_disconnected_info);
             }
             _ => (),
         }
@@ -630,14 +544,3 @@ impl UartDmaRead<On> {
         }
     }
 }
-
-
- 
-
-    /*
-    let transfer = uhci_rx.read(dma_rx).unwrap_or_else(|x| panic!("Something went horribly wrong: {:?}", x.0));
-    transfer.wait_for_done().await;
-    let (err, uhci_rx, dma_rx) = transfer.wait();
-    err.unwrap();
-    dma_rx.received_data();
-    */
