@@ -85,11 +85,9 @@ async fn audio_task(
                     convert_to(input, &mut frames);
 
 
-                    /*
-                    for mut frame in frames {
-                        looper.process(&mut frame);
+                    for frame in frames.iter_mut() {
+                        looper.process(&mut frame.1);
                     }
-                    */
 
                     if let Ok(c) = COMMAND_UART.try_lock() {
                         command = *c;

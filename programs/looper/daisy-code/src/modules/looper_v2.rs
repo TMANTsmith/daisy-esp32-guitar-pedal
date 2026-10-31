@@ -296,7 +296,6 @@ pub fn process(&mut self, input: &mut f32) {
 
         TrackState::Clear => {
             // Clear the selected track once.
-            self.tracks[track_number].fill(0.0);
             self.recorded_length[track_number] = 0;
             self.index[track_number] = 0;
             self.recording_limit[track_number] = 0;
