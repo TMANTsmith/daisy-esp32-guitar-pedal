@@ -1,437 +1,365 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101116" />
     <title>Daisy Looper</title>
-
     <style>
       :root {
         color-scheme: dark;
-        --bg: #11111b;
-        --panel: #1e1e2e;
-        --panel-hover: #29293d;
-        --border: #313244;
-        --text: #cdd6f4;
-        --muted: #a6adc8;
-        --purple: #cba6f7;
-        --green: #a6e3a1;
-        --red: #f38ba8;
-        --yellow: #f9e2af;
+        --bg: #101116;
+        --panel: #191b23;
+        --panel2: #222530;
+        --line: #343846;
+        --text: #f2f3f7;
+        --muted: #a2a7b5;
+        --accent: #b69cff;
+        --red: #ff647c;
+        --green: #69dfa0;
+        --yellow: #ffd36b;
       }
-
       * {
         box-sizing: border-box;
       }
-
       body {
         margin: 0;
         min-height: 100vh;
-        padding: 28px 16px;
-        background: var(--bg);
+        padding: 26px 15px 40px;
+        background: radial-gradient(ellipse at top, #242033 0%, var(--bg) 52%);
         color: var(--text);
-        font-family:
-          system-ui,
+        font:
+          16px/1.45 system-ui,
           -apple-system,
-          BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
       }
-
       button {
         font: inherit;
         color: inherit;
         touch-action: manipulation;
       }
-
       .app {
-        width: 100%;
-        max-width: 760px;
-        margin: 0 auto;
+        max-width: 720px;
+        margin: auto;
       }
-
       header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         gap: 16px;
-        margin-bottom: 28px;
+        margin-bottom: 24px;
       }
-
       h1 {
         margin: 0;
-        font-size: clamp(25px, 5vw, 34px);
-        letter-spacing: -1px;
+        font-size: clamp(26px, 5vw, 36px);
+        letter-spacing: -1.2px;
       }
-
-      .subtitle {
-        margin-top: 5px;
+      h2 {
+        margin: 0;
+        font-size: 17px;
+      }
+      .sub,
+      .hint,
+      .muted {
         color: var(--muted);
-        font-size: 14px;
       }
-
+      .sub {
+        font-size: 14px;
+        margin-top: 3px;
+      }
       .connection {
         display: flex;
         align-items: center;
         gap: 8px;
-        flex-shrink: 0;
         color: var(--muted);
         font-size: 13px;
+        white-space: nowrap;
       }
-
       .dot {
         width: 9px;
         height: 9px;
         border-radius: 50%;
         background: var(--red);
-        box-shadow: 0 0 10px #f38ba844;
+        box-shadow: 0 0 12px #ff647c66;
       }
-
-      .dot.connected {
+      .dot.on {
         background: var(--green);
-        box-shadow: 0 0 10px #a6e3a144;
+        box-shadow: 0 0 12px #69dfa066;
       }
-
       .panel {
-        padding: 22px;
-        margin-bottom: 16px;
-        border: 1px solid var(--border);
+        background: linear-gradient(145deg, #1c1e27, #171921);
+        border: 1px solid var(--line);
         border-radius: 18px;
-        background: var(--panel);
+        padding: 20px;
+        margin: 14px 0;
+        box-shadow: 0 12px 30px #0002;
       }
-
-      .section-heading {
+      .panel-head {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: baseline;
         gap: 12px;
-        margin-bottom: 16px;
+        margin-bottom: 15px;
       }
-
-      h2 {
-        margin: 0;
-        font-size: 17px;
-        font-weight: 650;
-      }
-
       .hint {
-        color: var(--muted);
         font-size: 12px;
       }
-
       .tracks {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
       }
-
       .track {
         min-width: 0;
-        padding: 16px 6px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: #181825;
+        padding: 17px 8px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: #13151c;
         cursor: pointer;
-        transition:
-          background 120ms,
-          border-color 120ms;
       }
-
-      .track:hover {
-        background: var(--panel-hover);
-      }
-
       .track.selected {
-        border-color: var(--purple);
-        background: #302644;
-        box-shadow: inset 0 0 0 1px var(--purple);
+        border-color: var(--accent);
+        background: #30283f;
+        box-shadow: inset 0 0 0 1px var(--accent);
       }
-
-      .track-number {
-        display: block;
-        font-size: 19px;
-        font-weight: 750;
-      }
-
-      .track-status {
-        display: block;
-        margin-top: 7px;
-        color: var(--muted);
-        font-size: 11px;
-        overflow-wrap: anywhere;
-      }
-
       .track.recording .track-status {
         color: var(--red);
       }
-
-      .track.recording .track-number::before {
+      .track.recording .track-number:before {
         content: "● ";
         color: var(--red);
-        font-size: 11px;
+        font-size: 12px;
       }
-
-      .track.stopped .track-status {
-        color: var(--green);
+      .track-number {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
       }
-
-      .selected-label {
-        margin-top: 15px;
+      .track-status {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .selected {
+        color: inherit;
+      }
+      .selected-info {
+        margin-top: 14px;
         color: var(--muted);
         font-size: 13px;
       }
-
-      .selected-label strong {
-        color: var(--purple);
+      .selected-info strong {
+        color: var(--accent);
       }
-
-      .record-area {
+      .actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
-
-      .action-button {
-        min-height: 76px;
-        padding: 16px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background: #181825;
-        cursor: pointer;
-        font-weight: 700;
-        transition:
-          filter 120ms,
-          transform 120ms;
-      }
-
-      .action-button:hover:not(:disabled) {
-        filter: brightness(1.12);
-      }
-
-      .action-button:active:not(:disabled) {
-        transform: scale(0.985);
-      }
-
-      .action-button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-
-      .record-button {
-        border-color: #f38ba855;
-        background: #452333;
-        color: #f9dce4;
-      }
-
-      .record-button.is-recording {
-        border-color: var(--green);
-        background: #243c32;
-        color: var(--green);
-      }
-
-      .clear-button {
+      .action {
         position: relative;
         overflow: hidden;
-        border-color: #f9e2af55;
+        min-height: 82px;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #13151c;
+        cursor: pointer;
+        font-weight: 750;
+      }
+      .action:disabled,
+      .mute:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+      .action:active:not(:disabled),
+      .mute:active:not(:disabled) {
+        transform: scale(0.985);
+      }
+      .record {
+        color: #ffdce2;
+        border-color: #ff647c66;
+        background: #42232d;
+      }
+      .record.active {
+        color: var(--green);
+        border-color: #69dfa088;
+        background: #20382e;
+      }
+      .clear {
         color: var(--yellow);
-        user-select: none;
-        -webkit-user-select: none;
+        border-color: #ffd36b66;
       }
-
-      .hold-progress {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: var(--yellow);
-        pointer-events: none;
-      }
-
       .button-title {
         display: block;
         font-size: 16px;
       }
-
-      .button-description {
+      .button-desc {
         display: block;
         margin-top: 5px;
         font-size: 12px;
         font-weight: 400;
         opacity: 0.8;
       }
-
+      .progress {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 4px;
+        background: var(--yellow);
+        pointer-events: none;
+      }
       .mute-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
       }
-
-      .mute-description {
-        margin-top: 5px;
+      .mute-desc {
+        margin-top: 4px;
         color: var(--muted);
         font-size: 13px;
       }
-
-      .mute-button {
+      .mute {
         min-width: 112px;
         padding: 12px 18px;
-        border: 1px solid var(--border);
+        border: 1px solid var(--line);
         border-radius: 11px;
-        background: #181825;
+        background: #13151c;
         cursor: pointer;
-        font-weight: 700;
+        font-weight: 750;
       }
-
-      .mute-button.muted {
-        border-color: var(--purple);
-        background: #302644;
-        color: var(--purple);
+      .mute.muted {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: #30283f;
       }
-
       .log {
-        max-height: 180px;
-        overflow-y: auto;
+        max-height: 190px;
+        overflow: auto;
         margin: 0;
         padding: 12px;
-        border: 1px solid var(--border);
+        border: 1px solid var(--line);
         border-radius: 10px;
-        background: #11111b;
-        color: var(--muted);
+        background: #101116;
+        color: #b8bdca;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
         font:
-          12px/1.7 ui-monospace,
+          12px/1.65 ui-monospace,
           SFMono-Regular,
           Consolas,
           monospace;
-        overflow-wrap: anywhere;
-        white-space: pre-wrap;
       }
-
+      .text-button {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+      }
       .footer {
-        margin-top: 18px;
         text-align: center;
+        margin-top: 20px;
         color: var(--muted);
         font-size: 12px;
       }
-
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
       @media (max-width: 480px) {
         body {
-          padding: 20px 12px;
+          padding: 20px 12px 32px;
         }
-
         .panel {
           padding: 16px;
         }
-
-        header {
-          align-items: flex-start;
+        .actions {
+          grid-template-columns: 1fr;
         }
-
+        .track {
+          padding: 14px 5px;
+        }
         .connection {
           font-size: 11px;
-        }
-
-        .tracks {
-          gap: 6px;
-        }
-
-        .track {
-          padding: 13px 3px;
-        }
-
-        .track-number {
-          font-size: 16px;
-        }
-
-        .track-status {
-          font-size: 10px;
-        }
-
-        .record-area {
-          grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
-
   <body>
     <main class="app">
       <header>
         <div>
           <h1>Daisy Looper</h1>
-          <div class="subtitle">Wireless pedal controller</div>
+          <div class="sub">Wireless pedal controller</div>
         </div>
-
         <div class="connection">
-          <span id="connectionDot" class="dot"></span>
-          <span id="connectionText">Connecting…</span>
+          <span id="dot" class="dot"></span
+          ><span id="connection">Connecting…</span>
         </div>
       </header>
 
       <section class="panel">
-        <div class="section-heading">
+        <div class="panel-head">
           <h2>Tracks</h2>
-          <span class="hint">Switch anytime</span>
+          <span class="hint">3 independent tracks</span>
         </div>
-
-        <div class="tracks">
-          <button class="track selected" data-track="1" type="button">
-            <span class="track-number">1</span>
-            <span class="track-status">Idle</span>
+        <div class="tracks" id="tracks">
+          <button
+            class="track selected"
+            data-track="1"
+            type="button"
+            aria-pressed="true"
+          >
+            <span class="track-number">1</span
+            ><span class="track-status">Idle</span>
           </button>
-
-          <button class="track" data-track="2" type="button">
-            <span class="track-number">2</span>
-            <span class="track-status">Idle</span>
+          <button
+            class="track"
+            data-track="2"
+            type="button"
+            aria-pressed="false"
+          >
+            <span class="track-number">2</span
+            ><span class="track-status">Idle</span>
           </button>
-
-          <button class="track" data-track="3" type="button">
-            <span class="track-number">3</span>
-            <span class="track-status">Idle</span>
-          </button>
-
-          <button class="track" data-track="4" type="button">
-            <span class="track-number">4</span>
-            <span class="track-status">Idle</span>
+          <button
+            class="track"
+            data-track="3"
+            type="button"
+            aria-pressed="false"
+          >
+            <span class="track-number">3</span
+            ><span class="track-status">Idle</span>
           </button>
         </div>
-
-        <div class="selected-label">
-          Selected track: <strong id="selectedTrackLabel">Track 1</strong>
+        <div class="selected-info">
+          Selected track: <strong id="selectedTrack">Track 1</strong>
         </div>
       </section>
 
       <section class="panel">
-        <div class="section-heading">
+        <div class="panel-head">
           <h2>Looper controls</h2>
           <span class="hint" id="recordHint">Ready</span>
         </div>
-
-        <div class="record-area">
-          <button
-            id="recordButton"
-            class="action-button record-button"
-            type="button"
-            disabled
-          >
-            <span id="recordLabel" class="button-title">● Record</span>
-            <span id="recordDescription" class="button-description">
-              Start recording this track
-            </span>
+        <div class="actions">
+          <button id="record" class="action record" type="button" disabled>
+            <span class="button-title" id="recordTitle">● Record</span>
+            <span class="button-desc" id="recordDesc"
+              >Start recording this track</span
+            >
           </button>
-
-          <button
-            id="clearButton"
-            class="action-button clear-button"
-            type="button"
-            disabled
-          >
+          <button id="clear" class="action clear" type="button" disabled>
             <span class="button-title">Clear track</span>
-            <span class="button-description" id="clearHint">
-              Press and hold for 1 second
-            </span>
-            <span id="holdProgress" class="hold-progress"></span>
+            <span class="button-desc" id="clearHint"
+              >Press and hold for 1 second</span
+            >
+            <span id="progress" class="progress"></span>
           </button>
         </div>
       </section>
@@ -440,354 +368,260 @@
         <div class="mute-row">
           <div>
             <h2>Output mute</h2>
-            <div class="mute-description" id="muteDescription">
-              Audio output is unmuted
-            </div>
+            <div class="mute-desc" id="muteDesc">Audio output is unmuted</div>
           </div>
-
-          <button id="muteButton" class="mute-button" type="button" disabled>
-            Mute
-          </button>
+          <button id="mute" class="mute" type="button" disabled>Mute</button>
         </div>
       </section>
 
       <section class="panel">
-        <div class="section-heading">
+        <div class="panel-head">
           <h2>Command log</h2>
-          <button
-            id="clearLogButton"
-            type="button"
-            style="
-              border: 0;
-              background: none;
-              color: var(--muted);
-              cursor: pointer;
-              font-size: 12px;
-            "
-          >
+          <button class="text-button" id="clearLog" type="button">
             Clear log
           </button>
         </div>
         <pre id="log" class="log">Waiting for ESP32 connection…</pre>
       </section>
-
       <div class="footer">Daisy Seed · ESP32 · WebSocket</div>
     </main>
 
     <script>
       "use strict";
 
-      // Change "/ws" if your ESP32 registers its WebSocket at another path.
-      const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${wsProtocol}//${location.host}/ws`;
+      /*
+       * Protocol used by the ESP32 firmware:
+       *   Looper: { bytes: [packedState] }
+       *   Muter:  "Mute" | "Unmute"
+       *
+       * UI track numbers 1–3 map to Daisy track numbers 0–2.
+       * State layout: top two bits = mode, low bits = track index.
+       */
+      const MODE = { Idle: 0, Recording: 1, Clear: 2 };
+      const WS_URL = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
 
-      const connectionDot = document.getElementById("connectionDot");
-      const connectionText = document.getElementById("connectionText");
-      const recordButton = document.getElementById("recordButton");
-      const recordLabel = document.getElementById("recordLabel");
-      const recordDescription = document.getElementById("recordDescription");
-      const recordHint = document.getElementById("recordHint");
-      const clearButton = document.getElementById("clearButton");
-      const clearHint = document.getElementById("clearHint");
-      const holdProgress = document.getElementById("holdProgress");
-      const muteButton = document.getElementById("muteButton");
-      const muteDescription = document.getElementById("muteDescription");
-      const logElement = document.getElementById("log");
-
+      const $ = (id) => document.getElementById(id);
+      const dot = $("dot"),
+        connection = $("connection"),
+        logEl = $("log");
+      const recordBtn = $("record"),
+        clearBtn = $("clear"),
+        muteBtn = $("mute");
       let socket = null;
       let connected = false;
       let selectedTrack = 1;
       let muted = false;
-
-      // Track states are independent. Changing selectedTrack never resets them.
-      // "recording" means this UI has sent Recording without subsequently
-      // sending Idle or Clear for that track.
+      let reconnectTimer = null;
       const tracks = {
         1: { recording: false },
         2: { recording: false },
         3: { recording: false },
-        4: { recording: false },
-      };
-
-      const MODE_BITS = {
-        Idle: 0,
-        Recording: 1,
-        Clear: 2,
       };
 
       function log(message) {
-        const time = new Date().toLocaleTimeString();
-        const lines = logElement.textContent.split("\n");
-        if (lines.length === 1 && lines[0].startsWith("Waiting for")) {
-          logElement.textContent = "";
-        }
-
-        logElement.textContent += `[${time}] ${message}\n`;
-
-        // Keep the log from growing indefinitely.
-        const entries = logElement.textContent.trimEnd().split("\n");
-        logElement.textContent = entries.slice(-60).join("\n") + "\n";
-        logElement.scrollTop = logElement.scrollHeight;
+        const stamp = new Date().toLocaleTimeString();
+        if (logEl.textContent.startsWith("Waiting for")) logEl.textContent = "";
+        const rows = (logEl.textContent + `[${stamp}] ${message}\n`)
+          .trimEnd()
+          .split("\n");
+        logEl.textContent = rows.slice(-60).join("\n") + "\n";
+        logEl.scrollTop = logEl.scrollHeight;
       }
 
-      function setConnectionState(isConnected) {
-        connected = isConnected;
-        connectionDot.classList.toggle("connected", connected);
-        connectionText.textContent = connected ? "Connected" : "Disconnected";
-
-        recordButton.disabled = !connected;
-        clearButton.disabled = !connected;
-        muteButton.disabled = !connected;
-
-        renderTracks();
-        updateControls();
+      function setConnected(value) {
+        connected = value;
+        dot.classList.toggle("on", value);
+        connection.textContent = value ? "Connected" : "Disconnected";
+        recordBtn.disabled = clearBtn.disabled = muteBtn.disabled = !value;
+        render();
       }
 
       function connect() {
-        connectionText.textContent = "Connecting…";
-        log(`Connecting to ${wsUrl}`);
-
-        socket = new WebSocket(wsUrl);
-
-        socket.addEventListener("open", () => {
-          setConnectionState(true);
-          log("WebSocket connected");
-        });
-
-        socket.addEventListener("close", () => {
-          setConnectionState(false);
-          log("WebSocket disconnected; retrying in 2 seconds");
-
-          setTimeout(() => {
-            if (!connected) connect();
-          }, 2000);
-        });
-
-        socket.addEventListener("error", () => {
-          log("WebSocket error");
-        });
-
-        socket.addEventListener("message", (event) => {
-          // Optional: process status messages if your ESP32 sends any.
-          log(`Received: ${String(event.data)}`);
-        });
+        if (
+          socket &&
+          (socket.readyState === WebSocket.CONNECTING ||
+            socket.readyState === WebSocket.OPEN)
+        )
+          return;
+        connection.textContent = "Connecting…";
+        log(`Connecting to ${WS_URL}`);
+        try {
+          const ws = new WebSocket(WS_URL);
+          socket = ws;
+          ws.addEventListener("open", () => {
+            if (socket !== ws) return;
+            setConnected(true);
+            log("WebSocket connected");
+          });
+          ws.addEventListener("message", (event) =>
+            log(`Received: ${String(event.data)}`),
+          );
+          ws.addEventListener("error", () => log("WebSocket error"));
+          ws.addEventListener("close", () => {
+            if (socket !== ws) return;
+            setConnected(false);
+            log("Connection closed; retrying in 2 seconds");
+            clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(connect, 2000);
+          });
+        } catch (error) {
+          setConnected(false);
+          log(`Connection failed: ${error.message}`);
+          clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(connect, 2000);
+        }
       }
 
-      function sendCommand(command, description) {
+      function send(command, description) {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) {
-          log(`Not sent — disconnected: ${description}`);
+          log(`Not sent (disconnected): ${description}`);
           return false;
         }
-
-        socket.send(JSON.stringify(command));
-        log(`Sent: ${description}`);
-        return true;
+        try {
+          socket.send(JSON.stringify(command));
+          log(`Sent: ${description}`);
+          return true;
+        } catch (error) {
+          log(`Send failed: ${error.message}`);
+          return false;
+        }
       }
 
       function sendLooper(mode, trackNumber) {
-        // UI tracks 1–4 map to Rust track numbers 0–3.
-        const trackBits = trackNumber - 1;
-        const stateByte = (MODE_BITS[mode] << 6) | trackBits;
-
-        return sendCommand(
-          { Looper: { bytes: [stateByte] } },
-          `Track ${trackNumber}: ${mode} (byte ${stateByte})`,
+        const zeroBasedTrack = trackNumber - 1;
+        const packedState = (MODE[mode] << 6) | zeroBasedTrack;
+        return send(
+          { Looper: { bytes: [packedState] } },
+          `Track ${trackNumber}: ${mode} (state ${packedState})`,
         );
       }
 
-      function renderTracks() {
+      function render() {
         document.querySelectorAll("[data-track]").forEach((button) => {
           const number = Number(button.dataset.track);
-          const state = tracks[number];
-          const status = button.querySelector(".track-status");
-
+          const recording = tracks[number].recording;
           button.classList.toggle("selected", number === selectedTrack);
-          button.classList.toggle("recording", state.recording);
-          button.classList.toggle("stopped", !state.recording);
-
-          status.textContent = state.recording ? "Recording" : "Idle";
-          button.setAttribute(
-            "aria-pressed",
-            number === selectedTrack ? "true" : "false",
-          );
+          button.classList.toggle("recording", recording);
+          button.querySelector(".track-status").textContent = recording
+            ? "Recording"
+            : "Idle";
+          button.setAttribute("aria-pressed", String(number === selectedTrack));
         });
-
-        document.getElementById("selectedTrackLabel").textContent =
-          `Track ${selectedTrack}`;
-      }
-
-      function updateControls() {
-        const state = tracks[selectedTrack];
-
-        recordButton.classList.toggle("is-recording", state.recording);
-        recordLabel.textContent = state.recording ? "■ Stop" : "● Record";
-        recordDescription.textContent = state.recording
+        $("selectedTrack").textContent = `Track ${selectedTrack}`;
+        const recording = tracks[selectedTrack].recording;
+        recordBtn.classList.toggle("active", recording);
+        $("recordTitle").textContent = recording ? "■ Stop" : "● Record";
+        $("recordDesc").textContent = recording
           ? "Stop recording this track"
           : "Start recording this track";
-
-        recordHint.textContent = state.recording
+        $("recordHint").textContent = recording
           ? `Track ${selectedTrack} is recording`
           : `Track ${selectedTrack} is idle`;
-
-        muteButton.textContent = muted ? "Unmute" : "Mute";
-        muteButton.classList.toggle("muted", muted);
-        muteDescription.textContent = muted
+        muteBtn.textContent = muted ? "Unmute" : "Mute";
+        muteBtn.classList.toggle("muted", muted);
+        $("muteDesc").textContent = muted
           ? "Audio output is muted"
           : "Audio output is unmuted";
       }
 
-      // Track switching is always allowed, even if other tracks are recording.
       document.querySelectorAll("[data-track]").forEach((button) => {
         button.addEventListener("click", () => {
           selectedTrack = Number(button.dataset.track);
-          renderTracks();
-          updateControls();
+          render();
           log(`Selected Track ${selectedTrack}`);
         });
       });
 
-      recordButton.addEventListener("click", () => {
-        const state = tracks[selectedTrack];
-
+      recordBtn.addEventListener("click", () => {
         if (!connected) return;
-
-        if (state.recording) {
-          // A recording track can only be started again after Idle or Clear.
-          if (sendLooper("Idle", selectedTrack)) {
-            state.recording = false;
-            renderTracks();
-            updateControls();
-          }
-        } else {
-          if (sendLooper("Recording", selectedTrack)) {
-            state.recording = true;
-            renderTracks();
-            updateControls();
-          }
+        const track = tracks[selectedTrack];
+        const mode = track.recording ? "Idle" : "Recording";
+        if (sendLooper(mode, selectedTrack)) {
+          track.recording = !track.recording;
+          render();
         }
       });
 
-      // Clear requires a continuous 1-second hold. Pointer events support touch
-      // screens and mouse input. A short press sends no command.
-      let holdTimer = null;
-      let holdStart = 0;
-      let holdPointerId = null;
-      let clearTriggered = false;
-      let progressFrame = null;
-
-      function resetHold() {
-        if (holdTimer !== null) {
-          clearTimeout(holdTimer);
-          holdTimer = null;
-        }
-
-        if (progressFrame !== null) {
-          cancelAnimationFrame(progressFrame);
-          progressFrame = null;
-        }
-
-        holdPointerId = null;
-        holdProgress.style.width = "0%";
-        clearHint.textContent = "Press and hold for 1 second";
+      // Clear only fires after a continuous one-second press; works with mouse and touch.
+      let holdStart = 0,
+        holdPointer = null,
+        holdTimer = null,
+        animation = 0,
+        clearSent = false;
+      function resetClearHold() {
+        if (holdTimer) clearTimeout(holdTimer);
+        if (animation) cancelAnimationFrame(animation);
+        holdTimer = animation = null;
+        holdStart = 0;
+        holdPointer = null;
+        $("progress").style.width = "0%";
+        if (!clearSent)
+          $("clearHint").textContent = "Press and hold for 1 second";
       }
-
-      function animateHoldProgress() {
-        if (!holdStart || clearTriggered) return;
-
-        const elapsed = performance.now() - holdStart;
-        const progress = Math.min(100, (elapsed / 1000) * 100);
-        holdProgress.style.width = `${progress}%`;
-
-        if (progress < 100) {
-          progressFrame = requestAnimationFrame(animateHoldProgress);
-        }
+      function animateProgress() {
+        if (!holdStart || clearSent) return;
+        const pct = Math.min(100, (performance.now() - holdStart) / 10);
+        $("progress").style.width = `${pct}%`;
+        if (pct < 100) animation = requestAnimationFrame(animateProgress);
       }
-
-      clearButton.addEventListener("pointerdown", (event) => {
-        if (!connected || clearTriggered || holdPointerId !== null) return;
-
+      clearBtn.addEventListener("pointerdown", (event) => {
+        if (!connected || holdPointer !== null) return;
         event.preventDefault();
-        holdPointerId = event.pointerId;
+        holdPointer = event.pointerId;
         holdStart = performance.now();
-        clearTriggered = false;
-
+        clearSent = false;
         try {
-          clearButton.setPointerCapture(event.pointerId);
-        } catch (_) {
-          // Pointer capture may not be available in every browser.
-        }
-
-        clearHint.textContent = "Keep holding…";
-        progressFrame = requestAnimationFrame(animateHoldProgress);
-
+          clearBtn.setPointerCapture(event.pointerId);
+        } catch (_) {}
+        $("clearHint").textContent = "Keep holding…";
+        animation = requestAnimationFrame(animateProgress);
         holdTimer = setTimeout(() => {
-          const trackNumber = selectedTrack;
-
-          if (sendLooper("Clear", trackNumber)) {
-            // Clear ends the current recording state for this track only.
-            tracks[trackNumber].recording = false;
-            clearTriggered = true;
-            clearHint.textContent = `Track ${trackNumber} cleared`;
-            log(`Track ${trackNumber} cleared`);
-            renderTracks();
-            updateControls();
+          if (sendLooper("Clear", selectedTrack)) {
+            tracks[selectedTrack].recording = false;
+            clearSent = true;
+            $("clearHint").textContent = `Track ${selectedTrack} cleared`;
+            log(`Track ${selectedTrack} cleared`);
+            render();
           } else {
-            clearHint.textContent = "Command not sent";
+            $("clearHint").textContent = "Command not sent";
           }
-
-          if (progressFrame !== null) {
-            cancelAnimationFrame(progressFrame);
-            progressFrame = null;
-          }
-
-          holdProgress.style.width = "100%";
+          $("progress").style.width = "100%";
+          if (animation) cancelAnimationFrame(animation);
+          animation = 0;
           holdTimer = null;
         }, 1000);
       });
-
-      function finishHold(event) {
-        if (holdPointerId === null) return;
+      function finishClear(event) {
+        if (holdPointer === null) return;
         if (
           event &&
           event.pointerId !== undefined &&
-          event.pointerId !== holdPointerId
+          event.pointerId !== holdPointer
         )
           return;
-
-        const wasTriggered = clearTriggered;
-        resetHold();
-
-        if (!wasTriggered) {
-          log("Clear cancelled — button was not held for 1 second");
-        }
-
-        clearTriggered = false;
+        const didClear = clearSent;
+        resetClearHold();
+        if (!didClear) log("Clear cancelled — held for less than 1 second");
+        clearSent = false;
       }
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach((name) =>
+        clearBtn.addEventListener(name, finishClear),
+      );
 
-      clearButton.addEventListener("pointerup", finishHold);
-      clearButton.addEventListener("pointercancel", finishHold);
-      clearButton.addEventListener("lostpointercapture", finishHold);
-
-      // Mute commands use the JSON representation from your Rust enum.
-      muteButton.addEventListener("click", () => {
+      muteBtn.addEventListener("click", () => {
         const nextMuted = !muted;
         const command = { Muter: nextMuted ? "Mute" : "Unmute" };
-
-        if (sendCommand(command, nextMuted ? "Mute" : "Unmute")) {
+        if (send(command, nextMuted ? "Mute" : "Unmute")) {
           muted = nextMuted;
-          updateControls();
+          render();
         }
       });
+      $("clearLog").addEventListener("click", () => {
+        logEl.textContent = "";
+      });
 
-      document
-        .getElementById("clearLogButton")
-        .addEventListener("click", () => {
-          logElement.textContent = "";
-        });
-
-      renderTracks();
-      updateControls();
-      setConnectionState(false);
+      render();
+      setConnected(false);
       connect();
     </script>
   </body>
