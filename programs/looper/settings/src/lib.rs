@@ -18,7 +18,7 @@ pub const FRAME_DELIM: u8 = 0x00;
 
 #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
-pub enum Mute {
+pub enum MuterCommand {
     Mute,
     Unmute,
 }
@@ -26,25 +26,34 @@ pub enum Mute {
 #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[repr(u16)]
 pub enum CommandUart {
-    Muter(Mute),
-    Looper(State),
+    Muter(MuterCommand),
+    Looper(LooperCommand),
 }
 
 #[bitfield]
 #[derive(Debug, PartialEq, Clone, Copy, serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
-pub struct State {
+pub struct LooperCommand {
     pub track_number: B6, // goes up to 4
-    pub mode: TrackState,
+    pub state: TrackStateCommand,
 }
 
 
 #[derive(Specifier, Debug, PartialEq, Clone, Copy, serde::Serialize, serde::Deserialize)]
 #[bits = 2]
-pub enum TrackState {
-    Idle,
-    Recording,
+pub enum TrackStateCommand {
+    Play,
+    Record,
     Clear,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TrackState {
+    Idling,
+    Playing,
+    Replaying,
+    Recording,
+    Overdubbing,
 }
     
 

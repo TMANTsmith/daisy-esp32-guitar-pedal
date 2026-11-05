@@ -3,8 +3,9 @@
 extern crate alloc;
 mod modules;
 
+use embassy_sync::watch::{Watch, Receiver, Sender};
 use embassy_time::{Instant};
-use modules::looper_v2::*;
+use modules::looper::*;
 use alloc::boxed::Box;
 use core::num::Wrapping;
 use daisy_embassy::{
@@ -27,6 +28,8 @@ use daisy_embassy::hal::gpio::Input;
 use daisy_embassy::hal::interrupt::typelevel::EXTI0;
 use daisy_embassy::hal::exti;
 
+static WATCH: Watch<CriticalSectionRawMutex, CommandUart, 2> = Watch::new();
+static SIGNAL: Signal<CriticalSectionRawMutex, CommandUart> = Signal::new();
 
 bind_interrupts!(struct Irqs {
     USART1 => usart::InterruptHandler<peripherals::USART1>;
@@ -67,14 +70,13 @@ fn panic() -> ! {
 
 #[embassy_executor::task]
 async fn audio_task(
+    mut watch_receiver: Receiver<'static, CriticalSectionRawMutex, CommandUart, 2>,
     mut interface: Interface<'static, Idle>,
     mut looper: Looper,
 ) {
     //debug!("entered audio");
-    use Mute::Mute;
-    use self::Mute::Unmute;
     let mut interface = unwrap!(interface.start_interface().await);
-    let mut command: CommandUart = CommandUart::Muter(Unmute);
+    let mut command: CommandUart = CommandUart::Muter(MuterCommand::Unmute);
     unwrap!(
         interface
             .start_callback(move |input, output| {
@@ -89,10 +91,10 @@ async fn audio_task(
                         looper.process(&mut frame.1);
                     }
 
-                    if let Ok(c) = COMMAND_UART.try_lock() {
-                        command = *c;
+                    if let Some(c) = watch_receiver.try_get() {
+                        command = c
                     }
-                    if command == CommandUart::Muter(Mute) {
+                    if command == CommandUart::Muter(MuterCommand::Mute) {
                         sender = &empty;
                     }
                     else {
@@ -157,11 +159,15 @@ async fn main(_spawner: Spawner) {
     let button = pins.d15;
     let button = ExtiInput::new(button, p.EXTI0, Pull::None, Irqs);
 
-    let looper = Looper::new(3, Second(30));
+    let looper_receiver = WATCH.receiver().unwrap();
+    let looper = Looper::new(3, Second(30), looper_receiver);
 
-    spawner_high.spawn(audio_task(interface, looper).unwrap());
-    spawner_low.spawn(button_detector(button).unwrap());
-    spawner_low.spawn(uart_receiver(uart_rx, led).unwrap());
+    let audio_receiver = WATCH.receiver().unwrap();
+    spawner_high.spawn(audio_task(audio_receiver, interface, looper).unwrap());
+    let button_sender = WATCH.sender();
+    spawner_low.spawn(button_detector(button_sender, button).unwrap());
+    let uart_sender = WATCH.sender();
+    spawner_low.spawn(uart_receiver(uart_rx, led, uart_sender).unwrap());
 
     debug!("spawned tasks");
 }

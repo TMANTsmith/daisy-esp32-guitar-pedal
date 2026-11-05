@@ -9,6 +9,7 @@ const CONSTS_JS: &str = concat!(
     include_str!("../consts.js")
 );
 
+use esp_hal::spi::master::Command;
 use esp_println as _;
 use serde_json::{to_string, from_str};
 use pcobs::{serialize, deserialize};
@@ -409,11 +410,64 @@ async fn http_worker(stack: Stack<'static>) {
 
 
 #[embassy_executor::task]
+async fn uart_receiver(uart_dma: UartDmaRead<Off>, uhci_rx: UhciRx<'static, Async>, dma_rx_a: DmaRxBuf, dma_rx_b: DmaRxBuf) {
+
+    let mut uart_dma = uart_dma.on(uhci_rx, dma_rx_a);
+    let mut next_dma = dma_rx_b;
+
+    info!("uart reveacer up");
+
+
+    let mut rx_buf = [0u8; 32];
+
+    let mut filled_len: usize = 0;
+
+
+    loop {
+        let (err, filled) = uart_dma.read(next_dma).await;
+        if let Err(e) = err {
+            info!("uart dma error {:?}", e);
+        }
+        info!("uart receaved");
+
+        for chunk in filled.received_data() {
+            for &byte in chunk {
+                if byte == FRAME_DELIM {
+                    // End of COBS frame — attempt to decode
+                    let msg: Result<CommandUart, _> = deserialize(&mut rx_buf[..filled_len], filled_len);
+                    match msg {
+                        Ok(command) => {
+                            COMMAND.signal(command);
+                        }
+                        Err(err) => {
+                            info!("uart decode error {:?}", defmt::Debug2Format(&err));
+                        }
+                    }
+                    filled_len = 0; 
+                } else {
+                    if filled_len < rx_buf.len() {
+                        rx_buf[filled_len] = byte;
+                        filled_len += 1;
+                    } else {
+                        info!("rx_buf overflowed");
+                        filled_len = 0;
+                    }
+                }
+            }
+        }
+        next_dma = filled;
+    }
+}
+
+
+
+
+#[embassy_executor::task]
 async fn uart_sender(mut uhci_tx: UhciTx<'static, Async>, mut dma_tx_a: DmaTxBuf) {
 
     loop {
 
-        let mut buf = [0u8; 512];
+        let mut buf = [0u8; 32];
         let command = COMMAND.wait().await;
 
         let len = match serialize(&command, buf.as_mut_slice()) {
