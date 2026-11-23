@@ -14,7 +14,7 @@ cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-sing
 cortex-m-rt = { version = "0.7.0", features = ["device"] }
 critical-section = "1.2.0"
 defmt = "1.0.1"
-defmt-rtt = "1.0.0"
+#defmt-rtt = "1.0.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 #circular-buffer = { version = "1.2.0", default-features = false, features = ["alloc"] }
 microfft = "0.6.0"
@@ -29,6 +29,12 @@ pcobs = "1.0.0"
 serde = { version = "1.0.229", default-features = false, features = ["derive"] }
 serde-big-array = "0.5.1"
 modular-bitfield = "0.13.1"
+rustmeter-beacon = {
+    git = "https://github.com/TMANTsmith/rustmeter.git",
+    branch = "main",
+    features = ["defmt", "stm32"],
+}
+
 
 
 [profile.dev]

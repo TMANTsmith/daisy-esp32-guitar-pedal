@@ -1,5 +1,6 @@
 use core::ops::Index;
 
+use rustmeter_beacon::step;
 use alloc::vec;
 use daisy_embassy::hal::exti::ExtiInput;
 use daisy_embassy::hal::pac::rtc::regs::Tr;
@@ -64,6 +65,7 @@ pub async fn uart_receiver(mut uart: UartRx<'static, Async>,
 
             match deserialize::<CommandUart>(frame, frame.len()) {
                 Ok(result) => {
+
                     if is_on {
                         led.off();
                         is_on = false;
@@ -122,43 +124,36 @@ pub async fn uart_sender(mut uart: UartTx<'static, Async>, signal_receiver: &'st
     }
 }
 
-    
+
 #[embassy_executor::task]
-pub async fn button_detector(watch_sender: Sender<'static, CriticalSectionRawMutex, CommandUart, 2>, signal_sender: &'static Signal<CriticalSectionRawMutex, CommandUart>, mut pin: ExtiInput<'static, Async>) {
+pub async fn button_detector(
+    looper_watch_sender: Sender<'static, CriticalSectionRawMutex, LooperCommand, 2>, 
+    signal_sender: &'static Signal<CriticalSectionRawMutex, CommandUart>, mut pin: ExtiInput<'static, Async>) {
     loop {
         pin.wait_for_rising_edge().await;
         let time = Instant::now();
         embassy_time::Timer::after_millis(10).await;
-        if let Some(mut command) = watch_sender.try_get() {
-            match &mut command {
-                CommandUart::Looper(mut state) => {
-                    let result = match state.state() {
-                        TrackStateCommand::Play => TrackStateCommand::Record,
-                        TrackStateCommand::Record => TrackStateCommand::Play,
-                        TrackStateCommand::Clear => TrackStateCommand::Clear,
-                    };
-                    state.set_state(result);
-                    watch_sender.send(command);
-                    info!("button pressed");
-                    signal_sender.signal(command);
+        if let Some(command) = looper_watch_sender.try_get() {
+            let result = match command.state() {
+                TrackStateCommand::Play => TrackStateCommand::Record,
+                TrackStateCommand::Record => TrackStateCommand::Play,
+                TrackStateCommand::Clear => TrackStateCommand::Clear,
+            };
+            let number = command.track_number();
+            let command = LooperCommand::new().with_state(result).with_track_number(number);
+            looper_watch_sender.send(command);
+            info!("button pressed");
+            let command = CommandUart::Looper(LooperCommand::new().with_state(result).with_track_number(number));
+            signal_sender.signal(command);
 
-                    pin.wait_for_falling_edge().await;
-                    let held_for = time.elapsed().as_millis();
+            pin.wait_for_falling_edge().await;
+            let held_for = time.elapsed().as_millis();
 
-                    if held_for >= 1000 {
-                        state.set_state(TrackStateCommand::Clear);
-                        watch_sender.send(command);
-                        signal_sender.signal(command);
-                    }
-                }
-                CommandUart::Muter(mut state) => {
-                    match state {
-                        MuterCommand::Mute => state = MuterCommand::Unmute,
-                        MuterCommand::Unmute => state = MuterCommand::Mute,
-                    }
-                    watch_sender.send(command);
-                    signal_sender.signal(command);
-                }
+            if held_for >= 1000 {
+                let command = LooperCommand::new().with_state(TrackStateCommand::Clear).with_track_number(number);
+                looper_watch_sender.send(command);
+                let command = CommandUart::Looper(LooperCommand::new().with_state(result).with_track_number(number));
+                signal_sender.signal(command);
             }
         }
     }

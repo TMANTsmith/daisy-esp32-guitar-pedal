@@ -6,6 +6,8 @@ mod modules;
 use modules::share::Module;
 use modules::muter::*;
 
+use rustmeter_beacon::{init_rustmeter_beacon, RustmeterConfig, monitor_scoped};
+
 use embassy_sync::watch::{Watch, Receiver, Sender};
 use embassy_time::{Instant};
 use modules::looper::*;
@@ -17,7 +19,6 @@ use daisy_embassy::{
     }, new_daisy_board, sdram::SDRAM_SIZE,
 };
 use defmt::{debug, info, unwrap};
-use defmt_rtt as _;
 use embassy_executor::{InterruptExecutor, Spawner};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 use embassy_time::Delay;
@@ -118,7 +119,9 @@ async fn main(_spawner: Spawner) {
 
 
 
-    let mut core = cortex_m::Peripherals::take().unwrap();
+    let mut core = unsafe {
+        cortex_m::Peripherals::steal()
+    };
     let mut sdram = board.sdram.build(&mut core.MPU, &mut core.SCB);
 
 
@@ -163,9 +166,13 @@ async fn main(_spawner: Spawner) {
 
     let (looper, looper_watch) = Looper::new(3, Second(30));
 
+    let config = RustmeterConfig::new(240_000_000);
+    init_rustmeter_beacon(config, &_spawner).expect("Failed to initialize RustMeter");
+
+
     spawner_high.spawn(audio_task(interface, looper, muter).unwrap());
 
-    // TODO: refector code to send all changed to a single task that manages the UART and button 
+    // TODO: refactor code to send all changed to a single task that manages the UART and button 
     let looper_watch_sender = looper_watch.sender();
     spawner_low.spawn(button_detector(looper_watch_sender,  &SIGNAL, button).unwrap());
 
