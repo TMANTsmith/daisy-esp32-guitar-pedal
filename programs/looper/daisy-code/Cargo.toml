@@ -8,7 +8,7 @@ daisy-embassy = { git = "https://github.com/daisy-embassy/daisy-embassy", featur
 #embassy-stm32 = { version = "0.6.0", features = ["defmt", "stm32h750ib", "time-driver-tim5", "exti", "memory-x", "unstable-pac", "chrono"] }
 embassy-time = { version = "0.5.1", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768", "generic-queue-8"] }
 embassy-sync = { version = "0.8.0", features = ["defmt"] }
-embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
+embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread", "executor-interrupt", "defmt", "trace"] }
 embassy-futures = "0.1.2"
 cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt = { version = "0.7.0", features = ["device"] }

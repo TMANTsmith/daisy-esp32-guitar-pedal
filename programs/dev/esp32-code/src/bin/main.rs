@@ -4,6 +4,8 @@
 
 extern crate alloc;
 
+
+
 const CONSTS_JS: &str = concat!(
     "HTTP/1.0 200 OK\r\nContent-Type: application/javascript\r\n\r\n",
     include_str!("../consts.js")
@@ -15,7 +17,7 @@ use alloc::boxed::Box;
 use core::error::Error;
 use core::marker::PhantomData;
 use core::{net::Ipv4Addr, str::FromStr};
-use defmt::info;
+use defmt::{Debug2Format, info};
 use embassy_time::Instant;
 use embassy_sync::channel::Channel;
 use embassy_sync::signal::Signal;
@@ -23,6 +25,7 @@ use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
 use embedded_websocket::{
     WebSocketServer, WebSocketReceiveMessageType, WebSocketSendMessageType,
 };
+use esp_hal::time::Rate;
 use embassy_executor::Spawner;
 use embassy_futures::select::{select, Either};
 use embassy_net::{
@@ -34,7 +37,7 @@ use embassy_net::{
     StaticConfigV4,
     tcp::TcpSocket,
 };
-use embassy_time::{Duration, Timer};
+use embassy_time::{Duration, Timer };
 use embedded_io_async::Write;
 use esp_alloc as _;
 use esp_backtrace as _;
@@ -51,7 +54,7 @@ use esp_hal::{
     dma_buffers
 };
 use esp_hal::uart::Config as UartConfig;
-use esp_println::{print, println};
+use defmt::{println};
 use esp_radio::wifi::{Config, ControllerConfig, Interface, WifiController, ap::AccessPointConfig};
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -207,14 +210,14 @@ async fn main(spawner: Spawner) -> ! {
     //spawner.spawn(spectrum_demo_task().unwrap());
 
     println!(
-        "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:80/"
-    );
+        "Connect to the AP `esp-radio` and point your browser to http://{}:80/"
+    , &gw_ip_addr_str);
     println!("Spectrum: {} bins @ {} Hz sample rate", FFT_BINS, SAMPLE_RATE);
     println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
     stack.wait_config_up().await;
     stack
         .config_v4()
-        .inspect(|c| println!("ipv4 config: {c:?}"));
+        .inspect(|c| println!("ipv4 config: {:?}", c));
 
     // Two independent HTTP workers, each with its own TcpSocket, both
     // listening on port 80. This lets one connection be torn down while
@@ -286,8 +289,8 @@ async fn http_worker(stack: Stack<'static>) {
         }
 
         let request = unsafe { core::str::from_utf8_unchecked(&buffer[..pos]) };
-        print!("{}", request);
-        println!();
+        println!("{}", request);
+
 
         let path = request.lines().next().and_then(|line| line.split_whitespace().nth(1)).unwrap_or("/");
         if request.contains("Upgrade: websocket") || request.contains("upgrade: websocket") {
@@ -311,7 +314,7 @@ async fn http_worker(stack: Stack<'static>) {
                     continue;
                 }
                 Err(e) => {
-                    println!("header parse error: {:?}", e);
+                    println!("header parse error: {:?}", Debug2Format(&e));
                     socket.close();
                     Timer::after(Duration::from_millis(10)).await;
                     socket.abort();
@@ -324,7 +327,7 @@ async fn http_worker(stack: Stack<'static>) {
                 match ws.server_accept(&ws_context.sec_websocket_key, None, &mut handshake_buf) {
                     Ok(len) => len,
                     Err(e) => {
-                        println!("ws handshake error: {:?}", e);
+                        println!("ws handshake error: {:?}", Debug2Format(&e));
                         socket.close();
                         Timer::after(Duration::from_millis(10)).await;
                         socket.abort();
@@ -391,7 +394,7 @@ async fn http_worker(stack: Stack<'static>) {
                                 _ => {}
                             },
                             Err(e) => {
-                                println!("ws frame error: {:?}", e);
+                                println!("ws frame error: {:?}",Debug2Format(&e));
                                 break 'ws_loop;
                             }
                         }
@@ -410,7 +413,7 @@ async fn http_worker(stack: Stack<'static>) {
                         ) {
                             Ok(len) => len,
                             Err(e) => {
-                                println!("ws encode error: {:?}", e);
+                                println!("ws encode error: {:?}", Debug2Format(&e));
                                 break 'ws_loop;
                             }
                         };

@@ -11,7 +11,7 @@ use serde_big_array::BigArray;
 
 // shaired 
 pub const BIN_VALUE_SIZE: usize = core::mem::size_of::<BinValue>();
-pub const FFT_INPUT: usize = 4096;
+pub const FFT_INPUT: usize = 64;
 pub const FFT_BINS: usize = FFT_INPUT / 2;
 pub const BAUDRATE: u32 = 2_000_000;
 

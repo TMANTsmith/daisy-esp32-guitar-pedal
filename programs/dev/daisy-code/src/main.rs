@@ -2,9 +2,11 @@
 #![no_main]
 extern crate alloc;
 
+use rustmeter_beacon::{init_rustmeter_beacon, RustmeterConfig, monitor_scoped};
 
 
 mod modules;
+use defmt::{info, debug, unwrap};
 
 use alloc::boxed::Box;
 use core::num::Wrapping;
@@ -20,18 +22,16 @@ use daisy_embassy::{
     sdram::SDRAM_SIZE,
     DaisyBoard,
 };
-use defmt::{debug, info, unwrap};
-use defmt_rtt as _;
 use embassy_executor::{InterruptExecutor, Spawner};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 use embassy_time::Delay;
 use embedded_alloc::LlffHeap as Heap;
 use hal::interrupt::{self, InterruptExt, Priority};
 use modules::FFT::*;
-use panic_probe as _;
 use pcobs::{deserialize, serialize};
 use settings::*;
 use static_cell::StaticCell;
+use panic_probe as _;
 
 bind_interrupts!(struct Irqs {
     USART1 => usart::InterruptHandler<peripherals::USART1>;
@@ -59,19 +59,15 @@ static EXECUTOR_LOW: InterruptExecutor = InterruptExecutor::new();
 static HEAP: Heap = Heap::empty();
 
 #[hal::interrupt]
-unsafe fn TIM15() {
-    unsafe { EXECUTOR_HIGH.on_interrupt() }
-}
-#[hal::interrupt]
 unsafe fn TIM17() {
     unsafe { EXECUTOR_LOW.on_interrupt() }
 }
-
-
-#[defmt::panic_handler]
-fn panic() -> ! {
-    core::panic!("panic via defmt::panic!")
+#[hal::interrupt]
+unsafe fn TIM16() {
+    unsafe { EXECUTOR_HIGH.on_interrupt() }
 }
+
+
 
 #[embassy_executor::task]
 async fn uart_receiver(mut uart: UartRx<'static, Async>) {
@@ -94,7 +90,7 @@ async fn uart_receiver(mut uart: UartRx<'static, Async>) {
                 Ok(command) => {
                     COMMAND.signal(command);
                 }
-                Err(e) => info!("bad cobs frame {}", defmt::Debug2Format(&e)),
+                Err(e) => { /* info!("bad cobs frame {}", defmt::Debug2Format(&e)) */ },
             }
 
             start = delim + 1;
@@ -186,8 +182,10 @@ async fn audio_task(
     let mut command: CommandUart = CommandUart::Mute(Unmute);
     unwrap!(
         interface
-            .start_callback(move |input, output| {
+        .start_callback(move |input, output| {
+            monitor_scoped!("audio_callback", {
                 let mut frames: FrameBlock = [(0.0, 0.0); 32];
+
                 convert_to(input, &mut frames);
 
                 if let Some(c) = COMMAND.try_take() {
@@ -196,26 +194,27 @@ async fn audio_task(
 
                 for frame in frames.iter_mut() {
                     match buffer_filler.add(frame.1) {
-                        Err(BufState::Ready(e)) => {  /* debug!("buffer sent to compute:"); */ BUFB.signal(e); },
-                        Err(BufState::NoBuf) => { 
-                            if let Some(b) = BUFA.try_take() { 
-                                buffer_filler.set_buf(b); 
-                                //debug!("buffer receaved from compute");
-                            } 
-                        },
-
-                        _ => ()
+                        Err(BufState::Ready(e)) => {
+                            BUFB.signal(e);
+                        }
+                        Err(BufState::NoBuf) => {
+                            if let Some(b) = BUFA.try_take() {
+                                buffer_filler.set_buf(b);
+                            }
+                        }
+                        _ => (),
                     }
                 }
 
                 if command == CommandUart::Mute(Mute) {
                     frames.fill((0.0, 0.0));
                 }
-                convert_from(&frames, output);
 
-            })
-            .await
-    );
+                convert_from(&frames, output);
+            });
+        })
+    .await
+        );
 }
 
 #[embassy_executor::main]
@@ -228,7 +227,7 @@ async fn main(_spawner: Spawner) {
 
 
 
-    let mut core = cortex_m::Peripherals::take().unwrap();
+    let mut core = unsafe { cortex_m::Peripherals::steal() };
     let mut sdram = board.sdram.build(&mut core.MPU, &mut core.SCB);
 
 
@@ -247,6 +246,7 @@ async fn main(_spawner: Spawner) {
     }
 
 
+    
 
     let pins = board.pins;
 
@@ -263,14 +263,17 @@ async fn main(_spawner: Spawner) {
 
     let interface = unwrap!(interface.start_interface().await);
 
-    interrupt::TIM15.set_priority(Priority::P3);
     interrupt::TIM17.set_priority(Priority::P5);
-    let spawner_high = EXECUTOR_HIGH.start(interrupt::TIM15); // reader
+    interrupt::TIM16.set_priority(Priority::P3);
+
     let spawner_low = EXECUTOR_LOW.start(interrupt::TIM17); // computer
+    let spawner_high = EXECUTOR_HIGH.start(interrupt::TIM16); // reader
 
     let buffer_filler = BUFFER_FILLER.init(BufferFiller::<FFT_INPUT>::new());
 
 
+    let config = RustmeterConfig::new(240_000_000);
+    init_rustmeter_beacon(config, &_spawner).expect("Failed to initialize RustMeter");
 
     spawner_high.spawn(audio_task(interface, buffer_filler).unwrap());
     spawner_low.spawn(fft_compute().unwrap());

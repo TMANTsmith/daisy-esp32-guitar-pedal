@@ -22,11 +22,27 @@ use defmt::info;
 use settings::*;
 use alloc::boxed::Box;
 
+use crate::modules::share::Module;
+
+#[embassy_executor::task]
+pub async fn mange_commands(
+    uart_receiver: Signal<CriticalSectionRawMutex, CommandUart>,
+    uart_sender: Signal<CriticalSectionRawMutex, CommandUart>,
+    button: Signal<CriticalSectionRawMutex, CommandUart>,
+    mute_sender: Sender<'static, CriticalSectionRawMutex, MuterCommand, 2>,
+    looper_sender: Sender<'static, CriticalSectionRawMutex, LooperCommand, 2>,
+) {
+
+
+}
+
+
 
 #[embassy_executor::task]
 pub async fn uart_receiver(mut uart: UartRx<'static, Async>, 
     mut led: UserLed<'static>, 
-    watch_sender: Sender<'static, CriticalSectionRawMutex, CommandUart, 2>) {
+    mute_sender: Sender<'static, CriticalSectionRawMutex, MuterCommand, 2>,
+    looper_sender: Sender<'static, CriticalSectionRawMutex, LooperCommand, 2>) {
     info!("uart receiver started");
     let mut buf = Box::new([0; 32]);
     let mut counter = 0usize;
@@ -57,8 +73,10 @@ pub async fn uart_receiver(mut uart: UartRx<'static, Async>,
                         is_on = true;
                     }
                     info!("read correct: {:?}", defmt::Debug2Format(&result));
-                    watch_sender.send(result);
-
+                    match result {
+                        CommandUart::Muter(c) => mute_sender.send(c),
+                        CommandUart::Looper(c) => looper_sender.send(c),
+                    }
                 }
                 Err(e) => info!("bad cobs frame {}", defmt::Debug2Format(&e)),
             }
@@ -85,7 +103,7 @@ pub async fn uart_receiver(mut uart: UartRx<'static, Async>,
 }
 
 #[embassy_executor::task]
-pub async fn uart_sender(mut uart: UartTx<'static, Async>, signal_receiver: Signal<CriticalSectionRawMutex, CommandUart>) {
+pub async fn uart_sender(mut uart: UartTx<'static, Async>, signal_receiver: &'static Signal<CriticalSectionRawMutex, CommandUart>) {
     loop {
         let mut buf = Box::new([0; 32]);
         let command = signal_receiver.wait().await;
@@ -106,11 +124,11 @@ pub async fn uart_sender(mut uart: UartTx<'static, Async>, signal_receiver: Sign
 
     
 #[embassy_executor::task]
-pub async fn button_detector(watch_sender: Sender<'static, CriticalSectionRawMutex, CommandUart, 2>, signal_sender: Signal<CriticalSectionRawMutex, CommandUart>, mut pin: ExtiInput<'static, Async>) {
+pub async fn button_detector(watch_sender: Sender<'static, CriticalSectionRawMutex, CommandUart, 2>, signal_sender: &'static Signal<CriticalSectionRawMutex, CommandUart>, mut pin: ExtiInput<'static, Async>) {
     loop {
         pin.wait_for_rising_edge().await;
         let time = Instant::now();
-        embassy_time::Timer::after_millis(10);
+        embassy_time::Timer::after_millis(10).await;
         if let Some(mut command) = watch_sender.try_get() {
             match &mut command {
                 CommandUart::Looper(mut state) => {
@@ -121,6 +139,7 @@ pub async fn button_detector(watch_sender: Sender<'static, CriticalSectionRawMut
                     };
                     state.set_state(result);
                     watch_sender.send(command);
+                    info!("button pressed");
                     signal_sender.signal(command);
 
                     pin.wait_for_falling_edge().await;
@@ -180,23 +199,31 @@ impl Track {
     }
 
     pub fn send_command(&mut self, state: TrackStateCommand) {
+        info!("track got command");
         match state {
             TrackStateCommand::Clear => self.state = TrackState::Idling,
             TrackStateCommand::Record => {
                 if self.state == TrackState::Idling {
                     self.state = TrackState::Recording;
                 }
-
-                if self.state == TrackState::Replaying || self.state == TrackState::Playing {
+                else if self.state == TrackState::Replaying  {
+                    self.state = TrackState::Overdubbing;
+                }
+                else if self.state == TrackState::Playing {
                     self.state = TrackState::Overdubbing;
                 }
             }
             TrackStateCommand::Play => {
-                if self.state == TrackState::Idling || self.state == TrackState::Recording {
+                if self.state == TrackState::Idling {
                     self.state = TrackState::Playing;
+                }
+                else if self.state == TrackState::Recording {
+                    self.state = TrackState::Playing;
+                    self.recording_length = self.index;
                 }
                 else if self.state == TrackState::Overdubbing {
                     self.state = TrackState::Replaying;
+                    self.recording_length = self.index;
                 }
             }
         }
@@ -217,7 +244,7 @@ impl Iterator for Track {
                 sample = None;
             }
             TrackState::Playing => { 
-                if self.index >= self.values.len() {
+                if self.index >= self.recording_length {
                     self.index = 0;
                 }
                 else {
@@ -226,7 +253,7 @@ impl Iterator for Track {
                 }
             }
             TrackState::Replaying => { 
-                if self.index >= self.values.len() {
+                if self.index >= self.recording_length {
                     self.index = 0;
                 }
                 else {
@@ -268,17 +295,20 @@ impl Index<usize> for Track {
 
 pub struct Looper {
     tracks: Vec<Track>,
-    watch_receiver: Receiver<'static, CriticalSectionRawMutex, CommandUart, 2>,
+    watch_receiver: Receiver<'static, CriticalSectionRawMutex, LooperCommand, 2>,
 }
 
 impl Looper {
-    pub fn new(tracks_count: usize, time: Second, watch_receiver: Receiver<'static, CriticalSectionRawMutex, CommandUart, 2>) -> Self {
-        let track_capacity = time.0 * SAMPLE_RATE;
+    pub fn new(tracks_count: usize, time: Second)-> (Self, &'static Watch<CriticalSectionRawMutex, LooperCommand, 2>) {
+        static WATCH: Watch<CriticalSectionRawMutex, LooperCommand, 2> = Watch::new();
 
-        Self {
+        let track_capacity = time.0 * SAMPLE_RATE;
+        let watch_receiver = WATCH.receiver().unwrap();
+
+        (Self {
             tracks: vec![Track::new(track_capacity); tracks_count],
             watch_receiver,
-        }
+        }, &WATCH)
     }
     pub fn send_command(&mut self, command: LooperCommand) {
         let track_number = command.track_number();
@@ -286,32 +316,26 @@ impl Looper {
         track.send_command(command.state());
     }
 
-    pub fn process(&mut self, input: &mut f32) {
+}
+
+impl Module for Looper {
+    fn process(&mut self, input: &mut f32) {
         // Read the command once. If Clear is received, immediately change
         // the shared command to Idle, but keep Clear locally for this sample.
-        if let Some(mut command) = self.watch_receiver.try_get() {
-            match command {
-                CommandUart::Looper(command) => {
-                    self.send_command(command);
-                }
-                _ => {}
-            }
+        if let Some(command) = self.watch_receiver.try_changed() {
+            self.send_command(command);
         }
         // this is so that overdubs don't record the other tracks
         let mut buffer = *input;
         for track in self.tracks.iter_mut() {
             match track.state() {
                 TrackState::Idling => {},
-                TrackState::Playing => { buffer += track.next().unwrap_or(0.0); },
-                TrackState::Replaying => { buffer += track.next().unwrap_or(0.0); },
-                TrackState::Recording => { track.record_point(input); track.next(); },
+                TrackState::Playing => { buffer += track.next().unwrap_or(0.0);  },
+                TrackState::Replaying => { buffer += track.next().unwrap_or(0.0);  },
+                TrackState::Recording => { track.record_point(input); track.next();  },
                 TrackState::Overdubbing => { track.overdub_point(input); buffer += track.next().unwrap_or(0.0); }
             }
         }
         *input = buffer;
     }
 }
-
-    
-
-

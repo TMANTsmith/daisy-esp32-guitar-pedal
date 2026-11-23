@@ -194,7 +194,7 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(net_task(runner).unwrap());
     spawner.spawn(connection(controller).unwrap());
     spawner.spawn(run_dhcp(stack, gw_ip_addr).unwrap());
-    //spawner.spawn(uart_receiver(uart_dma_rx, uhci_rx, dma_rx_a, dma_rx_b).unwrap());
+    spawner.spawn(uart_receiver(uart_dma_rx, uhci_rx, dma_rx_a, dma_rx_b).unwrap());
     spawner.spawn(uart_sender(uhci_tx, dma_tx_a).unwrap());
 
     //info!("Connect to the AP `esp-radio` and point your browser to http://{:?}:80/", gw_ip_addr_str);
